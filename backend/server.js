@@ -5,7 +5,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb'); // Import MongoDB 
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.PORT || 5001; // Use the port from .env or default to 5000
+const PORT = process.env.PORT || 5001; 
 
 // Middleware
 app.use(cors());
@@ -37,10 +37,10 @@ async function connectToDatabase() {
 // Route for testing
 app.get('/', async (req, res) => {
   try {
-    const db = client.db('springboothello'); // Replace with your database name
-    const collection = db.collection('springboot'); // Replace with your collection name
+    const db = client.db('p40Project'); 
+    const collection = db.collection('dogs'); 
 
-    const data = await collection.find({}).toArray(); // Fetch all documents
+    const data = await collection.find({}).toArray(); 
     res.json(data); // Send the data as JSON
   } catch (error) {
     console.error('Error fetching data:', error);
