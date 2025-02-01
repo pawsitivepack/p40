@@ -1,30 +1,39 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
-
-import DogCard from './components/DogCard';
+import Navbar from './components/Navbar';
+import Login from './components/Login';
+import Home from './components/Home';
+import About from './components/About';
+import Gallery from './components/Gallery';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 function App() {
-  const [dogs, setDogs] = useState([]); // Store dog data
+  const [dogs, setDogs] = useState([]); 
+  const [isLoggedIn, setIsLoggedIn] = useState(false); 
 
-  // Fetch dog data from backend when the component mounts
+  
   useEffect(() => {
-    fetch('http://localhost:5001') // Replace with your backend API
-      .then((response) => response.json())
-      .then((data) => setDogs(data)) // Store dog data in state
-      .catch((error) => console.error('Error fetching data:', error));
-  }, []);
+    if (isLoggedIn) {
+      fetch('http://localhost:5001') 
+        .then((response) => response.json())
+        .then((data) => setDogs(data))
+        .catch((error) => console.error('Error fetching data:', error));
+    }
+  }, [isLoggedIn]);
 
   return (
-    <div className="bg-gray-900 text-gray-100 min-h-screen py-10">
-      <h1 className="text-4xl font-bold text-center text-yellow-500 mb-10">Dogs List</h1>
-
-      {/* Display dogs in a responsive grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4">
-        {dogs.map((dog) => (
-          <DogCard key={dog._id} dog={dog} /> // Render DogCard component for each dog
-        ))}
+    <div className="bg-red-950 text-gray-100 min-h-screen py-10">
+      <Navbar />
+      <Router>
+        <Routes>
+          {/* Route for Dogs component */}
+          <Route path='/home' element={<Home />} />
+          <Route path='/about' element={<About />} />
+          <Route path='/gallery' element={<Gallery />} />
+          <Route path='/login' element={<Login />} />
+        </Routes>
+      </Router>
       </div>
-    </div>
   );
 }
 
