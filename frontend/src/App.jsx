@@ -26,7 +26,7 @@ function App() {
       <Navbar />
       <Router>
         <Routes>
-          {/* Route for Dogs component */}
+          <Route path="/" element={<Home />} /> {/* Default route redirects to /home */}
           <Route path='/home' element={<Home />} />
           <Route path='/about' element={<About />} />
           <Route path='/gallery' element={<Gallery />} />
