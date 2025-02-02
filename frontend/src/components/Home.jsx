@@ -3,7 +3,7 @@ import dogBackground from '../assets/dog.png';
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gray-900">
+    <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
       {/* Blurred Background Image */}
       <div
         className="absolute inset-0 bg-center bg-no-repeat bg-contain blur-md opacity-50"
@@ -11,7 +11,7 @@ export default function Home() {
       ></div>
 
       {/* Foreground Content */}
-      <div className="relative z-10 text-white text-center">
+      <div className="relative z-10 text-red-950 text-center">
         <h1 className="text-4xl font-bold">Welcome to P40-Dog!</h1>
         <p className="text-xl mt-4">Your best companion is waiting!</p>
       </div>
