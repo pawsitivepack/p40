@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { XMarkIcon } from '@heroicons/react/24/solid';
 
 const AddDogForm = ({ setFormVisible, setDogs }) => {
@@ -10,6 +11,7 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
         owner: '',
         adopted: false,
         adoptedDate: '',
+        imageURL: '', // New field for image link
     });
 
     const handleInputChange = (e) => {
@@ -20,19 +22,18 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
         }));
     };
 
-    const handleAddDog = (e) => {
+    const handleAddDog = async (e) => {
         e.preventDefault();
 
-        const dogToAdd = { ...newDog, adopted: false };
+        if (!newDog.imageURL.startsWith('http')) {
+            alert('Please enter a valid image URL');
+            return;
+        }
 
-        fetch('http://localhost:5001/dogs', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dogToAdd),
-        })
-        .then((response) => response.json())
-        .then((newDogData) => {
-            setDogs((prevDogs) => [...prevDogs, newDogData]);
+        try {
+            const response = await axios.post('http://localhost:5001/dogs', newDog);
+
+            setDogs((prevDogs) => [...prevDogs, response.data]); // Add new dog to state
             setNewDog({
                 name: '',
                 breed: '',
@@ -41,10 +42,12 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
                 owner: '',
                 adopted: false,
                 adoptedDate: '',
+                imageURL: '',
             });
             setFormVisible(false);
-        })
-        .catch((error) => console.error('Error adding dog:', error));
+        } catch (error) {
+            console.error('Error adding dog:', error.response ? error.response.data : error.message);
+        }
     };
 
     return (
@@ -58,7 +61,7 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
             </div>
 
             <form onSubmit={handleAddDog}>
-                {['name', 'breed', 'age', 'color', 'owner'].map((field) => (
+                {['name', 'breed', 'age', 'color', 'owner', 'imageURL'].map((field) => (
                     <div className="relative mb-4" key={field}>
                         <input
                             autoComplete="off"

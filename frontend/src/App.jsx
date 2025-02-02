@@ -7,6 +7,7 @@ import Gallery from './components/Gallery';
 import Home from './components/Home';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
+import Donate from './components/Donate';
 
 function App() {
   const [dogs, setDogs] = useState([]); 
@@ -23,22 +24,28 @@ function App() {
   }, [isLoggedIn]);
 
   return (
-    <div className="bg-red-950 text-gray-100 min-h-screen py-10 flex flex-col">
+    <div className="bg-red-950 text-gray-100 min-h-screen flex flex-col">
+      {/* Navbar */}
       <Navbar />
-     <main className='flex-grow'>
-      <Router>
-        <Routes>
-          {/* Route for Dogs component */}
-          <Route path='/home' element={<Home />} />
-          <Route path='/' element={<Home />} />
-          <Route path='/about' element={<About />} />
-          <Route path='/gallery' element={<Gallery />} />
-          <Route path='/login' element={<Login />} />
-        </Routes>
-      </Router>
+
+      {/* Main Content - Takes Remaining Space */}
+      <main className="flex-grow">
+        <Router>
+          <Routes>
+            <Route path='/home' element={<Home />} />
+            <Route path='/' element={<Home />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/gallery' element={<Gallery />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/donate' element={<Donate />} />
+          </Routes>
+        </Router>
       </main>
-     <div> <Footer/> </div>
-      </div>
+
+      {/* Footer Sticks to Bottom */}
+      <Footer />
+    </div>
+  
   );
 }
 
