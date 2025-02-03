@@ -10,6 +10,11 @@ function Gallery() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    // Pagination States
+    const [activePage, setActivePage] = useState(1);
+    const dogsPerPage = 7; 
+    const totalPages = Math.ceil(dogs.length / dogsPerPage);
+
     useEffect(() => {
         const fetchDogs = async () => {
             try {
@@ -26,6 +31,21 @@ function Gallery() {
         fetchDogs();
     }, []);
 
+    const removeDogFromList = (id) => {
+        setDogs((prevDogs) => {
+            const newDogs = prevDogs.filter((dog) => dog._id !== id);
+            if (activePage > Math.ceil(newDogs.length / dogsPerPage)) {
+                setActivePage(Math.max(activePage - 1, 1));  // Ensure we stay on a valid page
+            }
+            return newDogs;
+        });
+    };
+
+    // Pagination Logic
+    const indexOfLastDog = activePage * dogsPerPage;
+    const indexOfFirstDog = indexOfLastDog - dogsPerPage;
+    const currentDogs = dogs.slice(indexOfFirstDog, indexOfLastDog);
+
     return (
         <div className="relative min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-bold text-center text-red-800 mb-8">Gallery</h1>
@@ -33,9 +53,7 @@ function Gallery() {
             {loading && <p className="text-center text-gray-600">Loading dogs...</p>}
             {error && <p className="text-center text-red-600">{error}</p>}
 
-            {/* Dog Gallery */}
             <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${formVisible ? 'blur-sm' : ''}`}>
-                {/* Add Dog Card */}
                 <div
                     className="bg-red-800 text-white p-6 rounded-lg shadow-lg w-full flex flex-col justify-center items-center cursor-pointer hover:bg-red-900 transition-all"
                     onClick={() => setFormVisible(true)}
@@ -49,16 +67,39 @@ function Gallery() {
                     </button>
                 </div>
 
-                {/* Display Dog Cards */}
-                {dogs.length > 0 ? (
-                    dogs.map((dog) => <DogCard key={dog._id} dog={dog} />)
+                {currentDogs.length > 0 ? (
+                    currentDogs.map((dog) => <DogCard key={dog._id} dog={dog} onDelete={removeDogFromList} />)
                 ) : (
                     !loading && <p className="text-center text-gray-600 col-span-full">No dogs available.</p>
                 )}
             </div>
 
-            {/* Floating Add Dog Form */}
             {formVisible && <AddDogForm setFormVisible={setFormVisible} setDogs={setDogs} />}
+
+            <div className="flex justify-center mt-8">
+                <nav className="bg-gray-200 rounded-full px-4 py-2">
+                    <ul className="flex text-gray-600 gap-4 font-medium py-2">
+                        {Array.from({ length: totalPages }, (_, index) => {
+                            const page = index + 1;
+                            return (
+                                <li key={page}>
+                                    <button
+                                        onClick={() => setActivePage(page)}
+                                        className={`rounded-full px-4 py-2 transition duration-300 ease-in-out 
+                                            ${
+                                                activePage === page
+                                                    ? "bg-white text-gray-600"
+                                                    : "hover:bg-white hover:text-gray-600"
+                                            }`}
+                                    >
+                                        {page}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </nav>
+            </div>
         </div>
     );
 }

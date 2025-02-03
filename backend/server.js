@@ -1,6 +1,7 @@
 require('dotenv').config(); // Load environment variables
 const express = require('express');
 const cors = require('cors');
+const mongoose= require ('mongoose');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 // Initialize Express app
@@ -58,6 +59,50 @@ app.post('/dogs', async (req, res) => {
   } catch (error) {
     console.error('Error adding dog:', error);
     res.status(500).json({ error: 'Failed to add dog' });
+  }
+});
+
+
+// Route to add a new dog
+app.put('/dogs/:id', async (req, res) => {
+  try {
+    const {id}= req.params;
+    const db = client.db('p40Project');
+    const collection = db.collection('dogs');
+
+    const newDog = req.body;
+    const result = await collection.insertOne(newDog);
+
+    res.status(201).json({ ...newDog, _id: result.insertedId });
+  } catch (error) {
+    console.error('Error adding dog:', error);
+    res.status(500).json({ error: 'Failed to add dog' });
+  }
+});
+
+
+// DELETE route to delete a dog by its _id using MongoDB's native client
+app.delete('/dogs/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`Tried to delete a dog with id ${id}`);
+console.log("times")
+    // Validate that the id is a valid ObjectId
+    const objectId = new mongoose.Types.ObjectId(id);
+
+    const db = client.db('p40Project'); // Use the same database as in POST
+    const collection = db.collection('dogs');
+
+    const result = await collection.deleteOne({ _id: objectId });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ message: 'Dog not found' });
+    }
+
+    res.status(200).json({ message: 'Dog deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting dog:', error);
+    res.status(500).json({ error: 'Failed to delete dog' });
   }
 });
 
