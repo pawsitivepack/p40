@@ -1,14 +1,15 @@
 import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import logo from '../assets/underdogs.png';
+import { useLocation } from 'react-router-dom'; // Import useLocation hook
 
 const navigation = [
-  { name: 'Home', href: '/home', current: false },
-  { name: 'About', href: '/about', current: false },
-  { name: 'Gallery', href: '/gallery', current: false },
-  { name: 'Walk Dogs', href: '/walkdogs', current: false },
-  { name: 'Donate', href: 'https://fundraise.givesmart.com/f/4yx1/n?vid=1hjrg6', current: false },
-  { name: 'Login', href: '/login', current: false }
+  { name: 'Home', href: '/home' },
+  { name: 'About', href: '/about' },
+  { name: 'Gallery', href: '/gallery' },
+  { name: 'Walk Dogs', href: '/walkdogs' },
+  { name: 'Donate', href: '/donate' },
+  { name: 'Login', href: '/login' },
 ];
 
 function classNames(...classes) {
@@ -16,8 +17,12 @@ function classNames(...classes) {
 }
 
 export default function Navbar({ isLoggedIn, onLogout }) {
+  // Use useLocation hook to track the current location (URL path)
+  const location = useLocation();
+  const currentPage = location.pathname; // Get the current URL path
+
   return (
-    <Disclosure as="nav" className="text-yellow-500 shadow-md"> 
+    <Disclosure as="nav" className="text-yellow-500 shadow-md">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-24">
           <div className="flex items-center">
@@ -34,15 +39,11 @@ export default function Navbar({ isLoggedIn, onLogout }) {
               <a
                 key={item.name}
                 href={item.href}
-                target={item.name === 'Donate' ? '_blank' : '_self'}
-                rel={item.name === 'Donate' ? 'noopener noreferrer' : ''}
                 className={classNames(
-                  item.current ? 'bg-white text-maroon-700' : 'text-white hover:bg-yellow-500 hover:text-red-950',
-                  item.name === 'Donate'
-                    ? 'bg-yellow-500 text-red-950 px-4 py-2 rounded-md text-xl font-bold shadow-md hover:bg-yellow-400'
-                    : 'px-4 py-2 rounded-md text-xl font-bold'
+                  item.href === currentPage ? 'bg-white text-maroon-700' : 'text-white hover:bg-yellow-500 hover:text-red-950',
+                  'px-4 py-2 rounded-md text-xl font-bold'
                 )}
-                aria-current={item.current ? 'page' : undefined}
+                aria-current={item.href === currentPage ? 'page' : undefined}
               >
                 {item.name}
               </a>
@@ -74,15 +75,11 @@ export default function Navbar({ isLoggedIn, onLogout }) {
               key={item.name}
               as="a"
               href={item.href}
-              target={item.name === 'Donate' ? '_blank' : '_self'}
-              rel={item.name === 'Donate' ? 'noopener noreferrer' : ''}
               className={classNames(
-                item.current ? 'bg-white text-yellow-500' : 'text-black hover:bg-gray-300',
-                item.name === 'Donate'
-                  ? 'bg-yellow-500 text-red-950 block px-4 py-2 rounded-md text-xl font-semibold shadow-md hover:bg-yellow-400'
-                  : 'block px-4 py-2 rounded-md text-xl font-semibold'
+                item.href === currentPage ? 'bg-white text-yellow-500' : 'text-black hover:bg-gray-300',
+                'block px-4 py-2 rounded-md text-xl font-semibold'
               )}
-              aria-current={item.current ? 'page' : undefined}
+              aria-current={item.href === currentPage ? 'page' : undefined}
             >
               {item.name}
             </DisclosureButton>
