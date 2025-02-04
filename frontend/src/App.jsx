@@ -28,7 +28,6 @@ function App() {
     <div className="bg-red-950 text-gray-100 min-h-screen flex flex-col">
       {/* Navbar */}
       <Navbar />
-
       {/* Main Content - Takes Remaining Space */}
       <main className="flex-grow">
         

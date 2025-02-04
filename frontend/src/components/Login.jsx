@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import logo from '../assets/underdogs.png';
+import dogBackground from '../assets/paw.png'; // Make sure this path is correct
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -6,140 +8,182 @@ export default function Login() {
     firstName: '',
     lastName: '',
     age: '',
+    phone: '',
     email: '',
     password: '',
     confirmPassword: '',
-    phone: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (isRegistering && parseInt(formData.age) < 12) {
-      alert('You must be at least 12 years old to create an account.');
+    if (isRegistering && formData.password !== formData.confirmPassword) {
+      alert('Passwords do not match!');
       return;
     }
-
-    const endpoint = isRegistering ? '/register' : '/login';
-
-    try {
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-      alert(result.message);
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Something went wrong.');
+    alert(`${isRegistering ? 'Creating account for' : 'Logging in with'}: ${formData.email}`);
+    if (!isRegistering && rememberMe) {
+      localStorage.setItem('rememberedEmail', formData.email);
+    } else {
+      localStorage.removeItem('rememberedEmail');
     }
   };
 
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setFormData((prev) => ({ ...prev, email: rememberedEmail }));
+      setRememberMe(true);
+    }
+  }, []);
+
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-red-950 p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-4 text-center">
-          {isRegistering ? 'Create Account' : 'Login'}
-        </h2>
+    <div className="relative flex justify-center items-center min-h-screen bg-gray-100 overflow-hidden">
+      {/* Blurred Background Image */}
+      <div
+        className="absolute inset-0 bg-center bg-no-repeat bg-contain blur-md opacity-50"
+        style={{ backgroundImage: `url(${dogBackground})` }}
+      ></div>
 
-        <form onSubmit={handleSubmit}>
-          {isRegistering && (
-            <>
-              <input
-                type="text"
-                name="firstName"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="w-full p-2 mb-2 border rounded"
-                required
-              />
-              <input
-                type="text"
-                name="lastName"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="w-full p-2 mb-2 border rounded"
-                required
-              />
-              <input
-                type="number"
-                name="age"
-                placeholder="Age (12 or older)"
-                value={formData.age}
-                onChange={handleChange}
-                className="w-full p-2 mb-2 border rounded"
-                required
-                min="13"
-              />
-              <input
-                type="tel"
-                name="phone"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={handleChange}
-                className="w-full p-2 mb-2 border rounded"
-                required
-              />
-            </>
-          )}
+      <div className="relative bg-white shadow-lg rounded-md w-96 z-10">
+        <div className="bg-red-950">
+          <div className="bg-maroon-800 p-2 text-center rounded-t-md">
+            <img src={logo} alt="Dog Logo" className="h-12 mx-auto mt-3 mb-2" />
+          </div>
+        </div>
+        <div className="p-6">
+          <h2 className="text-xl font-bold text-gray-700 mb-2 text-center">
+            {isRegistering ? 'Create Account' : 'Login'}
+          </h2>
 
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full p-2 mb-2 border rounded"
-            required
-          />
+          <form onSubmit={handleSubmit}>
+            {isRegistering && (
+              <>
+                <label className="block text-gray-600 mb-1">First Name</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  placeholder="Enter your first name"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                  required
+                />
+                <label className="block text-gray-600 mb-1">Last Name</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  placeholder="Enter your last name"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                  required
+                />
+                <label className="block text-gray-600 mb-1">Age</label>
+                <input
+                  type="number"
+                  name="age"
+                  value={formData.age}
+                  onChange={handleChange}
+                  placeholder="Enter your age"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                  required
+                />
+                <label className="block text-gray-600 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="Enter your phone number"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                  required
+                />
+              </>
+            )}
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full p-2 mb-2 border rounded"
-            required
-          />
-
-          {isRegistering && (
+            <label className="block text-gray-600 mb-1">Username/Email</label>
             <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
-              className="w-full p-2 mb-2 border rounded"
+              placeholder="Enter your username or email"
+              className="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-maroon-600"
               required
             />
-          )}
 
-          <button
-            type="submit"
-            className="w-full bg-yellow-500 text-black py-2 rounded hover:bg-blue-600"
-          >
-            {isRegistering ? 'Create Account' : 'Login'}
-          </button>
-        </form>
+            <label className="block text-gray-600 mb-1">Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              className="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-maroon-600"
+              required
+            />
 
-        <p className="mt-4 text-center">
-          {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button
-            className="text-blue-500 hover:underline"
-            onClick={() => setIsRegistering(!isRegistering)}
-          >
-            {isRegistering ? 'Login' : 'Create Account'}
-          </button>
-        </p>
+            {isRegistering && (
+              <>
+                <label className="block text-gray-600 mb-1">Re-enter Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Re-enter your password"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                  required
+                />
+              </>
+            )}
+
+            {!isRegistering && (
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="mr-2"
+                />
+                <label htmlFor="rememberMe" className="text-gray-700">
+                  Remember Me
+                </label>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-gray-700 text-white py-2 rounded-md hover:bg-gray-800 transition"
+            >
+              {isRegistering ? 'Create Account' : 'Login'}
+            </button>
+          </form>
+
+          <div className="text-center mt-2">
+            <p className="text-sm text-gray-600">
+              {isRegistering ? 'Already have an account?' : "Don't have an account?"}{' '}
+              <button
+                onClick={() => setIsRegistering(!isRegistering)}
+                className="text-blue-600 hover:underline"
+              >
+                {isRegistering ? 'Login' : 'Create an account'}
+              </button>
+            </p>
+            <a
+              href="#"
+              className="text-blue-600 hover:underline text-sm mt-2 inline-block"
+            >
+              Forgot Password
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );
