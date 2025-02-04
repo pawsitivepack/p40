@@ -7,8 +7,8 @@ export default function Home() {
       {/* Blurred Background Image */}
       <div
         className="absolute inset-0 bg-center bg-no-repeat bg-contain blur-md opacity-50"
-        style={{ backgroundImage: `url(${dogBackground})` }}
-      ></div>
+        style={{ backgroundImage: `url(${dogBackground})` }} >
+      </div>
 
       {/* Foreground Content */}
       <div className="relative z-10 text-red-950 text-center">

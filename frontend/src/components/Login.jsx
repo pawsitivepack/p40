@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logo from '../assets/underdogs.png';
+import dogBackground from '../assets/paw.png'; // Make sure this path is correct
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -41,12 +42,18 @@ export default function Login() {
   }, []);
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="bg-white shadow-lg rounded-md w-96">
+    <div className="relative flex justify-center items-center min-h-screen bg-gray-100 overflow-hidden">
+      {/* Blurred Background Image */}
+      <div
+        className="absolute inset-0 bg-center bg-no-repeat bg-contain blur-md opacity-50"
+        style={{ backgroundImage: `url(${dogBackground})` }}
+      ></div>
+
+      <div className="relative bg-white shadow-lg rounded-md w-96 z-10">
         <div className="bg-red-950">
-        <div className="bg-maroon-800 p-2 text-center rounded-t-md">
-          <img src={logo} alt="Dog Logo" className="h-12 mx-auto mt-3 mb-2" />
-        </div>
+          <div className="bg-maroon-800 p-2 text-center rounded-t-md">
+            <img src={logo} alt="Dog Logo" className="h-12 mx-auto mt-3 mb-2" />
+          </div>
         </div>
         <div className="p-6">
           <h2 className="text-xl font-bold text-gray-700 mb-2 text-center">
