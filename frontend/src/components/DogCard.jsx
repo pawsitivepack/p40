@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 
-function DogCard({ dog, onDelete }) {
+function DogCard({ dog, onDelete, onEdit }) {
   const [showMenu, setShowMenu] = useState(false);
   const cardRef = useRef(null);
 
@@ -38,6 +38,13 @@ function DogCard({ dog, onDelete }) {
       console.error('Error deleting dog:', error);
     }
   };
+
+  const handleEdit = () => {
+    setShowMenu(false);
+    console.log(`${dog._id} You are trying to update this dog named ${dog.name}`);
+    onEdit(dog); // Pass the dog object to the parent component for editing
+  };
+
   return (
     <div
       ref={cardRef}
@@ -62,13 +69,10 @@ function DogCard({ dog, onDelete }) {
       {showMenu && (
         <div className="absolute top-12 right-4 bg-white shadow-lg rounded-lg w-36 p-2 z-10">
           <button
-            onClick={() => {
-              setShowMenu(false);
-              console.log(`${dog._id} You are trying to update this dog named ${dog.name}`);
-            }}
+            onClick={handleEdit} // Added the handleEdit function here
             className="w-full text-left text-gray-700 hover:bg-gray-200 py-1 px-2 rounded"
           >
-            Update
+            Edit
           </button>
           <button
             onClick={(e) => {

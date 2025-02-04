@@ -62,24 +62,41 @@ app.post('/dogs', async (req, res) => {
   }
 });
 
-
-// Route to add a new dog
 app.put('/dogs/:id', async (req, res) => {
   try {
-    const {id}= req.params;
+    const { id } = req.params;
     const db = client.db('p40Project');
     const collection = db.collection('dogs');
 
-    const newDog = req.body;
-    const result = await collection.insertOne(newDog);
+    // Convert id to ObjectId (MongoDB uses ObjectId for _id)
+    const { ObjectId } = require('mongodb');
+    const objectId = new ObjectId(id);
 
-    res.status(201).json({ ...newDog, _id: result.insertedId });
+    const updatedDog = req.body;
+    delete updatedDog._id; // Ensure _id is not modified
+
+    // Update the dog using _id as reference
+    const result = await collection.updateOne(
+      { _id: objectId }, // Find dog by _id
+      { $set: updatedDog } // Update only the provided fields
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'Dog not found' });
+    }
+
+    // Fetch the updated dog to return the updated data
+    const updatedDogData = await collection.findOne({ _id: objectId });
+
+    res.status(200).json({
+      message: 'Dog updated successfully',
+      updatedDog: updatedDogData,  // Return the updated dog data
+    });
   } catch (error) {
-    console.error('Error adding dog:', error);
-    res.status(500).json({ error: 'Failed to add dog' });
+    console.error('Error updating dog:', error);
+    res.status(500).json({ error: 'Failed to update dog' });
   }
 });
-
 
 // DELETE route to delete a dog by its _id using MongoDB's native client
 app.delete('/dogs/:id', async (req, res) => {

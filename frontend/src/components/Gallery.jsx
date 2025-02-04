@@ -2,17 +2,19 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import DogCard from './DogCard';
 import AddDogForm from './AddDogForm';
+import EditDog from './EditDog';
 import { PlusCircleIcon } from '@heroicons/react/24/solid';
 
 function Gallery() {
     const [dogs, setDogs] = useState([]);
     const [formVisible, setFormVisible] = useState(false);
+    const [editingDog, setEditingDog] = useState(null); // Track which dog is being edited
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     // Pagination States
     const [activePage, setActivePage] = useState(1);
-    const dogsPerPage = 7; 
+    const dogsPerPage = 7;
     const totalPages = Math.ceil(dogs.length / dogsPerPage);
 
     useEffect(() => {
@@ -35,12 +37,25 @@ function Gallery() {
         setDogs((prevDogs) => {
             const newDogs = prevDogs.filter((dog) => dog._id !== id);
             if (activePage > Math.ceil(newDogs.length / dogsPerPage)) {
-                setActivePage(Math.max(activePage - 1, 1));  // Ensure we stay on a valid page
+                setActivePage(Math.max(activePage - 1, 1)); // Ensure we stay on a valid page
             }
             return newDogs;
         });
     };
 
+    const handleEditDog = (dog) => {
+        setEditingDog(dog);  // Set the dog to be edited
+        setFormVisible(true); // Show the form
+    };
+
+    const handleUpdateDog = (updatedDog) => {
+        const updatedDogs = dogs.map((dog) =>
+            dog._id === updatedDog._id ? updatedDog : dog
+        );
+        
+        setDogs(updatedDogs);
+        setFormVisible(false);  // Close the form after update
+    };
     // Pagination Logic
     const indexOfLastDog = activePage * dogsPerPage;
     const indexOfFirstDog = indexOfLastDog - dogsPerPage;
@@ -56,7 +71,10 @@ function Gallery() {
             <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${formVisible ? 'blur-sm' : ''}`}>
                 <div
                     className="bg-red-800 text-white p-6 rounded-lg shadow-lg w-full flex flex-col justify-center items-center cursor-pointer hover:bg-red-900 transition-all"
-                    onClick={() => setFormVisible(true)}
+                    onClick={() => {
+                        setEditingDog(null); // Ensure we're adding a new dog
+                        setFormVisible(true);
+                    }}
                 >
                     <PlusCircleIcon className="h-12 w-12 text-white mb-2" />
                     <h3 className="text-lg font-semibold">Add a New Dog</h3>
@@ -68,14 +86,37 @@ function Gallery() {
                 </div>
 
                 {currentDogs.length > 0 ? (
-                    currentDogs.map((dog) => <DogCard key={dog._id} dog={dog} onDelete={removeDogFromList} />)
+                    currentDogs.map((dog) => (
+                        <DogCard 
+                            key={dog._id} 
+                            dog={dog} 
+                            onDelete={removeDogFromList} 
+                            onEdit={handleEditDog}  // Pass the handleEditDog function here
+                        />
+                    ))
                 ) : (
                     !loading && <p className="text-center text-gray-600 col-span-full">No dogs available.</p>
                 )}
             </div>
 
-            {formVisible && <AddDogForm setFormVisible={setFormVisible} setDogs={setDogs} />}
+            {/* Show Add or Edit Form */}
+            {formVisible && (
+                editingDog ? (
+                    <EditDog 
+                        dog={editingDog} 
+                        setFormVisible={setFormVisible}
+                        handleUpdateDog={handleUpdateDog} 
+                        setDogs={setDogs} 
+                    />
+                ) : (
+                    <AddDogForm 
+                        setFormVisible={setFormVisible} 
+                        setDogs={setDogs} 
+                    />
+                )
+            )}
 
+            {/* Pagination */}
             <div className="flex justify-center mt-8">
                 <nav className="bg-gray-200 rounded-full px-4 py-2">
                     <ul className="flex text-gray-600 gap-4 font-medium py-2">
