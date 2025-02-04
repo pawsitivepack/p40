@@ -34,7 +34,7 @@ export default function Navbar({ isLoggedIn, onLogout }) {
             <span className="text-yellow-500 text-4xl font-extrabold"></span>
           </div>
 
-          <div className="hidden sm:flex sm:space-x-6 mb-8 text-large">
+          <div className="hidden sm:flex sm:space-x-6 mb6 text-large">
             {navigation.map((item) => (
               <a
                 key={item.name}
