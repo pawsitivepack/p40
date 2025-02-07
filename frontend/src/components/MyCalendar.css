@@ -1,0 +1,101 @@
+/* Center the calendar and container */
+.calendar-container {
+    display: flex;
+    flex-direction: row; /* Place calendar and form side-by-side */
+    align-items: flex-start;
+    justify-content: center;
+    gap: 20px; /* Space between calendar and form */
+    height: 100vh; /* Full viewport height */
+    padding: 20px;
+    background-color: #f9f9f9;
+    color: black;
+    overflow: hidden; /* Prevent page overflow */
+}
+
+/* Calendar styles */
+.rbc-calendar {
+    flex: 1; /* Allow the calendar to take up available space */
+    max-width: 800px;
+    min-width: 600px; /* Ensure a minimum size for the calendar */
+}
+
+/* Form container styles */
+.event-form {
+    flex: 0 0 300px; /* Fixed width for the form */
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #ffffff; /* White background */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none; /* Hide by default */
+    position: sticky; /* Keep the form in view while scrolling */
+    top: 20px; /* Sticky positioning */
+}
+
+/* Show the form when active */
+.event-form.active {
+    display: block;
+}
+
+/* Form alignment */
+.event-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.event-form label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.event-form input,
+.event-form select {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Style the buttons */
+.event-form button {
+    font-size: 16px;
+    padding: 10px 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.2s ease;
+}
+
+.event-form button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.event-form button[type="submit"]:hover {
+    background-color: #45a049;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.event-form button[type="button"] {
+    background-color: #f44336;
+    color: white;
+    margin-left: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.event-form button[type="button"]:hover {
+    background-color: #d32f2f;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Align the buttons */
+.event-form div:last-child {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
