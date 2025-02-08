@@ -1,101 +1,257 @@
-/* Center the calendar and container */
-.calendar-container {
-    display: flex;
-    flex-direction: row; /* Place calendar and form side-by-side */
-    align-items: flex-start;
-    justify-content: center;
-    gap: 20px; /* Space between calendar and form */
-    height: 100vh; /* Full viewport height */
-    padding: 20px;
-    background-color: #f9f9f9;
-    color: black;
-    overflow: hidden; /* Prevent page overflow */
+@import "tailwindcss";
+
+@theme {
+	--color-primary: #5a7184; /* Blue for main events and current day */
+	--color-secondary: #10b981; /* Green for completed tasks */
+	--color-warning: #ef4444; /* Red for urgent events */
+	--color-muted: #6b7280; /* Cool gray for inactive days */
+	--color-background: #f5f5f5; /* Light gray background */
+	--color-text-dark: #1f2937; /* Dark text for contrast */
+	--color-text-light: #ffffff; /* Light text */
 }
 
-/* Calendar styles */
+/* Calendar Background */
 .rbc-calendar {
-    flex: 1; /* Allow the calendar to take up available space */
-    max-width: 800px;
-    min-width: 600px; /* Ensure a minimum size for the calendar */
+	background: var(--color-background);
+	border-radius: 16px;
+	padding: 20px;
+	box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+	overflow: hidden;
+	max-width: 100%;
 }
 
-/* Form container styles */
-.event-form {
-    flex: 0 0 300px; /* Fixed width for the form */
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #ffffff; /* White background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    display: none; /* Hide by default */
-    position: sticky; /* Keep the form in view while scrolling */
-    top: 20px; /* Sticky positioning */
+/* Toolbar */
+.rbc-toolbar {
+	background: var(--color-primary);
+	color: var(--color-text-light);
+	font-size: 16px;
+	font-weight: bold;
+	padding: 12px;
+	border-radius: 12px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
 }
 
-/* Show the form when active */
-.event-form.active {
-    display: block;
+.rbc-toolbar .rbc-btn-group button {
+	background: var(--color-secondary);
+	color: var(--color-text-light);
+	padding: 6px 12px;
+	margin: 4px;
+	border: none;
+	border-radius: 16px;
+	cursor: pointer;
+	transition: all 0.3s ease;
 }
 
-/* Form alignment */
-.event-form form {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.rbc-toolbar .rbc-btn-group button:hover {
+	background: var(--color-warning);
+	transform: scale(1.05);
 }
 
-.event-form label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
+/* Day Headers */
+.rbc-month-header .rbc-header {
+	color: var(--color-muted);
+	font-size: 14px;
+	font-weight: bold;
+	text-transform: uppercase;
+	text-align: center;
+	padding: 8px;
+	border-bottom: 2px solid rgba(0, 0, 0, 0.1);
 }
 
-.event-form input,
-.event-form select {
-    width: 100%;
-    padding: 8px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+/* Day Cells */
+.rbc-day-bg {
+	background: white;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 8px;
+	transition: background-color 0.3s ease;
 }
 
-/* Style the buttons */
-.event-form button {
-    font-size: 16px;
-    padding: 10px 15px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, box-shadow 0.2s ease;
+.rbc-day-bg:nth-child(7n + 1) {
+	background: #fce4ec; /* Light pink for Sundays */
 }
 
-.event-form button[type="submit"] {
-    background-color: #4CAF50;
-    color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+/* Today's Date */
+.rbc-today {
+	background: var(--color-primary);
+	color: var(--color-text-light);
+	font-weight: bold;
+	border-radius: 12px;
 }
 
-.event-form button[type="submit"]:hover {
-    background-color: #45a049;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+/* Events */
+.rbc-event {
+	background: var(--color-secondary);
+	color: white;
+	border-radius: 12px;
+	padding: 4px 8px;
+	font-size: 12px;
+	font-weight: bold;
+	transition: background-color 0.3s ease;
+	box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.event-form button[type="button"] {
-    background-color: #f44336;
-    color: white;
-    margin-left: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.rbc-event:hover {
+	background: #059669;
+	transform: translateY(-2px);
 }
 
-.event-form button[type="button"]:hover {
-    background-color: #d32f2f;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+/* Urgent Events */
+.rbc-event.urgent {
+	background: var(--color-warning);
+	color: white;
 }
 
-/* Align the buttons */
-.event-form div:last-child {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+/* Date Cells */
+.rbc-date-cell {
+	color: var(--color-text-dark);
+	font-size: 16px;
+	font-weight: bold;
+	text-align: center;
+	padding: 4px;
+}
+
+.rbc-date-cell:hover {
+	background: rgba(224, 247, 250, 0.3);
+	border-radius: 12px;
+	transition: background-color 0.3s ease;
+}
+
+/* Faded Out-of-Range Dates */
+.rbc-date-cell.rbc-off-range {
+	color: var(--color-muted);
+	font-weight: normal;
+	opacity: 0.7;
+}
+
+.rbc-date-cell.rbc-off-range:hover {
+	opacity: 1;
+	color: var(--color-text-dark);
+}
+
+/* Time Column (e.g., 12:00 AM, 1:00 AM) */
+.rbc-time-gutter {
+	background: var(--color-background);
+	color: var(--color-text-dark);
+	font-size: 14px;
+	font-weight: bold;
+	padding: 8px;
+	border-right: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.rbc-time-slot .rbc-label {
+	color: var(--color-primary); /* Grey-Blue */
+	font-weight: bold;
+	font-size: 13px;
+	padding: 2px;
+}
+
+/* Top Header (Single Day and Week View) */
+.rbc-time-header {
+	background: var(--color-primary);
+	color: var(--color-text-light);
+	font-size: 16px;
+	font-weight: bold;
+	padding: 10px;
+	border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+/* Full Visibility for Day Header Cells */
+.rbc-time-header-cell {
+	background: var(--color-primary);
+	color: var(--color-text-light);
+	font-size: 16px;
+	font-weight: bold;
+	text-transform: uppercase;
+	padding: 12px 8px; /* Increased padding for full visibility */
+	height: auto; /* Ensure it expands as needed */
+	text-align: center;
+	border-radius: 8px;
+	overflow: visible;
+	white-space: nowrap;
+}
+
+.rbc-time-header-cell .rbc-button-link {
+	color: var(--color-text-light);
+	font-size: 14px;
+	font-weight: bold;
+	padding: 5px 8px;
+}
+
+.rbc-time-header-cell:hover {
+	background: #374151; /* Darker hover effect */
+	color: #f3f4f6;
+}
+
+.rbc-row {
+	overflow: visible; /* Allow children to fully render */
+}
+/* Today's Header in Day View */
+.rbc-today .rbc-time-header-cell {
+	background: var(--color-secondary);
+	color: var(--color-text-light);
+}
+
+/* Current Time Indicator */
+.rbc-current-time-indicator {
+	background: var(--color-warning); /* Red for current time line */
+	height: 2px;
+}
+/* Day and Date Headers (02 Sun, 03 Mon, etc.) */
+.rbc-time-header-cell .rbc-button-link {
+	color: var(--color-text-light);
+	font-size: 14px;
+	font-weight: bold;
+	padding: 8px 12px;
+	white-space: nowrap;
+	overflow: visible;
+}
+
+.rbc-time-header-cell {
+	background: var(--color-primary);
+	color: var(--color-text-light);
+	font-size: 16px;
+	font-weight: bold;
+	padding: 12px 8px;
+	height: auto; /* Ensure it expands fully */
+	border-radius: 8px;
+	text-align: center;
+	transition: background-color 0.3s ease;
+}
+
+.rbc-time-header-cell:hover {
+	background: #374151; /* Darker grey-blue for hover */
+	color: #f3f4f6;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+	.rbc-calendar {
+		padding: 10px;
+	}
+
+	.rbc-toolbar {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.rbc-toolbar .rbc-btn-group button {
+		padding: 4px 8px;
+		font-size: 14px;
+	}
+
+	.rbc-month-header .rbc-header {
+		font-size: 12px;
+		padding: 4px;
+	}
+
+	.rbc-date-cell {
+		font-size: 14px;
+	}
+
+	.rbc-event {
+		font-size: 10px;
+		padding: 2px 6px;
+	}
 }
