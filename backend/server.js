@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const dogRoutes = require("./routes/dogsRoute");
+const bcrypt = require("bcrypt"); 
 
 // Initialize Express app
 const app = express();
@@ -16,6 +17,10 @@ app.use(express.json());
 app.use("/dogs", dogRoutes);
 // MongoDB Connection URI
 const uri = process.env.MONGO_URI;
+
+const userRoutes = require("./routes/userRoute");
+app.use("/users", userRoutes);
+
 
 // Function to connect to MongoDB using Mongoose
 async function connectToDatabase() {
