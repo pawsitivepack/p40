@@ -9,5 +9,10 @@
     "backend": "npm run dev --prefix backend",
     "frontend": "npm run dev --prefix frontend",
     "start": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "dependencies": {
+    "moment": "^2.30.1",
+    "react-big-calendar": "^1.17.1",
+    "react-toastify": "^11.0.3"
   }
 }
