@@ -8,6 +8,7 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Navbar from './components/Navbar';
 import Donate from './components/Donate';
+import Walkdogs from './components/Walkdogs';
 
 function App() {
   const [dogs, setDogs] = useState([]); 
@@ -36,6 +37,7 @@ function App() {
             <Route path='/' element={<Home />} />
             <Route path='/about' element={<About />} />
             <Route path='/gallery' element={<Gallery />} />
+            <Route path="/walkdogs" element={<Walkdogs />} />
             <Route path='/login' element={<Login />} />
             <Route path='/donate' element={<Donate />} />
           </Routes>

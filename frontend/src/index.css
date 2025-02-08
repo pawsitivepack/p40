@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@theme {
+	--color-maroon-700: #4a148c; /* Deep Purple */
+	--color-maroon-600: #7b1fa2;
+}
