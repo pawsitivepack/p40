@@ -24,6 +24,7 @@ function App() {
     }
   }, [isLoggedIn]);
 
+
   return (
     <Router>
     <div className="bg-red-950 text-gray-100 min-h-screen flex flex-col">
@@ -40,6 +41,7 @@ function App() {
             <Route path="/walkdogs" element={<Walkdogs />} />
             <Route path='/login' element={<Login />} />
             <Route path='/donate' element={<Donate />} />
+            
           </Routes>
         
       </main>
