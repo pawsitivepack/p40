@@ -3,8 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const dogRoutes = require("./routes/dogsRoute");
-const bcrypt = require("bcrypt"); 
-
+const userRoutes = require("./routes/userRoute");
+const schedulewalk = require("./routes/walkRoute");
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -15,13 +15,11 @@ app.use(express.json());
 
 //dog routes
 app.use("/dogs", dogRoutes);
-// MongoDB Connection URI
-const uri = process.env.MONGO_URI;
-
-const userRoutes = require("./routes/userRoute");
+app.use("/scheduledWalks", schedulewalk);
 app.use("/users", userRoutes);
 
-
+// MongoDB Connection URI
+const uri = process.env.MONGO_URI;
 // Function to connect to MongoDB using Mongoose
 async function connectToDatabase() {
 	try {

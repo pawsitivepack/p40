@@ -6,7 +6,7 @@ const Walkdogs = () => {
 	return (
 		<div className="flex flex-col lg:flex-row gap-4 p-4">
 			{/* Calendar Section */}
-			<div className="lg:w-3/4 w-full p-4 bg-white shadow-md rounded-md">
+			<div className="lg:w-3/4 w-full p-4 shadow-md rounded-md">
 				<h2 className="text-center font-bold text-xl mb-4">Calendar</h2>
 				<MyCalendar />
 			</div>
