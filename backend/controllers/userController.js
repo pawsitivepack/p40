@@ -1,7 +1,7 @@
 const { ObjectId } = require("mongodb");
 const User = require("../models/usersModel");
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcrypt"); // Make sure bcrypt is imported
 
 // Route for Login
 exports.login = async (req, res) => {
@@ -20,19 +20,14 @@ exports.login = async (req, res) => {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
-		req.session.user = {
-			id: user._id,
-			email: user.email,
-		};
-		req.session.save((err) => {
-			if (err) {
-				console.error("Session save error:", err);
-				return res.status(500).json({ message: "Error saving session" });
-			}
-			res.status(200).json({
-				message: "Login successful",
-				user: req.session.user,
-			});
+		// If credentials are valid
+		res.status(200).json({
+			message: "Login successful",
+			user: {
+				id: user._id,
+				email: user.email,
+				name: `${user.firstName} ${user.lastName}`, // Adjust based on your model
+			},
 		});
 	} catch (error) {
 		console.error("Error during login:", error);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import logo from "../assets/underdogs.png";
-import dogBackground from "../assets/paw.png"; 
+import dogBackground from "../assets/paw.png"; // Ensure this path is correct
 
 export default function Login() {
   const [isRegistering, setIsRegistering] = useState(false);
@@ -22,15 +22,6 @@ export default function Login() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Toggle Password Visibility
-  const togglePasswordVisibility = (type) => {
-    if (type === "password") {
-      setShowPassword(!showPassword);
-    } else if (type === "confirmPassword") {
-      setShowConfirmPassword(!showConfirmPassword);
-    }
-  };
-
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +36,6 @@ export default function Login() {
       const response = await fetch(`http://localhost:5001/users${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", 
         body: JSON.stringify(
           isRegistering
             ? {
@@ -66,7 +56,7 @@ export default function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(data.message);
+        alert(data.message); // Show success message
         if (!isRegistering && rememberMe) {
           localStorage.setItem("rememberedEmail", formData.email);
         } else {
@@ -88,6 +78,17 @@ export default function Login() {
       setRememberMe(true);
     }
   }, []);
+
+  // Toggle Password Visibility with Timer
+  const togglePasswordVisibility = (type) => {
+    if (type === "password") {
+      setShowPassword(true);
+      setTimeout(() => setShowPassword(false), 4000);
+    } else if (type === "confirmPassword") {
+      setShowConfirmPassword(true);
+      setTimeout(() => setShowConfirmPassword(false), 4000);
+    }
+  };
 
   return (
     <div className="relative flex justify-center items-center min-h-screen bg-gray-100 overflow-hidden">
@@ -206,6 +207,14 @@ export default function Login() {
             >
               {isRegistering ? "Create Account" : "Login"}
             </button>
+
+            {!isRegistering && (
+              <div className="text-center mt-2">
+                <a href="#" className="text-blue-600 hover:underline text-sm">
+                  Forgot Password?
+                </a>
+              </div>
+            )}
 
             <div className="text-center mt-2">
               <button
