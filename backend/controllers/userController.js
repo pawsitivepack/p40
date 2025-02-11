@@ -1,5 +1,5 @@
 const { ObjectId } = require("mongodb");
-const User = require("../models/usersmodel");
+const User = require("../models/usersModel");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt"); // Make sure bcrypt is imported
 
