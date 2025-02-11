@@ -1,7 +1,7 @@
 const { ObjectId } = require("mongodb");
 const User = require("../models/usersModel");
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt"); // Make sure bcrypt is imported
+const bcrypt = require("bcryptjs"); // Using bcryptjs
 
 // Route for Login
 exports.login = async (req, res) => {
@@ -15,7 +15,7 @@ exports.login = async (req, res) => {
 		}
 
 		// Compare the provided password with the stored hashed password
-		const isMatch = await bcrypt.compare(password, user.password);
+		const isMatch = bcrypt.compareSync(password, user.password);
 		if (!isMatch) {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
@@ -58,8 +58,7 @@ exports.signup = async (req, res) => {
 		}
 
 		// Hash the password before storing
-		const salt = await bcrypt.genSalt(10);
-		const hashedPassword = await bcrypt.hash(password, salt);
+		const hashedPassword = bcrypt.hashSync(password, 10); // 10 is the salt rounds
 
 		// Create and save the new user
 		const newUser = new User({
@@ -106,7 +105,7 @@ exports.getAllUsers = async (req, res) => {
 	}
 };
 
-// userController.js
+// Route for My Profile
 exports.myProfile = async (req, res) => {
 	if (!req.session.user) {
 		return res.status(401).json({ message: "Not logged in" });
@@ -135,6 +134,7 @@ exports.myProfile = async (req, res) => {
 	}
 };
 
+// Route for Logout
 exports.logout = (req, res) => {
 	req.session.destroy((err) => {
 		if (err) {
