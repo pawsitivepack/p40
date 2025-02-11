@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
+import { toast } from "react-toastify"; // Import toast
+import "react-toastify/dist/ReactToastify.css"; // Import toastify styles
 import logo from "../assets/underdogs.png";
-import dogBackground from "../assets/paw.png"; // Ensure this path is correct
+import dogBackground from "../assets/paw.png";
 
 export default function Login() {
 	const [isRegistering, setIsRegistering] = useState(false);
@@ -17,6 +20,8 @@ export default function Login() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+	const navigate = useNavigate(); // Initialize navigate function
+
 	// Handle input change
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,7 +32,7 @@ export default function Login() {
 		e.preventDefault();
 
 		if (isRegistering && formData.password !== formData.confirmPassword) {
-			alert("Passwords do not match!");
+			toast.error("Passwords do not match!");
 			return;
 		}
 
@@ -57,18 +62,19 @@ export default function Login() {
 			const data = await response.json();
 
 			if (response.ok) {
-				alert(data.message); // Show success message
+				toast.success(data.message); // Show success message
 				if (!isRegistering && rememberMe) {
 					localStorage.setItem("rememberedEmail", formData.email);
 				} else {
 					localStorage.removeItem("rememberedEmail");
 				}
+				navigate("/myprofile"); // Redirect to /myprofile
 			} else {
-				alert(data.message || "Something went wrong");
+				toast.error(data.message || "Something went wrong");
 			}
 		} catch (error) {
 			console.error("Error:", error);
-			alert("Server error. Please try again later.");
+			toast.error("Server error. Please try again later.");
 		}
 	};
 
@@ -123,9 +129,7 @@ export default function Login() {
 											name={field}
 											value={formData[field]}
 											onChange={handleChange}
-											placeholder={`Enter your ${field
-												.replace(/([A-Z])/g, " $1")
-												.toLowerCase()}`}
+											placeholder={`Enter your ${field}`}
 											className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4"
 											required
 										/>
@@ -165,21 +169,6 @@ export default function Login() {
 							</button>
 						</div>
 
-						{!isRegistering && (
-							<div className="flex items-center mb-4">
-								<input
-									type="checkbox"
-									id="rememberMe"
-									checked={rememberMe}
-									onChange={(e) => setRememberMe(e.target.checked)}
-									className="mr-2"
-								/>
-								<label htmlFor="rememberMe" className="text-gray-700">
-									Remember Me
-								</label>
-							</div>
-						)}
-
 						{isRegistering && (
 							<>
 								<label className="block text-gray-600 mb-1">
@@ -212,14 +201,6 @@ export default function Login() {
 						>
 							{isRegistering ? "Create Account" : "Login"}
 						</button>
-
-						{!isRegistering && (
-							<div className="text-center mt-2">
-								<a href="#" className="text-blue-600 hover:underline text-sm">
-									Forgot Password?
-								</a>
-							</div>
-						)}
 
 						<div className="text-center mt-2">
 							<button
