@@ -1,6 +1,8 @@
 // src/App.jsx
 import React, { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import About from "./components/About";
 import Footer from "./components/Footer";
 import Gallery from "./components/Gallery";
@@ -29,6 +31,19 @@ function App() {
 			<div className="bg-red-950 text-gray-100 min-h-screen flex flex-col">
 				{/* Navbar */}
 				<Navbar />
+
+				{/* Toast Container for Global Toast Notifications */}
+				<ToastContainer
+					position="top-right"
+					autoClose={3000}
+					hideProgressBar={false}
+					newestOnTop={false}
+					closeOnClick
+					pauseOnFocusLoss
+					draggable
+					pauseOnHover
+				/>
+
 				{/* Main Content - Takes Remaining Space */}
 				<main className="flex-grow">
 					<Routes>
@@ -37,7 +52,10 @@ function App() {
 						<Route path="/about" element={<About />} />
 						<Route path="/gallery" element={<Gallery />} />
 						<Route path="/walkdogs" element={<Walkdogs />} />
-						<Route path="/login" element={<Login />} />
+						<Route
+							path="/login"
+							element={<Login setIsLoggedIn={setIsLoggedIn} />}
+						/>
 						<Route path="/donate" element={<Donate />} />
 						<Route path="/myprofile" element={<MyProfile />} />
 					</Routes>
