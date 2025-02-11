@@ -6,5 +6,7 @@ const bcrypt = require("bcrypt");
 router.post("/login", userController.login);
 router.post("/signup", userController.signup);
 router.get("/getAllUsers", userController.getAllUsers);
+router.get("/profile", userController.myProfile);
+router.post("/logout", userController.logout);
 
 module.exports = router;
