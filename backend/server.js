@@ -2,21 +2,24 @@ require("dotenv").config(); // Load environment variables
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const dogRoutes = require("./routes/dogsRoute");
 const userRoutes = require("./routes/userRoute");
 const schedulewalk = require("./routes/walkRoute");
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-app.use(cors());
+app.use(
+	cors({
+		origin: "http://localhost:5173",
+		credentials: true, // Allow cookies
+	})
+);
 app.use(express.json());
-
-//dog routes
-app.use("/dogs", dogRoutes);
-app.use("/scheduledWalks", schedulewalk);
-app.use("/users", userRoutes);
 
 // MongoDB Connection URI
 const uri = process.env.MONGO_URI;
@@ -30,6 +33,27 @@ async function connectToDatabase() {
 		process.exit(1);
 	}
 }
+
+app.use(
+	session({
+		secret: process.env.SESSION_SECRET,
+		resave: false,
+		saveUninitialized: false,
+		store: MongoStore.create({
+			mongoUrl: process.env.MONGO_URI,
+		}),
+		cookie: {
+			maxAge: 1000 * 60 * 20,
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+		},
+	})
+);
+
+// Routes
+app.use("/dogs", dogRoutes);
+app.use("/scheduledWalks", schedulewalk);
+app.use("/users", userRoutes);
 
 // Start the server
 app.listen(PORT, async () => {
