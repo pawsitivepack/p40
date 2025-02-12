@@ -11,11 +11,12 @@ const MyProfile = () => {
 		const fetchProfile = async () => {
 			try {
 				const response = await axios.get(
-					"http://localhost:5001/users/profile",
+					"https://p40.onrender.com/users/profile",
 					{
 						withCredentials: true,
 					}
 				);
+				console.log(response.data.user);
 				setUser(response.data.user);
 			} catch (err) {
 				setError("Please log in to view your profile.");
@@ -29,7 +30,7 @@ const MyProfile = () => {
 	const handleLogout = async () => {
 		try {
 			await axios.post(
-				"http://localhost:5001/users/logout",
+				"https://p40.onrender.com/users/logout",
 				{},
 				{ withCredentials: true }
 			);

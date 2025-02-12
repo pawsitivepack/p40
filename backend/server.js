@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(
 	cors({
-		origin: "http://localhost:5173",
+		origin: "https://p40-positive.vercel.app",
 		credentials: true, // Allow cookies
 	})
 );
@@ -46,6 +46,7 @@ app.use(
 			maxAge: 1000 * 60 * 20,
 			httpOnly: true,
 			secure: process.env.NODE_ENV === "production",
+			sameSite: "None",
 		},
 	})
 );

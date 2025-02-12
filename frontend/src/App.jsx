@@ -19,7 +19,7 @@ function App() {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			fetch("http://localhost:5001")
+			fetch("https://p40.onrender.com")
 				.then((response) => response.json())
 				.then((data) => setDogs(data))
 				.catch((error) => console.error("Error fetching data:", error));

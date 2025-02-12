@@ -10,7 +10,7 @@ const AvailableWalks = () => {
 		const fetchWalks = async () => {
 			try {
 				const response = await axios.get(
-					"http://localhost:5001/scheduledwalks/"
+					"https://p40.onrender.com/scheduledwalks/"
 				);
 				setWalks(response.data);
 			} catch (error) {
@@ -26,7 +26,7 @@ const AvailableWalks = () => {
 	};
 
 	return (
-		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+		<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
 			{walks.length === 0 ? (
 				<p className="text-gray-700 text-center col-span-full">
 					No walks available.
