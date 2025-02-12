@@ -5,26 +5,47 @@ import {
 } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 import logo from "../assets/underdogs.png";
-import { useLocation } from "react-router-dom"; // Import useLocation hook
-
+import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 const navigation = [
 	{ name: "Home", href: "/home" },
 	{ name: "About", href: "/about" },
 	{ name: "Gallery", href: "/gallery" },
 	{ name: "Walk Dogs", href: "/walkdogs" },
 	{ name: "Donate", href: "/donate" },
-	{ name: "Login", href: "/login" },
-	{ name: "Profile", href: "/myprofile" },
 ];
 
 function classNames(...classes) {
 	return classes.filter(Boolean).join(" ");
 }
 
-export default function Navbar({ isLoggedIn, onLogout }) {
-	// Use useLocation hook to track the current location (URL path)
+export default function Navbar({ onLogout }) {
 	const location = useLocation();
-	const currentPage = location.pathname; // Get the current URL path
+	const currentPage = location.pathname;
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+	// Check localStorage for token on component mount
+	useEffect(() => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			setIsLoggedIn(true);
+		} else {
+			setIsLoggedIn(false);
+		}
+	}, []);
+
+	const handleLogout = () => {
+		localStorage.removeItem("token");
+		setIsLoggedIn(false);
+		// Show the toast message
+		toast.success("You have been logged out successfully!");
+
+		// Redirect to the login page after a short delay
+		setTimeout(() => {
+			window.location.href = "/login";
+		}, 1500);
+	};
 
 	return (
 		<Disclosure as="nav" className="text-yellow-500 shadow-md">
@@ -36,7 +57,6 @@ export default function Navbar({ isLoggedIn, onLogout }) {
 							src={logo}
 							className="h-20 w-auto mr-4 mb-8"
 						/>
-						<span className="text-yellow-500 text-4xl font-extrabold"></span>
 					</div>
 
 					<div className="hidden sm:flex sm:space-x-6 mb6 text-large">
@@ -56,9 +76,40 @@ export default function Navbar({ isLoggedIn, onLogout }) {
 							</a>
 						))}
 
+						{/* Show Profile only if logged in */}
+						{isLoggedIn && (
+							<a
+								href="/myprofile"
+								className={classNames(
+									"/myprofile" === currentPage
+										? "bg-white text-maroon-700"
+										: "text-white hover:bg-yellow-500 hover:text-red-950",
+									"px-4 py-2 rounded-md text-xl font-bold"
+								)}
+							>
+								Profile
+							</a>
+						)}
+
+						{/* Show Login only if not logged in */}
+						{!isLoggedIn && (
+							<a
+								href="/login"
+								className={classNames(
+									"/login" === currentPage
+										? "bg-white text-maroon-700"
+										: "text-white hover:bg-yellow-500 hover:text-red-950",
+									"px-4 py-2 rounded-md text-xl font-bold"
+								)}
+							>
+								Login
+							</a>
+						)}
+
+						{/* Logout button if logged in */}
 						{isLoggedIn && (
 							<button
-								onClick={onLogout}
+								onClick={handleLogout}
 								className="px-4 py-2 bg-yellow-500 text-red-950 rounded-md text-2xl font-bold shadow-md hover:bg-yellow-400"
 							>
 								Logout
@@ -85,7 +136,7 @@ export default function Navbar({ isLoggedIn, onLogout }) {
 							className={classNames(
 								item.href === currentPage
 									? "bg-white text-yellow-500"
-									: "text-black hover:bg-gray-300",
+									: "text-pink-400 hover:bg-gray-300",
 								"block px-4 py-2 rounded-md text-xl font-semibold"
 							)}
 							aria-current={item.href === currentPage ? "page" : undefined}
@@ -94,9 +145,42 @@ export default function Navbar({ isLoggedIn, onLogout }) {
 						</DisclosureButton>
 					))}
 
+					{/* Show Profile only if logged in */}
+					{isLoggedIn && (
+						<DisclosureButton
+							as="a"
+							href="/myprofile"
+							className={classNames(
+								"/myprofile" === currentPage
+									? "bg-white text-yellow-500"
+									: "text-black hover:bg-gray-300",
+								"block px-4 py-2 rounded-md text-xl font-semibold"
+							)}
+						>
+							Profile
+						</DisclosureButton>
+					)}
+
+					{/* Show Login only if not logged in */}
+					{!isLoggedIn && (
+						<DisclosureButton
+							as="a"
+							href="/login"
+							className={classNames(
+								"/login" === currentPage
+									? "bg-white text-yellow-500"
+									: "text-black hover:bg-gray-300",
+								"block px-4 py-2 rounded-md text-xl font-semibold"
+							)}
+						>
+							Login
+						</DisclosureButton>
+					)}
+
+					{/* Logout button if logged in */}
 					{isLoggedIn && (
 						<button
-							onClick={onLogout}
+							onClick={handleLogout}
 							className="w-full bg-yellow-500 text-red-950 px-4 py-2 rounded-md text-2xl font-semibold shadow-md hover:bg-yellow-400"
 						>
 							Logout

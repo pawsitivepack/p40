@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for redirection
-import { toast } from "react-toastify"; // Import toast
-import "react-toastify/dist/ReactToastify.css"; // Import toastify styles
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import logo from "../assets/underdogs.png";
 import dogBackground from "../assets/paw.png";
 
@@ -18,19 +18,14 @@ export default function Login() {
 	});
 	const [rememberMe, setRememberMe] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
-	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+	const navigate = useNavigate();
 
-	const navigate = useNavigate(); // Initialize navigate function
-
-	// Handle input change
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	// Handle form submission
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-
 		if (isRegistering && formData.password !== formData.confirmPassword) {
 			toast.error("Passwords do not match!");
 			return;
@@ -38,37 +33,43 @@ export default function Login() {
 
 		const endpoint = isRegistering ? "/signup" : "/login";
 		try {
-			const response = await fetch(`http://localhost:5001/users${endpoint}`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(
-					isRegistering
-						? {
-								firstName: formData.firstName,
-								lastName: formData.lastName,
-								age: formData.age,
-								phone: formData.phone,
-								email: formData.email,
-								password: formData.password,
-						  }
-						: {
-								email: formData.email,
-								password: formData.password,
-						  }
-				),
-				credentials: "include", // Ensures cookies are sent with the request
-			});
+			const response = await fetch(
+				`https://p40.onrender.com/users${endpoint}`,
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(
+						isRegistering
+							? {
+									firstName: formData.firstName,
+									lastName: formData.lastName,
+									age: formData.age,
+									phone: formData.phone,
+									email: formData.email,
+									password: formData.password,
+							  }
+							: {
+									email: formData.email,
+									password: formData.password,
+							  }
+					),
+				}
+			);
 
 			const data = await response.json();
 
 			if (response.ok) {
-				toast.success(data.message); // Show success message
-				if (!isRegistering && rememberMe) {
-					localStorage.setItem("rememberedEmail", formData.email);
-				} else {
-					localStorage.removeItem("rememberedEmail");
+				toast.success(data.message);
+
+				if (!isRegistering) {
+					localStorage.setItem("token", data.token); // Store JWT token
+					if (rememberMe) {
+						localStorage.setItem("rememberedEmail", formData.email);
+					} else {
+						localStorage.removeItem("rememberedEmail");
+					}
+					navigate("/myprofile");
 				}
-				navigate("/myprofile"); // Redirect to /myprofile
 			} else {
 				toast.error(data.message || "Something went wrong");
 			}
@@ -86,20 +87,12 @@ export default function Login() {
 		}
 	}, []);
 
-	// Toggle Password Visibility with Timer
-	const togglePasswordVisibility = (type) => {
-		if (type === "password") {
-			setShowPassword(true);
-			setTimeout(() => setShowPassword(false), 4000);
-		} else if (type === "confirmPassword") {
-			setShowConfirmPassword(true);
-			setTimeout(() => setShowConfirmPassword(false), 4000);
-		}
+	const togglePasswordVisibility = () => {
+		setShowPassword(!showPassword);
 	};
 
 	return (
 		<div className="relative flex justify-center items-center min-h-screen bg-gray-100 overflow-hidden">
-			{/* Blurred Background Image */}
 			<div
 				className="absolute inset-0 bg-center bg-no-repeat bg-contain blur-md opacity-50"
 				style={{ backgroundImage: `url(${dogBackground})` }}
@@ -115,7 +108,6 @@ export default function Login() {
 					<h2 className="text-xl font-bold text-gray-700 mb-2 text-center">
 						{isRegistering ? "Create Account" : "Login"}
 					</h2>
-
 					<form onSubmit={handleSubmit}>
 						{isRegistering && (
 							<>
@@ -137,7 +129,6 @@ export default function Login() {
 								))}
 							</>
 						)}
-
 						<label className="block text-gray-600 mb-1">Email</label>
 						<input
 							type="email"
@@ -148,7 +139,6 @@ export default function Login() {
 							className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4"
 							required
 						/>
-
 						<label className="block text-gray-600 mb-1">Password</label>
 						<div className="relative">
 							<input
@@ -163,47 +153,36 @@ export default function Login() {
 							<button
 								type="button"
 								className="absolute right-2 top-2 text-blue-600"
-								onClick={() => togglePasswordVisibility("password")}
+								onClick={togglePasswordVisibility}
 							>
 								{showPassword ? "Hide" : "Show"}
 							</button>
 						</div>
-
 						{isRegistering && (
 							<>
 								<label className="block text-gray-600 mb-1">
 									Confirm Password
 								</label>
-								<div className="relative">
-									<input
-										type={showConfirmPassword ? "text" : "password"}
-										name="confirmPassword"
-										value={formData.confirmPassword}
-										onChange={handleChange}
-										placeholder="Re-enter your password"
-										className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4 pr-16"
-										required
-									/>
-									<button
-										type="button"
-										className="absolute right-2 top-2 text-blue-600"
-										onClick={() => togglePasswordVisibility("confirmPassword")}
-									>
-										{showConfirmPassword ? "Hide" : "Show"}
-									</button>
-								</div>
+								<input
+									type="password"
+									name="confirmPassword"
+									value={formData.confirmPassword}
+									onChange={handleChange}
+									placeholder="Re-enter your password"
+									className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4"
+									required
+								/>
 							</>
 						)}
-
 						<button
 							type="submit"
 							className="w-full bg-gray-700 text-white py-2 rounded-md hover:bg-gray-800 transition"
 						>
 							{isRegistering ? "Create Account" : "Login"}
 						</button>
-
 						<div className="text-center mt-2">
 							<button
+								type="button"
 								onClick={() => setIsRegistering(!isRegistering)}
 								className="text-blue-600 hover:underline text-sm"
 							>

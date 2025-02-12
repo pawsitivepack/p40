@@ -1,8 +1,31 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // Import toast from react-toastify
+import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 import MyCalendar from "./MyCalendar";
-import AvailableWalks from "./AvailableWalks"; // Import the new AvailableWalks component
+import AvailableWalks from "./AvailableWalks";
 
 const Walkdogs = () => {
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const navigate = useNavigate();
+
+	useEffect(() => {
+		const token = localStorage.getItem("token");
+		if (!token) {
+			// Show toast message and redirect after a short delay
+			toast.error("Please log in to access this page.");
+			setTimeout(() => {
+				navigate("/login");
+			}, 1500); // Delay of 1.5 seconds to allow the toast to display
+		} else {
+			setIsLoggedIn(true);
+		}
+	}, [navigate]);
+
+	if (!isLoggedIn) {
+		return null; // Return nothing while redirecting
+	}
+
 	return (
 		<div className="flex flex-col lg:flex-row gap-4 p-4">
 			{/* Calendar Section */}
@@ -16,7 +39,7 @@ const Walkdogs = () => {
 				<h2 className="text-center font-bold text-maroon-600 text-xl mb-4">
 					Available Walks
 				</h2>
-				<AvailableWalks /> {/* Render the AvailableWalks component */}
+				<AvailableWalks />
 			</div>
 		</div>
 	);

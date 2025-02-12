@@ -1,5 +1,6 @@
 // src/components/MyProfile.jsx
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import axios from "axios";
 
 const MyProfile = () => {
@@ -9,17 +10,24 @@ const MyProfile = () => {
 
 	useEffect(() => {
 		const fetchProfile = async () => {
+			const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+			if (!token) {
+				setError("Please log in to view your profile.");
+				setLoading(false);
+				return;
+			}
+
 			try {
 				const response = await axios.get(
-					"https://p40.onrender.com/users/profile",
+					"https://p40.onrender.com/users/myprofile",
 					{
-						withCredentials: true,
+						headers: { Authorization: `Bearer ${token}` }, // Pass the token in the Authorization header
 					}
 				);
-				console.log(response.data.user);
 				setUser(response.data.user);
 			} catch (err) {
-				setError("Please log in to view your profile.");
+				console.error("Failed to fetch profile:", err);
+				setError("Failed to fetch profile. Please log in again.");
 			} finally {
 				setLoading(false);
 			}
@@ -27,18 +35,17 @@ const MyProfile = () => {
 		fetchProfile();
 	}, []);
 
-	const handleLogout = async () => {
-		try {
-			await axios.post(
-				"https://p40.onrender.com/users/logout",
-				{},
-				{ withCredentials: true }
-			);
-			window.location.href = "/";
-		} catch (err) {
-			console.error("Logout failed:", err);
-			alert("Failed to log out. Please try again.");
-		}
+	const handleLogout = () => {
+		// Remove the token from localStorage and redirect to the login page
+		localStorage.removeItem("token");
+
+		// Show the toast message
+		toast.success("You have been logged out successfully!");
+
+		// Redirect to the login page after a short delay
+		setTimeout(() => {
+			window.location.href = "/login";
+		}, 1500);
 	};
 
 	if (loading) {

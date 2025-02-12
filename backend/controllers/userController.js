@@ -1,40 +1,43 @@
+const jwt = require("jsonwebtoken");
 const { ObjectId } = require("mongodb");
 const User = require("../models/usersModel");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs"); // Using bcryptjs
+
+// Helper function to generate a JWT
+const generateToken = (user) => {
+	return jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, {
+		expiresIn: "1h",
+	});
+};
 
 // Route for Login
 exports.login = async (req, res) => {
 	const { email, password } = req.body;
 
 	try {
-		// Check if the user exists
 		const user = await User.findOne({ email });
 		if (!user) {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
-		// Compare the provided password with the stored hashed password
 		const isMatch = bcrypt.compareSync(password, user.password);
 		if (!isMatch) {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
-		req.session.user = {
-			id: user._id,
-			email: user.email,
-		};
-		req.session.save((err) => {
-			if (err) {
-				console.error("Session save error:", err);
-				return res.status(500).json({ message: "Error saving session" });
-			}
-			res.status(200).json({
-				message: "Login successful",
-				user: req.session.user,
-			});
+		// Generate JWT token
+		const token = generateToken(user);
+
+		res.status(200).json({
+			message: "Login successful",
+			token,
+			user: {
+				id: user._id,
+				email: user.email,
+				name: `${user.firstName} ${user.lastName}`,
+			},
 		});
-		console.log(req.session);
 	} catch (error) {
 		console.error("Error during login:", error);
 		res.status(500).json({ error: "Internal server error" });
@@ -46,21 +49,17 @@ exports.signup = async (req, res) => {
 	const { firstName, lastName, age, phone, email, password } = req.body;
 
 	try {
-		// Check for required fields
 		if (!email || !password || !firstName || !lastName) {
 			return res.status(400).json({ message: "Missing required fields" });
 		}
 
-		// Check if the user already exists
 		const existingUser = await User.findOne({ email });
 		if (existingUser) {
 			return res.status(400).json({ message: "Email is already registered" });
 		}
 
-		// Hash the password before storing
-		const hashedPassword = bcrypt.hashSync(password, 10); // 10 is the salt rounds
+		const hashedPassword = bcrypt.hashSync(password, 10);
 
-		// Create and save the new user
 		const newUser = new User({
 			firstName,
 			lastName,
@@ -72,7 +71,6 @@ exports.signup = async (req, res) => {
 
 		await newUser.save();
 
-		// Send a success response
 		res.status(201).json({
 			message: "User registered successfully",
 			user: {
@@ -87,32 +85,26 @@ exports.signup = async (req, res) => {
 	}
 };
 
-// Route for getting all users
-exports.getAllUsers = async (req, res) => {
+// Middleware to verify token
+const verifyToken = (req, res, next) => {
+	const token = req.headers["authorization"];
+	if (!token) {
+		return res.status(401).json({ message: "No token provided" });
+	}
+
 	try {
-		const role = req.query.role;
-		let query = {};
-
-		if (role) {
-			query.role = role;
-		}
-
-		const users = await User.find(query, { password: 0 });
-		res.status(200).json(users);
+		const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
+		req.user = decoded;
+		next();
 	} catch (error) {
-		console.error("Error fetching users:", error);
-		res.status(500).json({ error: "Internal server error" });
+		res.status(401).json({ message: "Invalid or expired token" });
 	}
 };
 
 // Route for My Profile
 exports.myProfile = async (req, res) => {
-	if (!req.session.user) {
-		return res.status(401).json({ message: "Not logged in" });
-	}
-
 	try {
-		const user = await User.findById(req.session.user.id).select("-password"); // Exclude password
+		const user = await User.findById(req.user.id).select("-password");
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
@@ -134,14 +126,32 @@ exports.myProfile = async (req, res) => {
 	}
 };
 
-// Route for Logout
+// Route for Logout (client-side only)
 exports.logout = (req, res) => {
-	req.session.destroy((err) => {
-		if (err) {
-			console.error("Error destroying session:", err);
-			return res.status(500).json({ message: "Logout failed" });
-		}
-		res.clearCookie("connect.sid"); // Clear the session cookie
-		res.status(200).json({ message: "Logout successful" });
-	});
+	// Since JWT is stateless, logout should be handled on the client by removing the token
+	res
+		.status(200)
+		.json({
+			message: "Logout successful. Please remove the token on the client side.",
+		});
 };
+
+// Route for getting all users
+exports.getAllUsers = async (req, res) => {
+	try {
+		const role = req.query.role;
+		let query = {};
+
+		if (role) {
+			query.role = role;
+		}
+
+		const users = await User.find(query, { password: 0 });
+		res.status(200).json(users);
+	} catch (error) {
+		console.error("Error fetching users:", error);
+		res.status(500).json({ error: "Internal server error" });
+	}
+};
+
+module.exports.verifyToken = verifyToken;
