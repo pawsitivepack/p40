@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5001;
 // Middleware
 app.use(
 	cors({
-		origin: "https://p40-positive.vercel.app/",
+		origin: "https://p40-positive.vercel.app",
 		credentials: true,
 	})
 );
