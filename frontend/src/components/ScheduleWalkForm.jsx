@@ -16,8 +16,10 @@ const ScheduleWalkForm = ({
 		const fetchOptions = async () => {
 			try {
 				const [dogResponse, marshalResponse] = await Promise.all([
-					axios.get("http://localhost:5001/dogs"), // Fetch all dogs
-					axios.get("http://localhost:5001/users/getAllUsers?role=marshal"), // Fetch only marshals
+					axios.get(`${import.meta.env.VITE_BACKEND_URL}/dogs`), // Fetch all dogs
+					axios.get(
+						`${import.meta.env.VITE_BACKEND_URL}/users/getAllUsers?role=marshal`
+					), // Fetch only marshals
 				]);
 				setDogs(dogResponse.data);
 				setMarshals(marshalResponse.data);
@@ -91,14 +93,25 @@ const ScheduleWalkForm = ({
 				</div>
 
 				{/* Start Time */}
+				{/* Start Time */}
 				<div className="relative mb-4">
 					<input
 						type="datetime-local"
 						name="start"
 						value={
 							newEvent.start instanceof Date
-								? newEvent.start.toISOString().slice(0, 16)
-								: new Date(newEvent.start).toISOString().slice(0, 16) // Convert to Date if it's a string
+								? new Date(
+										newEvent.start.getTime() -
+											newEvent.start.getTimezoneOffset() * 60000
+								  )
+										.toISOString()
+										.slice(0, 16)
+								: new Date(
+										new Date(newEvent.start).getTime() -
+											new Date(newEvent.start).getTimezoneOffset() * 60000
+								  )
+										.toISOString()
+										.slice(0, 16)
 						}
 						onChange={(e) =>
 							setNewEvent({

@@ -10,7 +10,7 @@ const AvailableWalks = () => {
 		const fetchWalks = async () => {
 			try {
 				const response = await axios.get(
-					"http://localhost:5001/scheduledwalks/"
+					`${import.meta.env.VITE_BACKEND_URL}/scheduledwalks/`
 				);
 				setWalks(response.data);
 			} catch (error) {

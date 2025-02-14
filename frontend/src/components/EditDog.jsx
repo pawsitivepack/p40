@@ -55,7 +55,7 @@ const EditDog = ({ setFormVisible, setDogs, dog }) => {
 
 		try {
 			const response = await axios.put(
-				`http://localhost:5001/dogs/${dog._id}`,
+				`${import.meta.env.VITE_BACKEND_URL}/dogs/${dog._id}`,
 				updatedDog
 			);
 			const updatedData = response.data.updatedDog;

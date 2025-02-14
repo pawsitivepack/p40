@@ -4,7 +4,7 @@ const User = require("../models/usersModel");
 exports.addScheduledWalk = async (req, res) => {
 	try {
 		const { dog, walker, marshal, date, location, status } = req.body;
-
+		console.log("trying to add scheduled walk");
 		// Ensure marshal is a user with role "marshal"
 		const marshalUser = await User.findById(marshal);
 		if (!marshalUser || marshalUser.role !== "marshal") {

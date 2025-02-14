@@ -17,10 +17,10 @@ import GoogleSignup from "./components/GoogleSignup";
 function App() {
 	const [dogs, setDogs] = useState([]);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-
+	console.log(import.meta.env.VITE_BACKEND_URL); // Debugging: Check if it's undefined
 	useEffect(() => {
 		if (isLoggedIn) {
-			fetch("http://localhost:5001")
+			fetch(`${import.meta.env.VITE_BACKEND_URL}`)
 				.then((response) => response.json())
 				.then((data) => setDogs(data))
 				.catch((error) => console.error("Error fetching data:", error));

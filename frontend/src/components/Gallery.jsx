@@ -20,7 +20,9 @@ function Gallery() {
 	useEffect(() => {
 		const fetchDogs = async () => {
 			try {
-				const response = await axios.get("http://localhost:5001/dogs");
+				const response = await axios.get(
+					`${import.meta.env.VITE_BACKEND_URL}/dogs`
+				);
 				setDogs(response.data);
 			} catch (error) {
 				setError("Failed to load dog data");

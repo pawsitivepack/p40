@@ -1,43 +1,42 @@
 import React, { useState } from "react";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
 import axios from "axios";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import moment from "moment";
-import "react-big-calendar/lib/css/react-big-calendar.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MyCalendar.css";
-import ScheduleWalkForm from "./ScheduleWalkForm"; // Import the new component
-
-const localizer = momentLocalizer(moment);
+import ScheduleWalkForm from "./ScheduleWalkForm";
 
 const MyCalendar = () => {
-	const [events, setEvents] = useState([]);
+	const [date, setDate] = useState(new Date());
+	const [view, setView] = useState("month"); // Default to month view
 	const [showForm, setShowForm] = useState(false);
 	const [newEvent, setNewEvent] = useState({
 		dog: "",
 		walker: "",
 		marshal: "",
-		start: new Date(),
-		end: new Date(),
+		start: date,
+		end: date,
 		location: "Monroe",
 	});
+	const [events, setEvents] = useState([]);
+
+	const handleDateChange = (selectedDate) => {
+		setDate(selectedDate);
+		setNewEvent({ ...newEvent, start: selectedDate, end: selectedDate });
+		setShowForm(true);
+	};
 
 	const handleAddEvent = async (e) => {
 		e.preventDefault();
-
-		if (
-			!newEvent.start ||
-			!newEvent.end ||
-			!newEvent.dog ||
-			!newEvent.marshal
-		) {
+		if (!newEvent.dog || !newEvent.marshal || !newEvent.start) {
 			toast.error("Please fill out all required fields.");
 			return;
 		}
 
 		try {
 			const response = await axios.post(
-				"http://localhost:5001/scheduledWalks/newWalk",
+				`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/newWalk`,
 				{
 					dog: newEvent.dog,
 					walker: newEvent.walker || null,
@@ -51,7 +50,6 @@ const MyCalendar = () => {
 			setEvents([...events, { ...newEvent, id: response.data.walk._id }]);
 			setShowForm(false);
 			setNewEvent({
-				title: "",
 				dog: "",
 				walker: "",
 				marshal: "",
@@ -69,24 +67,25 @@ const MyCalendar = () => {
 	return (
 		<div className="container mx-auto p-4">
 			<ToastContainer />
-			<div
-				className={`bg-white shadow-md rounded-md p-4 transition-all duration-200 ${
-					showForm ? "blur-sm" : ""
-				}`}
-			>
+			<h1 className="text-2xl font-bold mb-4">Dog Walk Scheduler</h1>
+
+			<div className="max-w-4xl mx-auto mb-4">
 				<Calendar
-					localizer={localizer}
-					events={events}
-					startAccessor="start"
-					endAccessor="end"
-					defaultView="month"
-					selectable
-					onSelectSlot={({ start, end }) => {
-						setNewEvent({ ...newEvent, start, end });
-						setShowForm(true);
-					}}
-					style={{ height: "500px" }}
-					className="rounded-md border-2 border-maroon-600 bg-white mb-4"
+					onChange={handleDateChange}
+					value={date}
+					view={view} // Allow switching between month and year views
+					onViewChange={setView} // Handle view change
+					className="custom-calendar"
+					tileContent={({ date }) =>
+						events.some(
+							(event) =>
+								new Date(event.start).toDateString() === date.toDateString()
+						) ? (
+							<div className="bg-green-200 rounded-full p-1 text-xs text-center">
+								Walk
+							</div>
+						) : null
+					}
 				/>
 			</div>
 

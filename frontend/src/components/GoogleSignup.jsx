@@ -16,7 +16,7 @@ function GoogleSignup() {
 		e.preventDefault();
 		try {
 			const response = await fetch(
-				"http://localhost:5001/users/google-signup",
+				`${import.meta.env.VITE_BACKEND_URL}/users/google-signup`,
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },

@@ -33,11 +33,14 @@ export default function Login() {
 			console.log("Google Token:", token); // Optional for debugging
 
 			// Send the token to the backend
-			const response = await fetch("http://localhost:5001/users/google-login", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ token }),
-			});
+			const response = await fetch(
+				`${import.meta.env.VITE_BACKEND_URL}/users/google-login`,
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ token }),
+				}
+			);
 
 			const data = await response.json();
 			if (response.status === 302) {
@@ -69,25 +72,28 @@ export default function Login() {
 
 		const endpoint = isRegistering ? "/signup" : "/login";
 		try {
-			const response = await fetch(`http://localhost:5001/users${endpoint}`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(
-					isRegistering
-						? {
-								firstName: formData.firstName,
-								lastName: formData.lastName,
-								age: formData.age,
-								phone: formData.phone,
-								email: formData.email,
-								password: formData.password,
-						  }
-						: {
-								email: formData.email,
-								password: formData.password,
-						  }
-				),
-			});
+			const response = await fetch(
+				`${import.meta.env.VITE_BACKEND_URL}/users${endpoint}`,
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(
+						isRegistering
+							? {
+									firstName: formData.firstName,
+									lastName: formData.lastName,
+									age: formData.age,
+									phone: formData.phone,
+									email: formData.email,
+									password: formData.password,
+							  }
+							: {
+									email: formData.email,
+									password: formData.password,
+							  }
+					),
+				}
+			);
 
 			const data = await response.json();
 

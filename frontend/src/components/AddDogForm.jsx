@@ -31,7 +31,10 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 		}
 
 		try {
-			const response = await axios.post("http://localhost:5001/dogs", newDog);
+			const response = await axios.post(
+				`${import.meta.env.VITE_BACKEND_URL}/dogs`,
+				newDog
+			);
 
 			setDogs((prevDogs) => [...prevDogs, response.data]); // Add new dog to state
 			setNewDog({
