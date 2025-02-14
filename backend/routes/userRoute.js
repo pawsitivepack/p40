@@ -4,6 +4,8 @@ const userController = require("../controllers/userController");
 
 // Authentication Routes
 router.post("/login", userController.login);
+router.post("/google-login", userController.googlelogin);
+router.post("/google-signup", userController.googleSignup);
 router.post("/signup", userController.signup);
 
 // Protect the myProfile route with verifyToken

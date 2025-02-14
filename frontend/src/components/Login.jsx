@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { GoogleLogin } from "@react-oauth/google"; // Google OAuth package
+import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
 import logo from "../assets/underdogs.png";
 import dogBackground from "../assets/paw.png";
@@ -24,6 +26,40 @@ export default function Login() {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
+	const handleGoogleSuccess = async (credentialResponse) => {
+		try {
+			const token = credentialResponse.credential;
+
+			console.log("Google Token:", token); // Optional for debugging
+
+			// Send the token to the backend
+			const response = await fetch("http://localhost:5001/users/google-login", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ token }),
+			});
+
+			const data = await response.json();
+			if (response.status === 302) {
+				navigate("/google-signup", { state: data.user }); // Redirect to a custom signup page
+			} else if (response.ok) {
+				toast.success("Google Login Successful");
+				console.log("Backend Response:", data); // Optional: log the response
+
+				// Save the JWT token in local storage
+				localStorage.setItem("token", data.token);
+
+				// Navigate to the myprofile page
+				navigate("/myprofile");
+			} else {
+				toast.error(data.message || "Google Login failed");
+			}
+		} catch (error) {
+			console.error("Google Login Error:", error);
+			toast.error("Google Login Error. Please try again.");
+		}
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (isRegistering && formData.password !== formData.confirmPassword) {
@@ -33,28 +69,25 @@ export default function Login() {
 
 		const endpoint = isRegistering ? "/signup" : "/login";
 		try {
-			const response = await fetch(
-				`https://p40.onrender.com/users${endpoint}`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify(
-						isRegistering
-							? {
-									firstName: formData.firstName,
-									lastName: formData.lastName,
-									age: formData.age,
-									phone: formData.phone,
-									email: formData.email,
-									password: formData.password,
-							  }
-							: {
-									email: formData.email,
-									password: formData.password,
-							  }
-					),
-				}
-			);
+			const response = await fetch(`http://localhost:5001/users${endpoint}`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(
+					isRegistering
+						? {
+								firstName: formData.firstName,
+								lastName: formData.lastName,
+								age: formData.age,
+								phone: formData.phone,
+								email: formData.email,
+								password: formData.password,
+						  }
+						: {
+								email: formData.email,
+								password: formData.password,
+						  }
+				),
+			});
 
 			const data = await response.json();
 
@@ -192,6 +225,16 @@ export default function Login() {
 							</button>
 						</div>
 					</form>
+					<div className="text-center my-4">
+						<span className="text-gray-500">OR</span>
+					</div>
+					{/* Google Login Button */}
+					<div className="flex justify-center">
+						<GoogleLogin
+							onSuccess={handleGoogleSuccess}
+							onError={() => toast.error("Google Login failed")}
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

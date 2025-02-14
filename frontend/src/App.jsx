@@ -12,6 +12,7 @@ import Navbar from "./components/Navbar";
 import Donate from "./components/Donate";
 import Walkdogs from "./components/Walkdogs";
 import MyProfile from "./components/MyProfile";
+import GoogleSignup from "./components/GoogleSignup";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -19,7 +20,7 @@ function App() {
 
 	useEffect(() => {
 		if (isLoggedIn) {
-			fetch("https://p40.onrender.com")
+			fetch("http://localhost:5001")
 				.then((response) => response.json())
 				.then((data) => setDogs(data))
 				.catch((error) => console.error("Error fetching data:", error));
@@ -58,6 +59,7 @@ function App() {
 						/>
 						<Route path="/donate" element={<Donate />} />
 						<Route path="/myprofile" element={<MyProfile />} />
+						<Route path="/google-signup" element={<GoogleSignup />} />
 					</Routes>
 				</main>
 

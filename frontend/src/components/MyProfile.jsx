@@ -19,7 +19,7 @@ const MyProfile = () => {
 
 			try {
 				const response = await axios.get(
-					"https://p40.onrender.com/users/myprofile",
+					"http://localhost:5001/users/myprofile",
 					{
 						headers: { Authorization: `Bearer ${token}` }, // Pass the token in the Authorization header
 					}

@@ -37,7 +37,7 @@ const MyCalendar = () => {
 
 		try {
 			const response = await axios.post(
-				"https://p40.onrender.com/scheduledWalks/newWalk",
+				"http://localhost:5001/scheduledWalks/newWalk",
 				{
 					dog: newEvent.dog,
 					walker: newEvent.walker || null,

@@ -10,7 +10,7 @@ const AvailableWalks = () => {
 		const fetchWalks = async () => {
 			try {
 				const response = await axios.get(
-					"https://p40.onrender.com/scheduledwalks/"
+					"http://localhost:5001/scheduledwalks/"
 				);
 				setWalks(response.data);
 			} catch (error) {

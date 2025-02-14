@@ -31,10 +31,7 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 		}
 
 		try {
-			const response = await axios.post(
-				"https://p40.onrender.com/dogs",
-				newDog
-			);
+			const response = await axios.post("http://localhost:5001/dogs", newDog);
 
 			setDogs((prevDogs) => [...prevDogs, response.data]); // Add new dog to state
 			setNewDog({

@@ -16,8 +16,8 @@ const ScheduleWalkForm = ({
 		const fetchOptions = async () => {
 			try {
 				const [dogResponse, marshalResponse] = await Promise.all([
-					axios.get("https://p40.onrender.com/dogs"), // Fetch all dogs
-					axios.get("https://p40.onrender.com/users/getAllUsers?role=marshal"), // Fetch only marshals
+					axios.get("http://localhost:5001/dogs"), // Fetch all dogs
+					axios.get("http://localhost:5001/users/getAllUsers?role=marshal"), // Fetch only marshals
 				]);
 				setDogs(dogResponse.data);
 				setMarshals(marshalResponse.data);

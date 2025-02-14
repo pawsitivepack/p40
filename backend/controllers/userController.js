@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
-const { ObjectId } = require("mongodb");
+const { OAuth2Client } = require("google-auth-library");
+const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs"); // Using bcryptjs
 
 // Helper function to generate a JWT
 const generateToken = (user) => {
@@ -11,7 +10,7 @@ const generateToken = (user) => {
 	});
 };
 
-// Route for Login
+// Login with email and password
 exports.login = async (req, res) => {
 	const { email, password } = req.body;
 
@@ -26,9 +25,7 @@ exports.login = async (req, res) => {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
-		// Generate JWT token
 		const token = generateToken(user);
-
 		res.status(200).json({
 			message: "Login successful",
 			token,
@@ -44,9 +41,85 @@ exports.login = async (req, res) => {
 	}
 };
 
-// Route for Signup
+exports.googlelogin = async (req, res) => {
+	const { token } = req.body;
+	const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+	try {
+		const ticket = await client.verifyIdToken({
+			idToken: token,
+			audience: process.env.GOOGLE_CLIENT_ID,
+		});
+
+		const payload = ticket.getPayload();
+		const {
+			given_name: firstName,
+			family_name: lastName,
+			email,
+			picture,
+			email_verified,
+		} = payload;
+
+		if (!email_verified) {
+			return res.status(400).json({ message: "Email not verified" });
+		}
+
+		let user = await User.findOne({ email });
+
+		if (!user) {
+			// Respond with a 302 status and user data for frontend to complete signup
+			return res.status(302).json({
+				message: "User not found. Please complete the signup process.",
+				user: {
+					firstName,
+					lastName: lastName || "",
+					email,
+					picture,
+				},
+			});
+		}
+
+		// Generate a token for an existing user
+		const jwtToken = generateToken(user);
+		res.status(200).json({ token: jwtToken, user });
+	} catch (error) {
+		console.error("Google Authentication failed:", error);
+		res.status(400).json({ message: "Google Authentication failed" });
+	}
+};
+
+exports.googleSignup = async (req, res) => {
+	const { firstName, lastName, email, age, phone, picture } = req.body;
+
+	try {
+		let user = await User.findOne({ email });
+
+		if (user) {
+			return res.status(400).json({ message: "User already exists" });
+		}
+
+		user = new User({
+			firstName,
+			lastName,
+			email,
+			age,
+			phone,
+			picture,
+			googleAuth: true,
+			role: "user",
+		});
+
+		await user.save();
+		const jwtToken = generateToken(user);
+		res.status(201).json({ token: jwtToken, user });
+	} catch (error) {
+		console.error("Signup failed:", error);
+		res.status(500).json({ message: "Signup failed" });
+	}
+};
+// Signup
 exports.signup = async (req, res) => {
-	const { firstName, lastName, age, phone, email, password } = req.body;
+	const { firstName, lastName, email, password } = req.body;
 
 	try {
 		if (!email || !password || !firstName || !lastName) {
@@ -59,26 +132,15 @@ exports.signup = async (req, res) => {
 		}
 
 		const hashedPassword = bcrypt.hashSync(password, 10);
-
 		const newUser = new User({
 			firstName,
 			lastName,
-			age,
-			phone,
 			email,
 			password: hashedPassword,
 		});
 
 		await newUser.save();
-
-		res.status(201).json({
-			message: "User registered successfully",
-			user: {
-				id: newUser._id,
-				email: newUser.email,
-				name: `${newUser.firstName} ${newUser.lastName}`,
-			},
-		});
+		res.status(201).json({ message: "User registered successfully" });
 	} catch (error) {
 		console.error("Error during signup:", error);
 		res.status(500).json({ error: "Internal server error" });
@@ -86,7 +148,7 @@ exports.signup = async (req, res) => {
 };
 
 // Middleware to verify token
-const verifyToken = (req, res, next) => {
+exports.verifyToken = (req, res, next) => {
 	const token = req.headers["authorization"];
 	if (!token) {
 		return res.status(401).json({ message: "No token provided" });
@@ -101,7 +163,7 @@ const verifyToken = (req, res, next) => {
 	}
 };
 
-// Route for My Profile
+// Fetch my profile
 exports.myProfile = async (req, res) => {
 	try {
 		const user = await User.findById(req.user.id).select("-password");
@@ -109,43 +171,24 @@ exports.myProfile = async (req, res) => {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		res.status(200).json({
-			user: {
-				firstName: user.firstName,
-				lastName: user.lastName,
-				age: user.age,
-				phone: user.phone,
-				email: user.email,
-				role: user.role,
-				userPoints: user.userPoints,
-				isAdmin: user.isAdmin,
-			},
-		});
-	} catch (err) {
-		res.status(500).json({ message: "Failed to fetch profile", error: err });
+		res.status(200).json({ user });
+	} catch (error) {
+		console.error("Error fetching profile:", error);
+		res.status(500).json({ message: "Failed to fetch profile" });
 	}
 };
 
-// Route for Logout (client-side only)
+// Logout (handled on client-side)
 exports.logout = (req, res) => {
-	// Since JWT is stateless, logout should be handled on the client by removing the token
-	res
-		.status(200)
-		.json({
-			message: "Logout successful. Please remove the token on the client side.",
-		});
+	res.status(200).json({
+		message: "Logout successful. Please remove the token on the client side.",
+	});
 };
 
-// Route for getting all users
+// Fetch all users (optional filtering by role)
 exports.getAllUsers = async (req, res) => {
 	try {
-		const role = req.query.role;
-		let query = {};
-
-		if (role) {
-			query.role = role;
-		}
-
+		const query = req.query.role ? { role: req.query.role } : {};
 		const users = await User.find(query, { password: 0 });
 		res.status(200).json(users);
 	} catch (error) {
@@ -153,5 +196,3 @@ exports.getAllUsers = async (req, res) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 };
-
-module.exports.verifyToken = verifyToken;

@@ -55,7 +55,7 @@ const EditDog = ({ setFormVisible, setDogs, dog }) => {
 
 		try {
 			const response = await axios.put(
-				`https://p40.onrender.com/dogs/${dog._id}`,
+				`http://localhost:5001/dogs/${dog._id}`,
 				updatedDog
 			);
 			const updatedData = response.data.updatedDog;
