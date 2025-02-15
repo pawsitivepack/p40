@@ -13,6 +13,7 @@ import Donate from "./components/Donate";
 import Walkdogs from "./components/Walkdogs";
 import MyProfile from "./components/MyProfile";
 import GoogleSignup from "./components/GoogleSignup";
+import ScheduledWalk from "./components/ScheduledWalks";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -65,6 +66,7 @@ function App() {
 							path="/login"
 							element={<Login setIsLoggedIn={setIsLoggedIn} />}
 						/>
+						<Route path="/scheduledwalk" element={<ScheduledWalk />} />
 						<Route path="/donate" element={<Donate />} />
 						<Route path="/myprofile" element={<MyProfile />} />
 						<Route path="/google-signup" element={<GoogleSignup />} />

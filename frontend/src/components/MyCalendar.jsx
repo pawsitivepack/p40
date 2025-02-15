@@ -6,17 +6,34 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MyCalendar.css";
 import ScheduleWalkForm from "./ScheduleWalkForm";
+import { jwtDecode } from "jwt-decode";
 
 const MyCalendar = () => {
 	const [date, setDate] = useState(new Date());
 	const [view, setView] = useState("month");
 	const [showForm, setShowForm] = useState(false);
+	const [role, setRole] = useState("");
+
+	useEffect(() => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			try {
+				const decodedToken = jwtDecode(token);
+				const userRole = decodedToken.role;
+				setRole(userRole);
+			} catch (error) {
+				console.error("Failed to decode token:", error);
+			}
+		} else {
+			console.warn("no token in the local storage");
+		}
+	}, []);
+
 	const [newEvent, setNewEvent] = useState({
-		walker: "",
 		marshal: "",
 		start: date,
 		end: date,
-		location: "Monroe",
+		location: "920 F drive Monroe LA",
 	});
 	const [availableWalks, setAvailableWalks] = useState([]);
 	const [selectedWalk, setSelectedWalk] = useState(null);
@@ -33,7 +50,9 @@ const MyCalendar = () => {
 				}
 			);
 			setAvailableWalks(response.data);
-            const sortedWalks = response.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+			const sortedWalks = response.data.sort(
+				(a, b) => new Date(a.date) - new Date(b.date)
+			);
 			setAvailableWalks(sortedWalks);
 		} catch (error) {
 			console.error("Error fetching available walks:", error);
@@ -45,9 +64,19 @@ const MyCalendar = () => {
 	}, []);
 
 	const handleDateChange = (selectedDate) => {
-		setDate(selectedDate);
-		setNewEvent({ ...newEvent, start: selectedDate, end: selectedDate });
-		setShowForm(true);
+		const today = new Date();
+		today.setHours(0, 0, 0, 0); // Set the time to the beginning of the day for accurate comparison
+		const selectedDateOnly = new Date(selectedDate);
+		selectedDateOnly.setHours(0, 0, 0, 0);
+
+		if (selectedDateOnly >= today) {
+			setDate(selectedDate);
+			setNewEvent({ ...newEvent, start: selectedDate, end: selectedDate });
+			setShowForm(true);
+		} else {
+			toast.error("Cannot add events for past dates.");
+			setShowForm(false);
+		}
 	};
 
 	const handleAddEvent = async (e) => {
@@ -62,7 +91,6 @@ const MyCalendar = () => {
 				`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/newWalk`,
 
 				{
-					walker: newEvent.walker || null,
 					marshal: newEvent.marshal,
 					date: newEvent.start,
 					location: newEvent.location,
@@ -78,11 +106,10 @@ const MyCalendar = () => {
 			toast.success("Walk scheduled successfully!");
 			setShowForm(false);
 			setNewEvent({
-				walker: "",
 				marshal: "",
 				start: new Date(),
 				end: new Date(),
-				location: "Monroe",
+				location: "920 F Drive Monroe LA",
 			});
 
 			// Refresh available walks to show the new one immediately
@@ -93,19 +120,57 @@ const MyCalendar = () => {
 		}
 	};
 
-	const handleSelectWalk = (id) => {
-		setSelectedWalk(id);
+	const handleConfirmWalk = async (walk) => {
+		const confirm = window.confirm(
+			`Do you want to confirm the walk on ${new Date(
+				walk.date
+			).toLocaleDateString()} at ${new Date(walk.date).toLocaleTimeString([], {
+				hour: "2-digit",
+				minute: "2-digit",
+			})}?`
+		);
+
+		if (confirm) {
+			try {
+				const userId = jwtDecode(localStorage.getItem("token")).id; // Extract userId from the token
+
+				const response = await axios.post(
+					`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/confirm`,
+					{
+						walkId: walk._id,
+						userId: userId, // Send userId along with walkId
+					},
+					{
+						headers: {
+							Authorization: `Bearer ${localStorage.getItem("token")}`,
+						},
+					}
+				);
+				toast.success("Walk confirmed successfully!");
+
+				// Update the available walks list or refresh the data
+				fetchAvailableWalks();
+			} catch (error) {
+				console.error("Error confirming walk:", error);
+				toast.error("Failed to confirm the walk. Please try again.");
+			}
+		}
+	};
+
+	const handleSelectWalk = (walk) => {
+		console.log(walk);
+		setSelectedWalk(walk._id);
+		handleConfirmWalk(walk); // Trigger confirmation request
 	};
 
 	return (
 		<div className="container mx-auto px-0">
 			<ToastContainer />
-			<h1 className="text-2xl font-bold mb-4">Dog Walk Scheduler</h1>
 
 			{/* Calendar Section */}
 			<div className="max-w-4xl mx-auto mb-4 py-0">
 				<Calendar
-					onChange={handleDateChange}
+					onChange={["marshal", "admin"].includes(role) && handleDateChange}
 					value={date}
 					view={view}
 					onViewChange={setView}
@@ -134,7 +199,7 @@ const MyCalendar = () => {
 				/>
 			</div>
 
-			{showForm && (
+			{showForm && ["marshal", "admin"].includes(role) && (
 				<ScheduleWalkForm
 					newEvent={newEvent}
 					setNewEvent={setNewEvent}
@@ -188,21 +253,32 @@ const MyCalendar = () => {
 									</span>
 								</p>
 								<p className="text-blue-700">
+									Slots Available:{" "}
+									<span className="text-gray-800">{walk.slots}</span>
+								</p>
+
+								<p className="text-blue-700">
 									Duration:{" "}
 									<span className="text-gray-800">
 										{walk.duration || "1 hour"}
 									</span>
 								</p>
-								<button
-									onClick={() => handleSelectWalk(walk._id)}
-									className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
-										selectedWalk === walk._id
-											? "bg-green-600 hover:bg-green-700"
-											: "bg-blue-600 hover:bg-blue-700"
-									}`}
-								>
-									{selectedWalk === walk._id ? "Selected" : "Select Walk"}
-								</button>
+								{walk.slots > 0 ? (
+									<button
+										onClick={() => handleSelectWalk(walk)}
+										className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
+											selectedWalk === walk._id
+												? "bg-green-600 hover:bg-green-700"
+												: "bg-blue-600 hover:bg-blue-700"
+										}`}
+									>
+										{selectedWalk === walk._id ? "Selected" : "Select Walk"}
+									</button>
+								) : (
+									<p className="mt-4 w-full text-center text-red-600 font-bold">
+										This walk is full
+									</p>
+								)}
 							</div>
 						))
 					)}
