@@ -74,6 +74,7 @@ export default function Login() {
 		try {
 			const response = await fetch(
 				`${import.meta.env.VITE_BACKEND_URL}/users${endpoint}`,
+
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },

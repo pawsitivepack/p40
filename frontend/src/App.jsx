@@ -17,13 +17,21 @@ import GoogleSignup from "./components/GoogleSignup";
 function App() {
 	const [dogs, setDogs] = useState([]);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	console.log(import.meta.env.VITE_BACKEND_URL); // Debugging: Check if it's undefined
+
 	useEffect(() => {
 		if (isLoggedIn) {
-			fetch(`${import.meta.env.VITE_BACKEND_URL}`)
-				.then((response) => response.json())
-				.then((data) => setDogs(data))
-				.catch((error) => console.error("Error fetching data:", error));
+			const fetchDogs = async () => {
+				try {
+					const response = await axios.get(
+						`${import.meta.env.VITE_BACKEND_URL}`
+					);
+					setDogs(response.data);
+				} catch (error) {
+					console.error("Error fetching data:", error);
+				}
+			};
+
+			fetchDogs();
 		}
 	}, [isLoggedIn]);
 

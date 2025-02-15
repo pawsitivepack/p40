@@ -9,7 +9,7 @@ const dogSchema = new Schema(
 		age: { type: Number, required: true },
 		owner: { type: String, required: true },
 		adopeted: { type: Boolean, required: false },
-		imageURL: { type: String, required: true },
+		imageURL: { type: String, required: false },
 		adoptedDate: { type: Date },
 		size: { type: String, enum: ["Small", "Medium", "Large"], required: false },
 		healthIssues: { type: String },
@@ -18,8 +18,9 @@ const dogSchema = new Schema(
 			enum: ["Available", "Adopted", "Deceased"],
 			default: "Available",
 		},
-		demeanor: { type: String },
+		demeanor: { type: String, enum: ["Gray", "Yellow", "Red"], default: "Red" },
 		notes: { type: String },
+		lastWalk: { type: Date },
 	},
 	{ timestamps: true }
 );

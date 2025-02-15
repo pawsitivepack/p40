@@ -1,44 +1,43 @@
 @import "tailwindcss";
 
-
 .dog-card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: 280px;
-  margin: 15px;
-  overflow: hidden;
-  transition: transform 0.3s ease;
-  cursor: pointer;
+	background: #fff;
+	border-radius: 10px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	width: 280px;
+	margin: 15px;
+	overflow: hidden;
+	transition: transform 0.3s ease;
+	cursor: pointer;
 }
 
 .dog-card:hover {
-  transform: scale(1.05);
+	transform: scale(1.05);
 }
 
 .dog-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
+	width: 100%;
+	height: 200px;
+	object-fit: cover;
 }
 
 .dog-info {
-  padding: 15px;
-  text-align: center;
+	padding: 15px;
+	text-align: center;
 }
 
 .dog-info h2 {
-  font-size: 1.5rem;
-  color: #333;
-  margin-bottom: 10px;
+	font-size: 1.5rem;
+	color: #333;
+	margin-bottom: 10px;
 }
 
 .dog-info p {
-  font-size: 1rem;
-  color: #666;
-  margin: 5px 0;
+	font-size: 1rem;
+	color: #666;
+	margin: 5px 0;
 }
 
 .dog-info p strong {
-  color: #333;
+	color: #333;
 }

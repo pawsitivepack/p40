@@ -9,19 +9,24 @@ const ScheduleWalkForm = ({
 	setShowForm,
 	handleAddEvent,
 }) => {
-	const [dogs, setDogs] = useState([]);
 	const [marshals, setMarshals] = useState([]);
 
 	useEffect(() => {
 		const fetchOptions = async () => {
 			try {
-				const [dogResponse, marshalResponse] = await Promise.all([
-					axios.get(`${import.meta.env.VITE_BACKEND_URL}/dogs`), // Fetch all dogs
+				const [marshalResponse] = await Promise.all([
 					axios.get(
-						`${import.meta.env.VITE_BACKEND_URL}/users/getAllUsers?role=marshal`
+						`${
+							import.meta.env.VITE_BACKEND_URL
+						}/users/getAllUsers?role=marshal`,
+						{
+							headers: {
+								Authorization: `Bearer ${localStorage.getItem("token")}`,
+							},
+						}
 					), // Fetch only marshals
 				]);
-				setDogs(dogResponse.data);
+
 				setMarshals(marshalResponse.data);
 			} catch (error) {
 				console.error("Error fetching options:", error);
@@ -50,27 +55,6 @@ const ScheduleWalkForm = ({
 			</div>
 
 			<form onSubmit={handleAddEvent}>
-				{/* Dog Selection */}
-				<div className="relative mb-4">
-					<select
-						name="dog"
-						value={newEvent.dog}
-						onChange={handleInputChange}
-						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
-						required
-					>
-						<option value="">Select a Dog</option>
-						{dogs.map((dog) => (
-							<option key={dog._id} value={dog._id}>
-								{dog.name} ({dog.breed})
-							</option>
-						))}
-					</select>
-					<label className="absolute left-0 -top-3.5 text-sm text-gray-600 peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-3.5 peer-focus:text-sm">
-						Dog
-					</label>
-				</div>
-
 				{/* Marshal Selection */}
 				<div className="relative mb-4">
 					<select

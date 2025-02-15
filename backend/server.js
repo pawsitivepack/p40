@@ -5,7 +5,6 @@ const mongoose = require("mongoose");
 const dogRoutes = require("./routes/dogsRoute");
 const userRoutes = require("./routes/userRoute");
 const schedulewalk = require("./routes/walkRoute");
-const verifyToken = require("./middleware/authMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
