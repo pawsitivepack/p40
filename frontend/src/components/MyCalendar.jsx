@@ -33,6 +33,8 @@ const MyCalendar = () => {
 				}
 			);
 			setAvailableWalks(response.data);
+            const sortedWalks = response.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+			setAvailableWalks(sortedWalks);
 		} catch (error) {
 			console.error("Error fetching available walks:", error);
 		}
