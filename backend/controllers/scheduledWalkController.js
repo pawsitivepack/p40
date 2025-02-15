@@ -55,3 +55,41 @@ exports.getAllScheduledWalks = async (req, res) => {
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };
+exports.confirm = async (req, res) => {
+	const { walkId, userId } = req.body;
+
+	try {
+		// Find the walk by ID
+		const walk = await ScheduledWalk.findById(walkId);
+
+		if (!walk) {
+			return res.status(404).json({ message: "Walk not found" });
+		}
+
+		// Check if slots are available
+		if (walk.slots <= 0) {
+			return res
+				.status(400)
+				.json({ message: "No slots available for this walk." });
+		}
+
+		// Check if the user is already in the walker list
+		if (walk.walker.includes(userId)) {
+			return res
+				.status(400)
+				.json({ message: "You have already confirmed this walk." });
+		}
+
+		// Subtract 1 from slots and add userId to the walker array
+		walk.slots -= 1;
+		walk.walker.push(userId);
+
+		// Save the updated walk
+		await walk.save();
+
+		res.status(200).json({ message: "Walk confirmed successfully", walk });
+	} catch (error) {
+		console.error("Error confirming walk:", error);
+		res.status(500).json({ message: "Failed to confirm the walk" });
+	}
+};

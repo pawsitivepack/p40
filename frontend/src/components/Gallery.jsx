@@ -4,6 +4,7 @@ import DogCard from "./DogCard";
 import AddDogForm from "./AddDogForm";
 import EditDog from "./EditDog";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
+import { jwtDecode } from "jwt-decode";
 
 function Gallery() {
 	const [dogs, setDogs] = useState([]);
@@ -11,7 +12,7 @@ function Gallery() {
 	const [editingDog, setEditingDog] = useState(null); // Track which dog is being edited
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
-
+	const [role, setRole] = useState("");
 	// Pagination States
 	const [activePage, setActivePage] = useState(1);
 	const dogsPerPage = 7;
@@ -33,6 +34,21 @@ function Gallery() {
 		};
 
 		fetchDogs();
+	}, []);
+
+	useEffect(() => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			try {
+				const decodedToken = jwtDecode(token);
+				const userRole = decodedToken.role;
+				setRole(userRole);
+			} catch (error) {
+				console.error("Failed to decode token:", error);
+			}
+		} else {
+			console.warn("no token in the local storage");
+		}
 	}, []);
 
 	const removeDogFromList = (id) => {
@@ -77,21 +93,23 @@ function Gallery() {
 					formVisible ? "blur-sm" : ""
 				}`}
 			>
-				<div
-					className="bg-red-800 text-white p-6 rounded-lg shadow-lg w-full flex flex-col justify-center items-center cursor-pointer hover:bg-red-900 transition-all"
-					onClick={() => {
-						setEditingDog(null); // Ensure we're adding a new dog
-						setFormVisible(true);
-					}}
-				>
-					<PlusCircleIcon className="h-12 w-12 text-white mb-2" />
-					<h3 className="text-lg font-semibold">Add a New Dog</h3>
-					<p className="mt-1 text-center text-sm">Click to add a new dog</p>
-					<button className="mt-4 flex items-center bg-white text-red-700 font-semibold px-4 py-2 rounded-lg hover:bg-gray-200 transition-all">
-						<PlusCircleIcon className="h-5 w-5 text-red-700 mr-2" />
-						Add Dog
-					</button>
-				</div>
+				{role === "admin" && (
+					<div
+						className="bg-red-800 text-white p-6 rounded-lg shadow-lg w-full flex flex-col justify-center items-center cursor-pointer hover:bg-red-900 transition-all"
+						onClick={() => {
+							setEditingDog(null); // Ensure we're adding a new dog
+							setFormVisible(true);
+						}}
+					>
+						<PlusCircleIcon className="h-12 w-12 text-white mb-2" />
+						<h3 className="text-lg font-semibold">Add a New Dog</h3>
+						<p className="mt-1 text-center text-sm">Click to add a new dog</p>
+						<button className="mt-4 flex items-center bg-white text-red-700 font-semibold px-4 py-2 rounded-lg hover:bg-gray-200 transition-all">
+							<PlusCircleIcon className="h-5 w-5 text-red-700 mr-2" />
+							Add Dog
+						</button>
+					</div>
+				)}
 
 				{currentDogs.length > 0
 					? currentDogs.map((dog) => (

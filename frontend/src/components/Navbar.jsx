@@ -3,131 +3,128 @@ import {
 	DisclosureButton,
 	DisclosurePanel,
 } from "@headlessui/react";
-import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon } from "@heroicons/react/24/outline";
 import logo from "../assets/underdogs.png";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-const navigation = [
-	{ name: "Home", href: "/home" },
-	{ name: "About", href: "/about" },
-	{ name: "Gallery", href: "/gallery" },
-	{ name: "Walk Dogs", href: "/walkdogs" },
-	{ name: "Donate", href: "/donate" },
-];
+import { jwtDecode } from "jwt-decode"; // Ensure jwtDecode is imported correctly
 
-function classNames(...classes) {
-	return classes.filter(Boolean).join(" ");
-}
-
-export default function Navbar({ onLogout }) {
+export default function Navbar() {
 	const location = useLocation();
 	const currentPage = location.pathname;
+	const [role, setRole] = useState("");
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-	// Check localStorage for token on component mount
 	useEffect(() => {
 		const token = localStorage.getItem("token");
 		if (token) {
-			setIsLoggedIn(true);
+			try {
+				const decodedToken = jwtDecode(token);
+				const userRole = decodedToken.role;
+				setRole(userRole);
+				setIsLoggedIn(true);
+			} catch (error) {
+				console.error("Failed to decode token:", error);
+			}
 		} else {
-			setIsLoggedIn(false);
+			console.warn("No token found in local storage.");
 		}
 	}, []);
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");
 		setIsLoggedIn(false);
-		// Show the toast message
 		toast.success("You have been logged out successfully!");
-
-		// Redirect to the login page after a short delay
 		setTimeout(() => {
 			window.location.href = "/login";
 		}, 1500);
 	};
 
+	// Navigation array with conditional logic for "Scheduled Walks"
+	const navigation = [
+		{ name: "Home", href: "/home" },
+		{ name: "About", href: "/about" },
+		{ name: "Gallery", href: "/gallery" },
+		{ name: "Walk Dogs", href: "/walkdogs" },
+		{ name: "Donate", href: "/donate" },
+		...(role === "marshal" || role === "admin"
+			? [{ name: "Scheduled Walks", href: "/scheduledwalk" }]
+			: []),
+	];
+
+	function classNames(...classes) {
+		return classes.filter(Boolean).join(" ");
+	}
+
 	return (
-		<Disclosure as="nav" className="text-yellow-500 shadow-md">
+		<Disclosure
+			as="nav"
+			className="bg-gradient-to-r from-maroon-600 via-maroon-500 to-maroon-700 shadow-lg"
+		>
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-				<div className="flex justify-between items-center h-24">
+				<div className="flex justify-between items-center h-20">
 					<div className="flex items-center">
-						<img
-							alt="P40 Dog Logo"
-							src={logo}
-							className="h-20 w-auto mr-4 mb-8"
-						/>
+						<img src={logo} alt="P40 Dog Logo" className="h-16 w-auto mr-6" />
+						<div className="hidden sm:flex space-x-8">
+							{navigation.map((item) => (
+								<a
+									key={item.name}
+									href={item.href}
+									className={classNames(
+										item.href === currentPage
+											? "bg-yellow-500 text-maroon-700 shadow-lg"
+											: "text-white hover:bg-yellow-400 hover:text-maroon-900",
+										"px-4 py-2 rounded-lg text-lg font-semibold transition-all duration-300"
+									)}
+									aria-current={item.href === currentPage ? "page" : undefined}
+								>
+									{item.name}
+								</a>
+							))}
+							{isLoggedIn && (
+								<a
+									href="/myprofile"
+									className={classNames(
+										"/myprofile" === currentPage
+											? "bg-yellow-500 text-maroon-700 shadow-lg"
+											: "text-white hover:bg-yellow-400 hover:text-maroon-900",
+										"px-4 py-2 rounded-lg text-lg font-semibold transition-all duration-300"
+									)}
+								>
+									Profile
+								</a>
+							)}
+						</div>
 					</div>
-
-					<div className="hidden sm:flex sm:space-x-6 mb6 text-large">
-						{navigation.map((item) => (
-							<a
-								key={item.name}
-								href={item.href}
-								className={classNames(
-									item.href === currentPage
-										? "bg-white text-maroon-700"
-										: "text-white hover:bg-yellow-500 hover:text-red-950",
-									"px-4 py-2 rounded-md text-xl font-bold"
-								)}
-								aria-current={item.href === currentPage ? "page" : undefined}
-							>
-								{item.name}
-							</a>
-						))}
-
-						{/* Show Profile only if logged in */}
-						{isLoggedIn && (
-							<a
-								href="/myprofile"
-								className={classNames(
-									"/myprofile" === currentPage
-										? "bg-white text-maroon-700"
-										: "text-white hover:bg-yellow-500 hover:text-red-950",
-									"px-4 py-2 rounded-md text-xl font-bold"
-								)}
-							>
-								Profile
-							</a>
-						)}
-
-						{/* Show Login only if not logged in */}
+					<div className="hidden sm:flex space-x-4 items-center">
 						{!isLoggedIn && (
 							<a
 								href="/login"
-								className={classNames(
-									"/login" === currentPage
-										? "bg-white text-maroon-700"
-										: "text-white hover:bg-yellow-500 hover:text-red-950",
-									"px-4 py-2 rounded-md text-xl font-bold"
-								)}
+								className="bg-yellow-500 text-maroon-800 px-4 py-2 rounded-lg text-lg font-bold hover:bg-yellow-400 transition-all duration-300 shadow-md"
 							>
 								Login
 							</a>
 						)}
-
-						{/* Logout button if logged in */}
 						{isLoggedIn && (
 							<button
 								onClick={handleLogout}
-								className="px-4 py-2 bg-yellow-500 text-red-950 rounded-md text-2xl font-bold shadow-md hover:bg-yellow-400"
+								className="bg-red-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-red-500 transition-all duration-300 shadow-md"
 							>
 								Logout
 							</button>
 						)}
 					</div>
-
 					<div className="flex sm:hidden">
-						<DisclosureButton className="inline-flex items-center justify-center p-2 rounded-md text-yellow-500 hover:bg-gray-300 focus:outline-none">
+						<DisclosureButton className="text-yellow-500 hover:bg-maroon-700 p-2 rounded-md focus:outline-none">
 							<Bars3Icon className="block h-8 w-8" aria-hidden="true" />
-							<XMarkIcon className="hidden h-8 w-8" aria-hidden="true" />
 						</DisclosureButton>
 					</div>
 				</div>
 			</div>
 
 			<DisclosurePanel className="sm:hidden">
-				<div className="px-4 pt-4 pb-4 space-y-2">
+				<div className="px-4 pt-4 pb-4 space-y-2 bg-maroon-800">
 					{navigation.map((item) => (
 						<DisclosureButton
 							key={item.name}
@@ -135,53 +132,42 @@ export default function Navbar({ onLogout }) {
 							href={item.href}
 							className={classNames(
 								item.href === currentPage
-									? "bg-white text-yellow-500"
-									: "text-pink-400 hover:bg-gray-300",
-								"block px-4 py-2 rounded-md text-xl font-semibold"
+									? "bg-yellow-500 text-maroon-800"
+									: "text-white hover:bg-yellow-400 hover:text-maroon-900",
+								"block px-4 py-2 rounded-lg text-lg font-semibold"
 							)}
 							aria-current={item.href === currentPage ? "page" : undefined}
 						>
 							{item.name}
 						</DisclosureButton>
 					))}
-
-					{/* Show Profile only if logged in */}
 					{isLoggedIn && (
 						<DisclosureButton
 							as="a"
 							href="/myprofile"
 							className={classNames(
 								"/myprofile" === currentPage
-									? "bg-white text-yellow-500"
-									: "text-black hover:bg-gray-300",
-								"block px-4 py-2 rounded-md text-xl font-semibold"
+									? "bg-yellow-500 text-maroon-800"
+									: "text-white hover:bg-yellow-400 hover:text-maroon-900",
+								"block px-4 py-2 rounded-lg text-lg font-semibold"
 							)}
 						>
 							Profile
 						</DisclosureButton>
 					)}
-
-					{/* Show Login only if not logged in */}
 					{!isLoggedIn && (
 						<DisclosureButton
 							as="a"
 							href="/login"
-							className={classNames(
-								"/login" === currentPage
-									? "bg-white text-yellow-500"
-									: "text-black hover:bg-gray-300",
-								"block px-4 py-2 rounded-md text-xl font-semibold"
-							)}
+							className="bg-yellow-500 text-maroon-800 block px-4 py-2 rounded-lg text-lg font-bold hover:bg-yellow-400 transition-all duration-300"
 						>
 							Login
 						</DisclosureButton>
 					)}
-
-					{/* Logout button if logged in */}
 					{isLoggedIn && (
 						<button
 							onClick={handleLogout}
-							className="w-full bg-yellow-500 text-red-950 px-4 py-2 rounded-md text-2xl font-semibold shadow-md hover:bg-yellow-400"
+							className="w-full bg-red-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-red-500 transition-all duration-300 shadow-md"
 						>
 							Logout
 						</button>
