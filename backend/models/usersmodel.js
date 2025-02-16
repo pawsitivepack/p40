@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
 	{
 		firstName: { type: String, required: true },
 		lastName: { type: String, required: true },
-		age: { type: Number, required: true },
+		age: { type: Number, required: false },
 		phone: { type: String }, // Not required now
 		email: {
 			type: String,
@@ -18,8 +18,8 @@ const userSchema = new mongoose.Schema(
 				return !this.googleAuth;
 			},
 		},
-		userPoints: { type: Number, default: 0 }, // Default user points
-		isAdmin: { type: Boolean, default: false }, // To identify admin users
+		userPoints: { type: Number, default: 0, required: false }, // Default user points
+		isAdmin: { type: Boolean, default: false, required: false }, // To identify admin users
 		role: {
 			type: String,
 			enum: ["marshal", "admin", "user"],
@@ -27,7 +27,11 @@ const userSchema = new mongoose.Schema(
 		},
 		googleAuth: { type: Boolean, default: false },
 		dogsWalked: [
-			{ type: mongoose.Schema.Types.ObjectId, ref: "ScheduledWalk" },
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "ScheduledWalk",
+				required: false,
+			},
 		], // Reference to Dog model
 	},
 	{ timestamps: true }

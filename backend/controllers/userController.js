@@ -123,7 +123,7 @@ exports.googleSignup = async (req, res) => {
 };
 // Signup
 exports.signup = async (req, res) => {
-	const { firstName, lastName, email, password } = req.body;
+	const { firstName, lastName, email, password, age, phone } = req.body;
 
 	try {
 		if (!email || !password || !firstName || !lastName) {
@@ -140,6 +140,8 @@ exports.signup = async (req, res) => {
 			firstName,
 			lastName,
 			email,
+			age,
+			phone,
 			password: hashedPassword,
 		});
 
