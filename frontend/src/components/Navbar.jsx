@@ -41,7 +41,7 @@ export default function Navbar() {
 		}, 1500);
 	};
 
-	// Navigation array with conditional logic for "Scheduled Walks"
+	// Navigation array with conditional logic for "Scheduled Walks" or "My Walks"
 	const navigation = [
 		{ name: "Home", href: "/home" },
 		{ name: "About", href: "/about" },
@@ -50,6 +50,8 @@ export default function Navbar() {
 		{ name: "Donate", href: "/donate" },
 		...(role === "marshal" || role === "admin"
 			? [{ name: "Scheduled Walks", href: "/scheduledwalk" }]
+			: role === "user"
+			? [{ name: "My Walks", href: "/mywalks" }]
 			: []),
 	];
 

@@ -200,3 +200,28 @@ exports.getAllUsers = async (req, res) => {
 		res.status(500).json({ error: "Internal server error" });
 	}
 };
+exports.mywalks = async (req, res) => {
+	const userId = req.user.id;
+	console.log("Fetching mywalks for user:", userId);
+
+	try {
+		// Use populate to fetch detailed information for each walk
+		const user = await User.findById(userId).populate({
+			path: "dogsWalked",
+			populate: [
+				{ path: "walker", select: "firstName lastName" }, // Populate walker with firstName and lastName
+				{ path: "marshal", select: "firstName lastName role" }, // Populate marshal with firstName, lastName, and role
+				{ path: "dog", select: "name breed age healthStatus" }, // Populate dog with name, breed, age, and healthStatus
+			],
+		});
+
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		res.status(200).json(user.dogsWalked);
+	} catch (error) {
+		console.error("Error fetching user walks:", error);
+		res.status(500).json({ message: "Failed to fetch walks" });
+	}
+};

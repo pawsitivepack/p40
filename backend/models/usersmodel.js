@@ -26,7 +26,9 @@ const userSchema = new mongoose.Schema(
 			default: "user", // Role defaults to 'user'
 		},
 		googleAuth: { type: Boolean, default: false },
-		dogsWalked: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dog" }], // Reference to Dog model
+		dogsWalked: [
+			{ type: mongoose.Schema.Types.ObjectId, ref: "ScheduledWalk" },
+		], // Reference to Dog model
 	},
 	{ timestamps: true }
 );
