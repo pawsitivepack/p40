@@ -10,6 +10,7 @@ router.post("/signup", userController.signup);
 
 // Protect the myProfile route with verifyToken
 router.get("/myprofile", verifyToken, userController.myProfile);
+router.get("/mywalks", verifyToken, userController.mywalks);
 
 // User Management
 router.get("/getAllUsers", verifyToken, userController.getAllUsers);

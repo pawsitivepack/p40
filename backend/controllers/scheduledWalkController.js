@@ -55,6 +55,7 @@ exports.getAllScheduledWalks = async (req, res) => {
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };
+
 exports.confirm = async (req, res) => {
 	const { walkId, userId } = req.body;
 
@@ -86,6 +87,14 @@ exports.confirm = async (req, res) => {
 
 		// Save the updated walk
 		await walk.save();
+
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		user.dogsWalked.push(walkId); // Push walkId to the dogsWalked array
+		await user.save();
 
 		res.status(200).json({ message: "Walk confirmed successfully", walk });
 	} catch (error) {

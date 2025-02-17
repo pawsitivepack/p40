@@ -1,13 +1,17 @@
 /* MyCalendar.css */
 .react-calendar {
+	font-family: "Special Elite", cursive; /* Apply Special Elite to the entire calendar */
+}
+
+.react-calendar {
 	max-width: 100%;
 	width: 100%; /* Make the calendar responsive */
 	min-width: 300px;
-	background-color: #7485a7;
-	border: 1px solid #0d42ad;
-	border-radius: 8px;
+	background-color: #3e6c43;
 
-	font-family: "Roboto", sans-serif;
+	border-radius: 18px;
+
+	font-family: "Special Elite", cursive; /* Apply Special Elite to the entire calendar */
 
 	font-size: 1.2rem; /* Increase text size */
 }
@@ -15,9 +19,9 @@
 .react-calendar__navigation button {
 	font-size: 16px;
 	border: none;
-	background-color: #085769; /* Tailwind blue-600 */
+	background-color: #0dac52; /* Tailwind blue-600 */
 	color: white;
-	border-radius: 8px;
+	border-radius: 18px !important;
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 	transition: background-color 0.3s ease, box-shadow 0.3s ease,
 		transform 0.2s ease;
@@ -30,47 +34,47 @@
 	min-height: 70px !important;
 }
 .react-calendar__navigation button:hover {
-	background-color: #1173ea !important;
+	background-color: #0b4f0c !important;
 }
 .react-calendar__tile {
 	padding: 20px; /* Bigger tiles */
-	border: 1px solid #ccc; /* Add a light border between dates */
+
 	background-color: #ffffff;
-	color: #4b5563;
-	border: 1px solid rgb(38, 14, 14) !important;
-	border-radius: 4px;
+	color: #000000;
+	font-size: large;
+	border: none !important;
+
 	transition: background-color 0.2s ease;
 	box-sizing: border-box; /* Ensure consistent box model */
 }
 .react-calendar__month-view__days__day--weekend {
 	color: red !important;
-	background-color: rgb(255, 215, 215) !important;
-}
-.react-calendar__month-view__weekdays__weekday {
-	border: 1px solid #000000 !important;
-}
-.react-calendar__tile--now {
-	background-color: #fde68a !important;
-
-	color: #92400e;
-	font-weight: bold;
 }
 
 .react-calendar__tile--now {
-	background-color: #36e900 !important;
-	width: 100% !important;
-	color: #92400e;
+	background-color: rgb(151, 241, 83) !important;
+}
+.react-calendar__tile--now:hover {
+	background-color: rgb(109, 232, 15) !important;
+}
+
+.react-calendar__tile--now abbr {
+	border: 2px solid green; /* Green circle around the text */
+	border-radius: 50%; /* Make it circular */
+	padding: 2px 5px; /* Adjust padding for consistent circle size */
+	background-color: rgb(145, 225, 84) !important;
 	font-weight: bold;
-	border: 2px solid #f59e0b; /* Highlight border for today */
+	display: inline-block;
+	width: auto;
+	height: auto;
 }
 
 .react-calendar__tile--active {
-	background-color: #a5b4fc;
-	color: #1e3a8a;
+	background-color: #cdd2e7;
+	color: #727b93;
 	font-weight: bold;
-	border: 2px solid #3b82f6; /* Visible border for active dates */
 }
 .react-calendar__month-view__days__day--neighboringMonth {
-	background-color: rgb(173, 169, 169) !important;
-	color: #042027 !important;
+	background-color: rgb(241, 229, 229) !important;
+	color: #b6bdbf !important;
 }
