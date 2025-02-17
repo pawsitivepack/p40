@@ -56,7 +56,12 @@ const EditDog = ({ setFormVisible, setDogs, dog }) => {
 		try {
 			const response = await axios.put(
 				`${import.meta.env.VITE_BACKEND_URL}/dogs/${dog._id}`,
-				updatedDog
+				updatedDog,
+				{
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem("token")}`,
+					},
+				}
 			);
 			const updatedData = response.data.updatedDog;
 			console.log(updatedData);

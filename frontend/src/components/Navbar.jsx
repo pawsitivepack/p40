@@ -49,12 +49,14 @@ export default function Navbar() {
 		{ name: "Walk Dogs", href: "/walkdogs" },
 		{ name: "Donate", href: "/donate" },
 		...(role === "marshal" || role === "admin"
-			? [{ name: "Scheduled Walks", href: "/scheduledwalk" }]
+			? [
+					{ name: "Scheduled Walks", href: "/scheduledwalk" },
+					{ name: "All Users", href: "/users" }, // New "All Users" link for marshals and admins
+			  ]
 			: role === "user"
 			? [{ name: "My Walks", href: "/mywalks" }]
 			: []),
 	];
-
 	function classNames(...classes) {
 		return classes.filter(Boolean).join(" ");
 	}

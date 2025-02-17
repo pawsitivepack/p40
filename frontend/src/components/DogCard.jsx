@@ -25,7 +25,12 @@ function DogCard({ dog, onDelete, onEdit }) {
 	const handleDelete = async () => {
 		try {
 			const response = await axios.delete(
-				`${import.meta.env.VITE_BACKEND_URL}/dogs/${dog._id}`
+				`${import.meta.env.VITE_BACKEND_URL}/dogs/${dog._id}`,
+				{
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem("token")}`,
+					},
+				}
 			);
 
 			if (response.status !== 200) {
