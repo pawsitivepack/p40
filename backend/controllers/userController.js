@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
 const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
+const Walk = require("../models/walkmodel");
 
 // Helper function to generate a JWT
 const generateToken = (user) => {
@@ -225,5 +226,97 @@ exports.mywalks = async (req, res) => {
 	} catch (error) {
 		console.error("Error fetching user walks:", error);
 		res.status(500).json({ message: "Failed to fetch walks" });
+	}
+};
+
+exports.editUser = async (req, res) => {
+	try {
+		const userId = req.params.id;
+		const updateData = req.body;
+
+		// Prevent updating sensitive fields like password directly
+		const allowedFields = [
+			"firstName",
+			"lastName",
+			"email",
+			"role",
+			"age",
+			"phone",
+		];
+		const updates = {};
+
+		for (const field of allowedFields) {
+			if (updateData[field] !== undefined) {
+				updates[field] = updateData[field];
+			}
+		}
+
+		// Ensure email uniqueness if email is being updated
+		if (updates.email) {
+			const existingUser = await User.findOne({ email: updates.email });
+			if (existingUser && existingUser._id.toString() !== userId) {
+				return res.status(400).json({ message: "Email already in use" });
+			}
+		}
+
+		// Update the user in the database
+		const updatedUser = await User.findByIdAndUpdate(
+			userId,
+			{ $set: updates },
+			{ new: true, runValidators: true, select: "-password" }
+		);
+
+		if (!updatedUser) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		res.status(200).json({
+			message: "User updated successfully",
+			user: updatedUser,
+		});
+	} catch (error) {
+		console.error("Error updating user:", error);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
+
+exports.deleteUser = async (req, res) => {
+	try {
+		const userId = req.params.id;
+
+		// Check if the user exists
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		// **Check if the user is a walker or marshal before deletion**
+		const walksToUpdate = await Walk.find({
+			$or: [{ walker: userId }, { marshal: userId }],
+			status: "Scheduled",
+		});
+
+		// **Remove the user from the `walker` array**
+		await Walk.updateMany({ walker: userId }, { $pull: { walker: userId } });
+
+		// **Remove the user from the `marshal` field**
+		await Walk.updateMany({ marshal: userId }, { $unset: { marshal: "" } });
+
+		// **Increase slots for all affected walks where status is "Scheduled"**
+		for (const walk of walksToUpdate) {
+			await Walk.findByIdAndUpdate(walk._id, { $inc: { slots: 1 } });
+		}
+
+		// **Delete the user after cleaning up references**
+		await User.findByIdAndDelete(userId);
+
+		res.status(200).json({
+			message:
+				"User removed successfully, walker/marshal removed, slots updated",
+			userId,
+		});
+	} catch (error) {
+		console.error("Error deleting user:", error);
+		res.status(500).json({ message: "Internal server error" });
 	}
 };
