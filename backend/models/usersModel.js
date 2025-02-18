@@ -33,6 +33,13 @@ const userSchema = new mongoose.Schema(
 				required: false,
 			},
 		], // Reference to Dog model
+		completedWalks: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "CompletedWalk",
+				required: false,
+			},
+		], // Reference to Dog model
 	},
 	{ timestamps: true }
 );

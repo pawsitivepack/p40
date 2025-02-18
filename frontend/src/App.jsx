@@ -13,6 +13,8 @@ import Walkdogs from "./components/Walkdogs";
 import MyProfile from "./components/MyProfile";
 import GoogleSignup from "./components/GoogleSignup";
 import ScheduledWalk from "./components/ScheduledWalks";
+import CheckIn from "./components/CheckIn";
+import ViewCompletedWalks from "./components/ViewCompletedWalks";
 import MyWalks from "./components/MyWalks";
 import Users from "./components/Users/Users";
 
@@ -68,6 +70,9 @@ function App() {
 							element={<Login setIsLoggedIn={setIsLoggedIn} />}
 						/>
 						<Route path="/scheduledwalk" element={<ScheduledWalk />} />
+						<Route path="/checkin" element={<CheckIn />} />
+						<Route path="/completedWalks" element={<ViewCompletedWalks />} />
+
 						<Route path="/mywalks" element={<MyWalks />} />
 						<Route path="/donate" element={<Donate />} />
 						<Route path="/myprofile" element={<MyProfile />} />

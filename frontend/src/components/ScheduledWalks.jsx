@@ -3,7 +3,7 @@ import axios from "axios";
 
 const ScheduledWalks = () => {
 	const [walksWithUsers, setWalksWithUsers] = useState([]);
-    
+
 	const [refresh, setRefresh] = useState(false);
 
 	useEffect(() => {
@@ -17,7 +17,7 @@ const ScheduledWalks = () => {
 						},
 					}
 				);
-				
+
 				// Update dynamically based on the latest walker list
 				const filteredWalks = response.data.filter(
 					(walk) => walk.walker.length > 0
@@ -29,7 +29,7 @@ const ScheduledWalks = () => {
 		};
 
 		fetchWalks();
-	}, [refresh]); 
+	}, [refresh]);
 
 	// Function to trigger a re-fetch
 	const triggerRefresh = () => {
@@ -38,7 +38,21 @@ const ScheduledWalks = () => {
 
 	return (
 		<div className="container mx-auto p-4">
-			<h1 className="text-2xl font-bold mb-6">Scheduled Walks with Users</h1>
+			<h1 className="text-2xl font-bold">Scheduled Walks with Users</h1>
+			<div className="flex gap-4">
+				<button
+					className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+					onClick={() => (window.location.href = "/checkin")} // Change this to navigate correctly
+				>
+					Check In
+				</button>
+				<button
+					className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+					onClick={() => (window.location.href = "/completedwalks")} // Change this as needed
+				>
+					Completed Walks
+				</button>
+			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				{walksWithUsers.length === 0 ? (
 					<p className="text-gray-600">No walks with users available.</p>

@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const dogRoutes = require("./routes/dogsRoute");
 const userRoutes = require("./routes/userRoute");
 const schedulewalk = require("./routes/walkRoute");
+const completedWalk = require("./routes/completedWalkRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -33,6 +34,7 @@ async function connectToDatabase() {
 app.use("/users", userRoutes);
 app.use("/dogs", dogRoutes);
 app.use("/scheduledWalks", schedulewalk);
+app.use("/completedWalk", completedWalk);
 
 // Start the Server
 app.listen(PORT, async () => {
