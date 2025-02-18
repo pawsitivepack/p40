@@ -102,3 +102,43 @@ exports.confirm = async (req, res) => {
 		res.status(500).json({ message: "Failed to confirm the walk" });
 	}
 };
+
+exports.cancelWalk = async (req, res) => {
+    try {
+        const { walkId } = req.params;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        // Fetch the walk
+        const walk = await ScheduledWalk.findById(walkId);
+        if (!walk) {
+            return res.status(404).json({ message: "Walk not found" });
+        }
+
+        // Convert walker IDs to string for proper comparison
+        const walkerIds = walk.walker.map((w) => w.toString());
+
+        // If the user is not in the walker list, return unauthorized error
+        if (userRole === "user" && !walkerIds.includes(userId)) {
+            return res.status(403).json({ message: "You cannot cancel this walk." });
+        }
+
+        // Remove the user from the walker list
+        walk.walker = walk.walker.filter((id) => id.toString() !== userId);
+        walk.slots += 1;
+
+        // Ensure that admin/marshal stays even if no users remain
+        if (walk.walker.length === 0 && walk.marshal) {
+            await walk.save(); // Save the walk but don't delete it
+            return res.status(200).json({ message: "Walk appointment cancelled, walk remains active with marshal.", walk });
+        }
+
+        await walk.save();
+        return res.status(200).json({ message: "Your walk appointment has been cancelled.", walk });
+
+    } catch (error) {
+        console.error("Error cancelling walk:", error);
+        res.status(500).json({ message: "Failed to cancel walk" });
+    }
+};
+

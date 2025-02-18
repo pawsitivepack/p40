@@ -1,4 +1,3 @@
-// src/App.jsx
 import React, { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
@@ -40,7 +39,7 @@ function App() {
 
 	return (
 		<Router>
-			<div className="bg-red-950 text-gray-100 min-h-screen flex flex-col">
+			<div className="bg-gray-400 text-gray-100 min-h-screen flex flex-col">
 				{/* Navbar */}
 				<Navbar />
 

@@ -12,5 +12,6 @@ router.post(
 );
 router.get("/", verifyToken, WalkController.getAllScheduledWalks);
 router.post("/confirm", verifyToken, WalkController.confirm);
-
+router.delete("/cancel/:walkId", verifyToken, WalkController.cancelWalk);
 module.exports = router;
+ 

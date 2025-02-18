@@ -22,7 +22,32 @@ const MyWalks = () => {
 		};
 
 		fetchMyWalks();
+
 	}, []);
+
+	// Function to cancel a walk
+	const handleCancelWalk = async (walkId) => {
+		if (!window.confirm("Are you sure you want to cancel this walk?")) return;
+	
+		try {
+			await axios.delete(
+				`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/cancel/${walkId}`,
+				{
+					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+				}
+			);
+	
+			// ✅ Remove only the cancelled walk from the UI
+			setWalks((prevWalks) => prevWalks.filter((walk) => walk._id !== walkId));
+	
+			toast.success("Walk appointment cancelled successfully!");
+		} catch (error) {
+			console.error("Error cancelling walk:", error);
+			toast.error("Failed to cancel walk.");
+		}
+	};
+	
+	
 
 	return (
 		<div className="container mx-auto p-4">
@@ -30,7 +55,7 @@ const MyWalks = () => {
 			{walks.length === 0 ? (
 				<p className="text-gray-600">No scheduled walks found.</p>
 			) : (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
 					{walks.map((walk) => (
 						<div
 							key={walk._id}
@@ -55,6 +80,13 @@ const MyWalks = () => {
 							<p className="text-blue-700">
 								Duration: <span className="text-gray-800">{walk.duration}</span>
 							</p>
+							{/* Cancel Button */}
+							<button
+								onClick={() => handleCancelWalk(walk._id)}
+								className="mt-4 w-half bg-red-500 text-white py-2 px-2 rounded-md hover:bg-red-700 transition-all"
+							>
+								Cancel Walk
+							</button>
 						</div>
 					))}
 				</div>
