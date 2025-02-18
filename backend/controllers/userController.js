@@ -204,30 +204,33 @@ exports.getAllUsers = async (req, res) => {
 	}
 };
 exports.mywalks = async (req, res) => {
-	const userId = req.user.id;
-	console.log("Fetching mywalks for user:", userId);
+    const userId = req.user.id;
+    try {
+        const user = await User.findById(userId).populate({
+            path: "dogsWalked",
+            match: { walker: userId }, // Only fetch walks where the user is still a walker
+            populate: [
+                { path: "walker", select: "firstName lastName" },
+                { path: "marshal", select: "firstName lastName role" },
+                { path: "dog", select: "name breed age healthStatus" },
+            ],
+        });
 
-	try {
-		// Use populate to fetch detailed information for each walk
-		const user = await User.findById(userId).populate({
-			path: "dogsWalked",
-			populate: [
-				{ path: "walker", select: "firstName lastName" }, // Populate walker with firstName and lastName
-				{ path: "marshal", select: "firstName lastName role" }, // Populate marshal with firstName, lastName, and role
-				{ path: "dog", select: "name breed age healthStatus" }, // Populate dog with name, breed, age, and healthStatus
-			],
-		});
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+		const uniqueWalks = Array.from(
+            new Map(user.dogsWalked.map((walk) => [walk._id.toString(), walk])).values()
+        );
 
-		if (!user) {
-			return res.status(404).json({ message: "User not found" });
-		}
-
-		res.status(200).json(user.dogsWalked);
-	} catch (error) {
-		console.error("Error fetching user walks:", error);
-		res.status(500).json({ message: "Failed to fetch walks" });
-	}
+        res.status(200).json(uniqueWalks);
+    } catch (error) {
+        console.error("Error fetching user walks:", error);
+        res.status(500).json({ message: "Failed to fetch walks" });
+    }
 };
+
+
 
 exports.editUser = async (req, res) => {
 	try {

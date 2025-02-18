@@ -64,7 +64,7 @@ export default function Navbar() {
 	return (
 		<Disclosure
 			as="nav"
-			className="bg-gradient-to-r from-maroon-600 via-maroon-500 to-maroon-700 shadow-lg"
+			className="bg-gradient-to-r from-gray-900 via-gray-500 to-gray-700 shadow-lg"
 		>
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-20">

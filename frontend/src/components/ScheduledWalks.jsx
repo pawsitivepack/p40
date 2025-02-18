@@ -3,6 +3,8 @@ import axios from "axios";
 
 const ScheduledWalks = () => {
 	const [walksWithUsers, setWalksWithUsers] = useState([]);
+    
+	const [refresh, setRefresh] = useState(false);
 
 	useEffect(() => {
 		const fetchWalks = async () => {
@@ -15,8 +17,8 @@ const ScheduledWalks = () => {
 						},
 					}
 				);
-
-				// Filter walks with non-empty walker arrays
+				
+				// Update dynamically based on the latest walker list
 				const filteredWalks = response.data.filter(
 					(walk) => walk.walker.length > 0
 				);
@@ -27,7 +29,12 @@ const ScheduledWalks = () => {
 		};
 
 		fetchWalks();
-	}, []);
+	}, [refresh]); 
+
+	// Function to trigger a re-fetch
+	const triggerRefresh = () => {
+		setRefresh((prev) => !prev);
+	};
 
 	return (
 		<div className="container mx-auto p-4">
