@@ -184,15 +184,10 @@ const MyCalendar = () => {
 						);
 
 						return walksForDate.length > 0 ? (
-							<div className="bg-green-200 p-0 m-0 text-xs text-left">
-								{walksForDate.map((walk, index) => {
-									const walkTime = new Date(walk.date).toLocaleTimeString([], {
-										hour: "2-digit",
-										minute: "2-digit",
-										hour12: false,
-									});
-									return <div key={index}>{walkTime}</div>;
-								})}
+							<div className="flex justify-center items-center mt-1">
+								<span className="w-4 h-4 flex items-center justify-center bg-green-500 text-white rounded-full text-xs font-bold">
+									✔
+								</span>
 							</div>
 						) : null;
 					}}

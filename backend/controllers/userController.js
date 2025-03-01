@@ -7,7 +7,12 @@ const Walk = require("../models/walkmodel");
 // Helper function to generate a JWT
 const generateToken = (user) => {
 	return jwt.sign(
-		{ id: user._id, email: user.email, role: user.role },
+		{
+			id: user._id,
+			email: user.email,
+			role: user.role,
+			username: user.firstName,
+		},
 		process.env.JWT_SECRET,
 		{
 			expiresIn: "1h",
@@ -204,33 +209,33 @@ exports.getAllUsers = async (req, res) => {
 	}
 };
 exports.mywalks = async (req, res) => {
-    const userId = req.user.id;
-    try {
-        const user = await User.findById(userId).populate({
-            path: "dogsWalked",
-            match: { walker: userId }, // Only fetch walks where the user is still a walker
-            populate: [
-                { path: "walker", select: "firstName lastName" },
-                { path: "marshal", select: "firstName lastName role" },
-                { path: "dog", select: "name breed age healthStatus" },
-            ],
-        });
+	const userId = req.user.id;
+	try {
+		const user = await User.findById(userId).populate({
+			path: "dogsWalked",
+			match: { walker: userId }, // Only fetch walks where the user is still a walker
+			populate: [
+				{ path: "walker", select: "firstName lastName" },
+				{ path: "marshal", select: "firstName lastName role" },
+				{ path: "dog", select: "name breed age healthStatus" },
+			],
+		});
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
 		const uniqueWalks = Array.from(
-            new Map(user.dogsWalked.map((walk) => [walk._id.toString(), walk])).values()
-        );
+			new Map(
+				user.dogsWalked.map((walk) => [walk._id.toString(), walk])
+			).values()
+		);
 
-        res.status(200).json(uniqueWalks);
-    } catch (error) {
-        console.error("Error fetching user walks:", error);
-        res.status(500).json({ message: "Failed to fetch walks" });
-    }
+		res.status(200).json(uniqueWalks);
+	} catch (error) {
+		console.error("Error fetching user walks:", error);
+		res.status(500).json({ message: "Failed to fetch walks" });
+	}
 };
-
-
 
 exports.editUser = async (req, res) => {
 	try {

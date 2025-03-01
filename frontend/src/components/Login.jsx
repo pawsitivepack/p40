@@ -51,7 +51,7 @@ export default function Login() {
 
 				// Save the JWT token in local storage
 				localStorage.setItem("token", data.token);
-
+				window.dispatchEvent(new Event("storage"));
 				// Navigate to the myprofile page
 				navigate("/myprofile");
 			} else {
@@ -102,16 +102,19 @@ export default function Login() {
 				toast.success(data.message);
 
 				if (!isRegistering) {
-					localStorage.setItem("token", data.token); // Store JWT token
+					localStorage.setItem("token", data.token); // ✅ Store JWT token
+					window.dispatchEvent(new Event("storage")); // ✅ Notify other components (like Navbar)
+
 					if (rememberMe) {
 						localStorage.setItem("rememberedEmail", formData.email);
 					} else {
 						localStorage.removeItem("rememberedEmail");
 					}
-					navigate("/myprofile");
+
+					navigate("/myprofile"); // ✅ Navigate after updating state
 				}
 			} else {
-				toast.error(data.message || "Something went wrong");
+				toast.error(data.message || "Invalid password or email");
 			}
 		} catch (error) {
 			console.error("Error:", error);
