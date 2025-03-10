@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
+import { EllipsisHorizontalCircleIcon } from "@heroicons/react/24/solid";
 
-function DogCard({ dog, onDelete, onEdit }) {
+function DogCard({ dog, onDelete, onEdit, role }) {
 	const [showMenu, setShowMenu] = useState(false);
 	const cardRef = useRef(null);
 
@@ -68,14 +69,14 @@ function DogCard({ dog, onDelete, onEdit }) {
 				className="w-full h-66 object-cover rounded-t-lg"
 			/>
 
-			<div
-				className="absolute top-4 right-4 cursor-pointer"
-				onClick={toggleMenu}
-			>
-				<div className="h-2 w-2 bg-gray-900 rounded-full mb-1"></div>
-				<div className="h-2 w-2 bg-gray-900 rounded-full mb-1"></div>
-				<div className="h-2 w-2 bg-gray-900 rounded-full"></div>
-			</div>
+			{role === "admin" && (
+				<div
+					className="absolute top-4 right-4 cursor-pointer"
+					onClick={toggleMenu}
+				>
+					<EllipsisHorizontalCircleIcon className="w-6 h-6 drop-shadow-xl" />
+				</div>
+			)}
 
 			{showMenu && (
 				<div className="absolute top-12 right-4 bg-white shadow-lg rounded-lg w-36 p-2 z-10">

@@ -118,6 +118,7 @@ function Gallery() {
 								dog={dog}
 								onDelete={removeDogFromList}
 								onEdit={handleEditDog} // Pass the handleEditDog function here
+								role={role}
 							/>
 					  ))
 					: !loading && (

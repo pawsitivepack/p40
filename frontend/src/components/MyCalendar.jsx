@@ -7,53 +7,55 @@ import "react-toastify/dist/ReactToastify.css";
 import "./MyCalendar.css";
 import ScheduleWalkForm from "./ScheduleWalkForm";
 import { jwtDecode } from "jwt-decode";
+import { CheckBadgeIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 
 const MyCalendar = () => {
-	const [date, setDate] = useState(new Date());
+	const [date, setDate] = useState(null);
 	const [view, setView] = useState("month");
 	const [showForm, setShowForm] = useState(false);
 	const [role, setRole] = useState("");
+	const [dogswalked, setDogsWalked] = useState([]);
+	const [availableWalks, setAvailableWalks] = useState([]);
+	const [selectedWalk, setSelectedWalk] = useState(null);
+	const [filteredWalks, setFilteredWalks] = useState([]);
+	const [newEvent, setNewEvent] = useState({
+		marshal: "",
+		start: date,
+		end: date,
+		location: "920 F Drive Monroe LA",
+	});
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
 		if (token) {
 			try {
 				const decodedToken = jwtDecode(token);
-				const userRole = decodedToken.role;
-				setRole(userRole);
+				setRole(decodedToken.role);
 			} catch (error) {
 				console.error("Failed to decode token:", error);
 			}
-		} else {
-			console.warn("no token in the local storage");
 		}
 	}, []);
+	useEffect(() => {
+		if (date) {
+			const selectedDateStr = date.toLocaleDateString();
+			const filtered = availableWalks.filter((walk) => {
+				const walkDateStr = new Date(walk.date).toLocaleDateString();
+				return walkDateStr === selectedDateStr;
+			});
+			setFilteredWalks(filtered);
+		}
+	}, [date, availableWalks]);
 
-	const [newEvent, setNewEvent] = useState({
-		marshal: "",
-		start: date,
-		end: date,
-		location: "920 F drive Monroe LA",
-	});
-	const [availableWalks, setAvailableWalks] = useState([]);
-	const [selectedWalk, setSelectedWalk] = useState(null);
-
-	// Fetch all scheduled walks
 	const fetchAvailableWalks = async () => {
 		try {
 			const response = await axios.get(
 				`${import.meta.env.VITE_BACKEND_URL}/scheduledwalks`,
 				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
+					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 				}
 			);
 			setAvailableWalks(response.data);
-			const sortedWalks = response.data.sort(
-				(a, b) => new Date(a.date) - new Date(b.date)
-			);
-			setAvailableWalks(sortedWalks);
 		} catch (error) {
 			console.error("Error fetching available walks:", error);
 		}
@@ -64,19 +66,72 @@ const MyCalendar = () => {
 	}, []);
 
 	const handleDateChange = (selectedDate) => {
-		const today = new Date();
-		today.setHours(0, 0, 0, 0); // Set the time to the beginning of the day for accurate comparison
-		const selectedDateOnly = new Date(selectedDate);
-		selectedDateOnly.setHours(0, 0, 0, 0);
+		setDate(selectedDate);
+		const selectedDateStr = selectedDate.toLocaleDateString();
 
-		if (selectedDateOnly >= today) {
-			setDate(selectedDate);
-			setNewEvent({ ...newEvent, start: selectedDate, end: selectedDate });
-			setShowForm(true);
-		} else {
-			toast.error("Cannot add events for past dates.");
-			setShowForm(false);
+		setNewEvent((prevEvent) => ({
+			...prevEvent,
+			start: selectedDate,
+			end: selectedDate,
+		}));
+
+		const filtered = availableWalks.filter((walk) => {
+			const walkDateStr = new Date(walk.date).toLocaleDateString();
+			return walkDateStr === selectedDateStr;
+		});
+
+		setFilteredWalks(filtered);
+		setShowForm(false); // Hide form when a new date is selected
+	};
+	const handleConfirmWalk = async (walk) => {
+		const confirm = window.confirm(
+			`Do you want to confirm the walk on ${new Date(
+				walk.date
+			).toLocaleDateString()} at ${new Date(walk.date).toLocaleTimeString([], {
+				hour: "2-digit",
+				minute: "2-digit",
+			})}?`
+		);
+
+		if (confirm) {
+			try {
+				const token = localStorage.getItem("token");
+				if (!token) {
+					toast.error("You must be logged in to confirm a walk.");
+					return;
+				}
+
+				const decodedToken = jwtDecode(token);
+				const userId = decodedToken.id;
+
+				const response = await axios.post(
+					`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/confirm`,
+					{
+						walkId: walk._id,
+						userId: userId, // Send userId along with walkId
+					},
+					{
+						headers: {
+							Authorization: `Bearer ${token}`,
+						},
+					}
+				);
+				toast.success("Walk confirmed successfully!");
+				await fetchAvailableWalks(); // Refresh data after confirmation
+			} catch (error) {
+				console.error("Error confirming walk:", error);
+				toast.error(
+					error.response?.data?.message ||
+						"Failed to confirm the walk. Please try again."
+				);
+			}
 		}
+	};
+
+	const handleSelectWalk = (walk) => {
+		console.log("Walk selected:", walk);
+		setSelectedWalk(walk._id);
+		handleConfirmWalk(walk); // Confirm the walk immediately
 	};
 
 	const handleAddEvent = async (e) => {
@@ -87,9 +142,8 @@ const MyCalendar = () => {
 		}
 
 		try {
-			const response = await axios.post(
+			await axios.post(
 				`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/newWalk`,
-
 				{
 					marshal: newEvent.marshal,
 					date: newEvent.start,
@@ -112,86 +166,139 @@ const MyCalendar = () => {
 				location: "920 F Drive Monroe LA",
 			});
 
-			// Refresh available walks to show the new one immediately
-			fetchAvailableWalks();
+			// Refresh available walks
+			await fetchAvailableWalks();
 		} catch (error) {
 			console.error("Error adding walk:", error);
 			toast.error("Failed to schedule the walk.");
 		}
 	};
 
-	const handleConfirmWalk = async (walk) => {
-		const confirm = window.confirm(
-			`Do you want to confirm the walk on ${new Date(
-				walk.date
-			).toLocaleDateString()} at ${new Date(walk.date).toLocaleTimeString([], {
-				hour: "2-digit",
-				minute: "2-digit",
-			})}?`
-		);
-
-		if (confirm) {
-			try {
-				const userId = jwtDecode(localStorage.getItem("token")).id; // Extract userId from the token
-
-				const response = await axios.post(
-					`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/confirm`,
-					{
-						walkId: walk._id,
-						userId: userId, // Send userId along with walkId
-					},
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem("token")}`,
-						},
-					}
-				);
-				toast.success("Walk confirmed successfully!");
-
-				// Update the available walks list or refresh the data
-				fetchAvailableWalks();
-			} catch (error) {
-				console.error("Error confirming walk:", error);
-				toast.error("Failed to confirm the walk. Please try again.");
-			}
-		}
-	};
-
-	const handleSelectWalk = (walk) => {
-		console.log(walk);
-		setSelectedWalk(walk._id);
-		handleConfirmWalk(walk); // Trigger confirmation request
-	};
-
 	return (
-		<div className="container mx-auto px-0">
+		<div className="container mx-auto px-4">
 			<ToastContainer />
 
-			{/* Calendar Section */}
-			<div className="max-w-4xl mx-auto mb-4 py-0">
-				<Calendar
-					onChange={["marshal", "admin"].includes(role) && handleDateChange}
-					value={date}
-					view={view}
-					onViewChange={setView}
-					className="custom-calendar"
-					tileContent={({ date }) => {
-						// Filter walks from availableWalks for the current date
-						const walksForDate = availableWalks.filter(
-							(walk) =>
-								new Date(walk.date).toLocaleDateString() ===
-								date.toLocaleDateString()
-						);
+			<div className="flex flex-col md:flex-row gap-6">
+				<div className="md:w-1/2 lg:w-1/2 bg-white shadow-md rounded-lg p-4">
+					<Calendar
+						onChange={handleDateChange}
+						value={date}
+						view={view}
+						onViewChange={setView}
+						className="custom-calendar w-full"
+						tileContent={({ date }) => {
+							const today = new Date();
+							today.setHours(0, 0, 0, 0);
 
-						return walksForDate.length > 0 ? (
-							<div className="flex justify-center items-center mt-1">
-								<span className="w-4 h-4 flex items-center justify-center bg-green-500 text-white rounded-full text-xs font-bold">
-									✔
-								</span>
+							const walksForDate = availableWalks.some((walk) => {
+								const walkDate = new Date(walk.date);
+								walkDate.setHours(0, 0, 0, 0);
+								return (
+									walkDate.toLocaleDateString() === date.toLocaleDateString() &&
+									walkDate >= today
+								);
+							});
+
+							return walksForDate ? (
+								<div className="flex justify-center items-center mt-1">
+									<CheckBadgeIcon className="w-8 h-8 text-green-500" />
+								</div>
+							) : null;
+						}}
+					/>
+				</div>
+
+				<div className="md:w-1/2 lg:w-1/2 bg-gray-100 shadow-lg rounded-lg p-6 border border-gray-300 overflow-y-auto h-[600px]">
+					<h2 className="text-3xl font-extrabold mb-6 text-gray-900 text-center">
+						{date
+							? `Walks on ${date.toLocaleDateString()}`
+							: "Select a date to view walks"}
+					</h2>
+
+					{!date ? (
+						<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
+							📅 Please select a date on the calendar to view available walks.
+						</p>
+					) : (
+						<>
+							{["marshal", "admin"].includes(role) && (
+								<button
+									onClick={() => setShowForm(true)}
+									className="mb-4 flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-green-700 transition-all duration-300 shadow-md"
+								>
+									<PlusCircleIcon className="w-6 h-6" />
+									<span>Add Walk</span>
+								</button>
+							)}
+
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								{filteredWalks.length === 0 ? (
+									<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
+										No walks available for this date.
+									</p>
+								) : (
+									filteredWalks.map((walk) => (
+										<div
+											key={walk._id}
+											className="border border-gray-300 rounded-lg p-5 shadow-lg bg-white hover:shadow-2xl transform hover:scale-105 transition-all"
+										>
+											<div className="space-y-2">
+												<p className="text-gray-800">
+													<span className="font-bold">🐶 Dog:</span>{" "}
+													{walk.dog.name}
+												</p>
+												<p className="text-gray-800">
+													<span className="font-bold">📅 Date:</span>{" "}
+													{new Date(walk.date).toLocaleDateString()}
+												</p>
+												<p className="text-gray-800">
+													<span className="font-bold">⏰ Time:</span>{" "}
+													{new Date(walk.date).toLocaleTimeString([], {
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
+												</p>
+												<p className="text-gray-800">
+													<span className="font-bold">🚶 Marshal:</span>{" "}
+													{walk.marshal.firstName} {walk.marshal.lastName}
+												</p>
+												<p className="text-gray-800">
+													<span className="font-bold">🎟️ Slots Available:</span>{" "}
+													{walk.slots}
+												</p>
+												<p className="text-gray-800">
+													<span className="font-bold">⏳ Duration:</span>{" "}
+													{walk.duration || "1 hour"}
+												</p>
+											</div>
+
+											{walk.slots === 0 ? (
+												<p className="mt-4 w-full text-center text-red-600 font-bold bg-red-100 p-2 rounded-md">
+													❌ This walk is full
+												</p>
+											) : (
+												role === "user" && (
+													<button
+														onClick={() => handleSelectWalk(walk)}
+														className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
+															selectedWalk === walk._id
+																? "bg-green-600 hover:bg-green-700"
+																: "bg-blue-600 hover:bg-blue-700"
+														}`}
+													>
+														{selectedWalk === walk._id
+															? "Selected"
+															: "Select Walk"}
+													</button>
+												)
+											)}
+										</div>
+									))
+								)}
 							</div>
-						) : null;
-					}}
-				/>
+						</>
+					)}
+				</div>
 			</div>
 
 			{showForm && ["marshal", "admin"].includes(role) && (
@@ -202,83 +309,6 @@ const MyCalendar = () => {
 					handleAddEvent={handleAddEvent}
 				/>
 			)}
-
-			{/* Available Walks Section */}
-			<div className="mt-8 bg-gradient-to-br from-blue-100 via-indigo-200 to-purple-100 rounded-lg p-6 shadow-lg">
-				<h2 className="text-2xl font-extrabold mb-6 text-gray-800">
-					Available Walks
-				</h2>
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-					{availableWalks.length === 0 ? (
-						<p className="text-gray-700 bg-gray-100 rounded-lg text-center col-span-full p-6 shadow-md">
-							No walks available.
-						</p>
-					) : (
-						availableWalks.map((walk) => (
-							<div
-								key={walk._id}
-								className={`border rounded-lg p-4 shadow-md transform transition-all duration-300 ${
-									selectedWalk === walk._id
-										? "border-blue-600 bg-blue-100 scale-105"
-										: "hover:shadow-lg hover:bg-gray-100"
-								}`}
-							>
-								<p className="font-bold text-blue-700">
-									Dog: <span className="text-gray-800">{walk.dog.name}</span>
-								</p>
-								<p className="text-blue-700">
-									Date:{" "}
-									<span className="text-gray-800">
-										{new Date(walk.date).toLocaleDateString()}
-									</span>
-								</p>
-								<p className="text-blue-700">
-									Time:{" "}
-									<span className="text-gray-800">
-										{new Date(walk.date).toLocaleTimeString([], {
-											hour: "2-digit",
-											minute: "2-digit",
-										})}
-									</span>
-								</p>
-								<p className="text-blue-700">
-									Marshal:{" "}
-									<span className="text-gray-800">
-										{walk.marshal.firstName} {walk.marshal.lastName}
-									</span>
-								</p>
-								<p className="text-blue-700">
-									Slots Available:{" "}
-									<span className="text-gray-800">{walk.slots}</span>
-								</p>
-
-								<p className="text-blue-700">
-									Duration:{" "}
-									<span className="text-gray-800">
-										{walk.duration || "1 hour"}
-									</span>
-								</p>
-								{walk.slots > 0 ? (
-									<button
-										onClick={() => handleSelectWalk(walk)}
-										className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
-											selectedWalk === walk._id
-												? "bg-green-600 hover:bg-green-700"
-												: "bg-blue-600 hover:bg-blue-700"
-										}`}
-									>
-										{selectedWalk === walk._id ? "Selected" : "Select Walk"}
-									</button>
-								) : (
-									<p className="mt-4 w-full text-center text-red-600 font-bold">
-										This walk is full
-									</p>
-								)}
-							</div>
-						))
-					)}
-				</div>
-			</div>
 		</div>
 	);
 };

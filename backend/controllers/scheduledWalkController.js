@@ -104,41 +104,41 @@ exports.confirm = async (req, res) => {
 };
 
 exports.cancelWalk = async (req, res) => {
-    try {
-        const { walkId } = req.params;
-        const userId = req.user.id;
-        const userRole = req.user.role;
+	try {
+		const { walkId } = req.params;
+		const userId = req.user.id;
+		const userRole = req.user.role;
 
-        // Fetch the walk
-        const walk = await ScheduledWalk.findById(walkId);
-        if (!walk) {
-            return res.status(404).json({ message: "Walk not found" });
-        }
+		// Fetch the walk
+		const walk = await ScheduledWalk.findById(walkId);
+		if (!walk) {
+			return res.status(404).json({ message: "Walk not found" });
+		}
 
-        // Convert walker IDs to string for proper comparison
-        const walkerIds = walk.walker.map((w) => w.toString());
+		// Check if the user is allowed to cancel the walk
+		if (userRole === "user" && !walk.walker.includes(userId)) {
+			return res
+				.status(403)
+				.json({ message: "You are not part of this walk." });
+		}
 
-        // If the user is not in the walker list, return unauthorized error
-        if (userRole === "user" && !walkerIds.includes(userId)) {
-            return res.status(403).json({ message: "You cannot cancel this walk." });
-        }
+		// Remove the user from the walker array and increase available slots
+		walk.walker = walk.walker.filter((id) => !id.equals(userId));
+		walk.slots += 1;
 
-        // Remove the user from the walker list
-        walk.walker = walk.walker.filter((id) => id.toString() !== userId);
-        walk.slots += 1;
+		// Remove the walk from the user's dogsWalked array
+		await User.findByIdAndUpdate(userId, {
+			$pull: { dogsWalked: walkId },
+		});
 
-        // Ensure that admin/marshal stays even if no users remain
-        if (walk.walker.length === 0 && walk.marshal) {
-            await walk.save(); // Save the walk but don't delete it
-            return res.status(200).json({ message: "Walk appointment cancelled, walk remains active with marshal.", walk });
-        }
+		// Save the walk
+		await walk.save();
 
-        await walk.save();
-        return res.status(200).json({ message: "Your walk appointment has been cancelled.", walk });
-
-    } catch (error) {
-        console.error("Error cancelling walk:", error);
-        res.status(500).json({ message: "Failed to cancel walk" });
-    }
+		return res
+			.status(200)
+			.json({ message: "Walk cancelled and references removed." });
+	} catch (error) {
+		console.error("Error cancelling walk:", error);
+		res.status(500).json({ message: "Failed to cancel the walk." });
+	}
 };
-

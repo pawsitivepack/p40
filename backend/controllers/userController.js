@@ -12,6 +12,8 @@ const generateToken = (user) => {
 			email: user.email,
 			role: user.role,
 			username: user.firstName,
+			dogsWalked: user.dogsWalked,
+			completedWalks: user.completedWalks,
 		},
 		process.env.JWT_SECRET,
 		{
