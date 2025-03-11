@@ -17,6 +17,7 @@ import CheckIn from "./components/CheckIn";
 import ViewCompletedWalks from "./components/ViewCompletedWalks";
 import MyWalks from "./components/MyWalks";
 import Users from "./components/Users/Users";
+import MarshalApplication from "./components/marshalApp/MarshalApplication";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -78,6 +79,10 @@ function App() {
 						<Route path="/myprofile" element={<MyProfile />} />
 						<Route path="/google-signup" element={<GoogleSignup />} />
 						<Route path="/users" element={<Users />} />
+						<Route
+							path="/marshal-application"
+							element={<MarshalApplication />}
+						/>
 					</Routes>
 				</main>
 

@@ -1,52 +1,57 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
-import logo from "../assets/underdogs.png"; // Ensure correct path
+import axios from "axios";
+import { BellIcon } from "@heroicons/react/24/outline";
+import logo from "../assets/underdogs.png";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
 	const location = useLocation();
 	const currentPage = location.pathname;
+	const navigate = useNavigate();
 	const [role, setRole] = useState("");
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const [applications, setApplications] = useState([]);
+	const [showNotifications, setShowNotifications] = useState(false);
+
+	// Check token on mount and refresh the state
+	useEffect(() => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			const decoded = jwtDecode(token);
+			console.log("Token found:", decoded);
+			setRole(decoded.role);
+			setUsername(decoded.username);
+			setEmail(decoded.email);
+			setIsLoggedIn(true);
+		}
+	}, [localStorage.getItem("token")]);
 
 	useEffect(() => {
-		const fetchUser = () => {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				console.warn("No token found in local storage.");
-				setIsLoggedIn(false);
-				setUsername("");
-				setEmail("");
-				setRole("");
-				return;
-			}
-
-			try {
-				const decodedToken = jwtDecode(token);
-				console.log("Decoded Token:", decodedToken); // Debugging
-
-				setRole(decodedToken.role);
-				setUsername(decodedToken.username || "Guest"); // Ensure correct field
-				setEmail(decodedToken.email);
-				setIsLoggedIn(true);
-			} catch (error) {
-				console.error("Failed to decode token:", error);
+		const fetchApplications = async () => {
+			if (role === "admin") {
+				try {
+					const token = localStorage.getItem("token");
+					const res = await axios.get(
+						`${import.meta.env.VITE_BACKEND_URL}/marshalApps`,
+						{
+							headers: { Authorization: `Bearer ${token}` },
+						}
+					);
+					setApplications(res.data);
+				} catch (error) {
+					console.error("Error fetching applications:", error);
+				}
 			}
 		};
-
-		fetchUser();
-
-		window.addEventListener("storage", fetchUser);
-
-		return () => {
-			window.removeEventListener("storage", fetchUser);
-		};
-	}, []);
+		fetchApplications();
+	}, [role]);
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");
@@ -57,161 +62,174 @@ export default function Navbar() {
 		}, 1500);
 	};
 
-	// Navigation array with conditional rendering
-	const navigation = [
+	const baseNavigation = [
 		{ name: "Home", href: "/home" },
 		{ name: "About", href: "/about" },
 		{ name: "Gallery", href: "/gallery" },
 		{ name: "Walk Dogs", href: "/walkdogs" },
 		{ name: "Donate", href: "/donate" },
-		...(role === "marshal" || role === "admin"
-			? [
-					{ name: "Scheduled Walks", href: "/scheduledwalk" },
-					{ name: "All Users", href: "/users" },
-			  ]
-			: role === "user"
-			? [{ name: "My Walks", href: "/mywalks" }]
-			: []),
 	];
 
+	const adminNavigation = [
+		{ name: "Scheduled Walks", href: "/scheduledwalk" },
+		{ name: "Users", href: "/users" },
+	];
+
+	const navigation =
+		role === "admin" || role === "marshal"
+			? [...baseNavigation, ...adminNavigation]
+			: baseNavigation;
+
 	return (
-		<div>
-			{/* Navbar */}
-			<nav className="bg-white dark:bg-gray-900 fixed w-full z-20 top-0 start-0 border-b border-gray-200 dark:border-gray-600">
-				<div className="max-w-screen-xl  flex flex-wrap items-center justify-between mx-auto p-4">
-					{/* Logo */}
-					<a href="/home" className="flex items-center space-x-3">
-						<img src={logo} className="h-10 w-auto" alt="P40 Dog Logo" />
-						<span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white hidden md:block">
-							P40 Underdogs
-						</span>
-					</a>
-					{/* Navigation Links (Desktop) */}
-					<div className="hidden md:flex space-x-8">
-						{/* this is the menu for desktop */}
-						{navigation.map((item) => (
-							<a
-								key={item.name}
-								href={item.href}
-								className={`block py-2 px-3 text-gray-900 rounded-sm hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-white md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent ${
-									item.href === currentPage ? "text-blue-700 font-semibold" : ""
-								}`}
-							>
-								{item.name}
-							</a>
-						))}
+		<nav className="bg-gray-800">
+			<div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+				<div className="relative flex h-16 items-center justify-between">
+					{/* Mobile Menu Toggle */}
+					<div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
+						<button
+							onClick={() => setIsMenuOpen(!isMenuOpen)}
+							className="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-white"
+							aria-expanded="false"
+						>
+							<svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24">
+								<path
+									stroke="currentColor"
+									strokeWidth="1.5"
+									d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+								/>
+							</svg>
+						</button>
 					</div>
-					{/* Profile or Login Button */}
-					<div className="flex space-x-4 ">
-						{" "}
-						{/*this is a the profile*/}
-						{isLoggedIn ? (
+
+					<div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+						<div className="flex shrink-0 items-center">
+							<img className="h-8 w-auto" src={logo} alt="P40 Underdogs" />
+						</div>
+
+						<div className="hidden sm:ml-6 sm:block">
+							<div className="flex space-x-4">
+								{navigation.map((item) => (
+									<a
+										key={item.name}
+										href={item.href}
+										className={`rounded-md px-3 py-2 text-sm font-medium ${
+											currentPage === item.href
+												? "bg-gray-900 text-white"
+												: "text-gray-300 hover:bg-gray-700 hover:text-white"
+										}`}
+									>
+										{item.name}
+									</a>
+								))}
+							</div>
+						</div>
+					</div>
+
+					<div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+						{role === "admin" && (
 							<div className="relative">
+								<BellIcon
+									className="h-6 w-6 text-gray-400 hover:text-white cursor-pointer"
+									onClick={() => setShowNotifications(!showNotifications)}
+								/>
+								{applications.length > 0 && (
+									<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+										{applications.length}
+									</span>
+								)}
+								{showNotifications && (
+									<div className="absolute right-0 mt-2 w-72 bg-white rounded-md shadow-lg z-10">
+										{applications.map((app) => (
+											<div
+												key={app._id}
+												className="p-2 border-b hover:bg-gray-100 cursor-pointer"
+												onClick={() =>
+													navigate("/marshal-application", {
+														state: { application: app },
+													})
+												}
+											>
+												<p className="text-sm text-gray-800">
+													<strong>
+														{app.userId?.firstName} {app.userId?.lastName}
+													</strong>{" "}
+													applied for Marshal
+												</p>
+												<p className="text-xs text-gray-500">
+													{new Date(app.applicationDate).toLocaleDateString()}
+												</p>
+											</div>
+										))}
+									</div>
+								)}
+							</div>
+						)}
+
+						{isLoggedIn ? (
+							<div className="relative ml-3">
 								<button
 									onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-									className="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+									className="relative flex rounded-full bg-gray-800 text-sm focus:ring-2 focus:ring-white"
 								>
 									<img
-										className="w-8 h-8 rounded-full"
+										className="h-8 w-8 rounded-full"
 										src="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
-										alt="user"
+										alt="User"
 									/>
 								</button>
 
-								{/* Dropdown Menu */}
-
 								{isDropdownOpen && (
-									<div className="absolute left-1/2 transform -translate-x-1/2 mt-2 min-w-[12rem] w-auto bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-700 dark:border-gray-600">
-										<div className="px-6 py-4 text-center">
-											{" "}
-											{/* Centered and padded */}
-											<span className="block text-lg text-gray-900 dark:text-white py-1 font-semibold">
+									<div className="absolute right-0 z-10 mt-2 w-56 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+										<div className="px-4 py-3 border-b">
+											<p className="text-sm font-semibold text-gray-800">
 												{username}
-											</span>
-											<span className="block text-sm text-gray-900 dark:text-white italic py-1 break-words">
-												{email}
-											</span>
-											<span className="block text-sm text-gray-900 dark:text-white py-1">
-												Role: {role}
-											</span>
-											<hr className="border-gray-300 dark:border-gray-600 my-2" />
+											</p>
+											<p className="text-xs text-gray-600">{email}</p>
+											<p className="text-xs text-gray-500 capitalize">{role}</p>
 										</div>
-										<ul className="py-2">
-											<li>
-												<a
-													href="/myprofile"
-													className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-												>
-													Profile
-												</a>
-											</li>
-											<li>
-												<button
-													onClick={handleLogout}
-													className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-												>
-													Logout
-												</button>
-											</li>
-										</ul>
+										<a
+											href="/myprofile"
+											className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100"
+										>
+											Profile
+										</a>
+										<button
+											onClick={handleLogout}
+											className="w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100"
+										>
+											Logout
+										</button>
 									</div>
 								)}
 							</div>
 						) : (
 							<a
 								href="/login"
-								className="bg-red-500 text-maroon-800 px-4 py-2 rounded-lg text-lg font-bold hover:bg-red-400 transition-all duration-300 shadow-md"
+								className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
 							>
 								Login
 							</a>
 						)}
 					</div>
-
-					{/* Mobile Menu Button */}
-					<button
-						onClick={() => setIsMenuOpen(!isMenuOpen)}
-						type="button"
-						className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
-					>
-						<span className="sr-only">Open main menu</span>
-						<svg
-							className="w-5 h-5"
-							aria-hidden="true"
-							xmlns="http://www.w3.org/2000/svg"
-							fill="none"
-							viewBox="0 0 17 14"
-						>
-							<path
-								stroke="currentColor"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								d="M1 1h15M1 7h15M1 13h15"
-							/>
-						</svg>
-					</button>
 				</div>
-			</nav>
+			</div>
 
 			{/* Mobile Menu */}
 			{isMenuOpen && (
-				<div className="md:hidden  dark:bg-gray-900 pt-20">
-					<ul className="p-4 space-y-2">
+				<div className="sm:hidden">
+					<div className="space-y-1 px-2 pt-2 pb-3">
 						{navigation.map((item) => (
-							<li key={item.name}>
-								<a
-									href={item.href}
-									className="block py-2 px-4 text-gray-900 dark:text-white"
-								>
-									{item.name}
-								</a>
-							</li>
+							<a
+								key={item.name}
+								href={item.href}
+								className="block rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+							>
+								{item.name}
+							</a>
 						))}
-					</ul>
+					</div>
 				</div>
 			)}
-
-			{!isMenuOpen && <div className="pt-15"></div>}
-		</div>
+		</nav>
 	);
 }

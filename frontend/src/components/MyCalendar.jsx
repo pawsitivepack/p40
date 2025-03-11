@@ -179,13 +179,16 @@ const MyCalendar = () => {
 			<ToastContainer />
 
 			<div className="flex flex-col md:flex-row gap-6">
-				<div className="md:w-1/2 lg:w-1/2 bg-white shadow-md rounded-lg p-4">
+				<div
+					className={`bg-white shadow-md rounded-lg p-4 
+    ${date ? "md:w-1/2 lg:w-1/2" : "w-full"}`}
+				>
 					<Calendar
 						onChange={handleDateChange}
 						value={date}
 						view={view}
 						onViewChange={setView}
-						className="custom-calendar w-full"
+						className="custom-calendar w-full h-full"
 						tileContent={({ date }) => {
 							const today = new Date();
 							today.setHours(0, 0, 0, 0);
@@ -208,97 +211,101 @@ const MyCalendar = () => {
 					/>
 				</div>
 
-				<div className="md:w-1/2 lg:w-1/2 bg-gray-100 shadow-lg rounded-lg p-6 border border-gray-300 overflow-y-auto h-[600px]">
-					<h2 className="text-3xl font-extrabold mb-6 text-gray-900 text-center">
-						{date
-							? `Walks on ${date.toLocaleDateString()}`
-							: "Select a date to view walks"}
-					</h2>
+				{date && (
+					<div className="md:w-1/2 lg:w-1/2 bg-gray-100 shadow-lg rounded-lg p-6 border border-gray-300 overflow-y-auto h-[600px]">
+						<h2 className="text-3xl font-extrabold mb-6 text-gray-900 text-center">
+							{date
+								? `Walks on ${date.toLocaleDateString()}`
+								: "Select a date to view walks"}
+						</h2>
 
-					{!date ? (
-						<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
-							📅 Please select a date on the calendar to view available walks.
-						</p>
-					) : (
-						<>
-							{["marshal", "admin"].includes(role) && (
-								<button
-									onClick={() => setShowForm(true)}
-									className="mb-4 flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-green-700 transition-all duration-300 shadow-md"
-								>
-									<PlusCircleIcon className="w-6 h-6" />
-									<span>Add Walk</span>
-								</button>
-							)}
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{filteredWalks.length === 0 ? (
-									<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
-										No walks available for this date.
-									</p>
-								) : (
-									filteredWalks.map((walk) => (
-										<div
-											key={walk._id}
-											className="border border-gray-300 rounded-lg p-5 shadow-lg bg-white hover:shadow-2xl transform hover:scale-105 transition-all"
-										>
-											<div className="space-y-2">
-												<p className="text-gray-800">
-													<span className="font-bold">🐶 Dog:</span>{" "}
-													{walk.dog.name}
-												</p>
-												<p className="text-gray-800">
-													<span className="font-bold">📅 Date:</span>{" "}
-													{new Date(walk.date).toLocaleDateString()}
-												</p>
-												<p className="text-gray-800">
-													<span className="font-bold">⏰ Time:</span>{" "}
-													{new Date(walk.date).toLocaleTimeString([], {
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</p>
-												<p className="text-gray-800">
-													<span className="font-bold">🚶 Marshal:</span>{" "}
-													{walk.marshal.firstName} {walk.marshal.lastName}
-												</p>
-												<p className="text-gray-800">
-													<span className="font-bold">🎟️ Slots Available:</span>{" "}
-													{walk.slots}
-												</p>
-												<p className="text-gray-800">
-													<span className="font-bold">⏳ Duration:</span>{" "}
-													{walk.duration || "1 hour"}
-												</p>
-											</div>
-
-											{walk.slots === 0 ? (
-												<p className="mt-4 w-full text-center text-red-600 font-bold bg-red-100 p-2 rounded-md">
-													❌ This walk is full
-												</p>
-											) : (
-												role === "user" && (
-													<button
-														onClick={() => handleSelectWalk(walk)}
-														className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
-															selectedWalk === walk._id
-																? "bg-green-600 hover:bg-green-700"
-																: "bg-blue-600 hover:bg-blue-700"
-														}`}
-													>
-														{selectedWalk === walk._id
-															? "Selected"
-															: "Select Walk"}
-													</button>
-												)
-											)}
-										</div>
-									))
+						{!date ? (
+							<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
+								📅 Please select a date on the calendar to view available walks.
+							</p>
+						) : (
+							<>
+								{["marshal", "admin"].includes(role) && (
+									<button
+										onClick={() => setShowForm(true)}
+										className="mb-4 flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-green-700 transition-all duration-300 shadow-md"
+									>
+										<PlusCircleIcon className="w-6 h-6" />
+										<span>Add Walk</span>
+									</button>
 								)}
-							</div>
-						</>
-					)}
-				</div>
+
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+									{filteredWalks.length === 0 ? (
+										<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
+											No walks available for this date.
+										</p>
+									) : (
+										filteredWalks.map((walk) => (
+											<div
+												key={walk._id}
+												className="border border-gray-300 rounded-lg p-5 shadow-lg bg-white hover:shadow-2xl transform hover:scale-105 transition-all"
+											>
+												<div className="space-y-2">
+													<p className="text-gray-800">
+														<span className="font-bold">🐶 Dog:</span>{" "}
+														{walk.dog.name}
+													</p>
+													<p className="text-gray-800">
+														<span className="font-bold">📅 Date:</span>{" "}
+														{new Date(walk.date).toLocaleDateString()}
+													</p>
+													<p className="text-gray-800">
+														<span className="font-bold">⏰ Time:</span>{" "}
+														{new Date(walk.date).toLocaleTimeString([], {
+															hour: "2-digit",
+															minute: "2-digit",
+														})}
+													</p>
+													<p className="text-gray-800">
+														<span className="font-bold">🚶 Marshal:</span>{" "}
+														{walk.marshal.firstName} {walk.marshal.lastName}
+													</p>
+													<p className="text-gray-800">
+														<span className="font-bold">
+															🎟️ Slots Available:
+														</span>{" "}
+														{walk.slots}
+													</p>
+													<p className="text-gray-800">
+														<span className="font-bold">⏳ Duration:</span>{" "}
+														{walk.duration || "1 hour"}
+													</p>
+												</div>
+
+												{walk.slots === 0 ? (
+													<p className="mt-4 w-full text-center text-red-600 font-bold bg-red-100 p-2 rounded-md">
+														❌ This walk is full
+													</p>
+												) : (
+													role === "user" && (
+														<button
+															onClick={() => handleSelectWalk(walk)}
+															className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
+																selectedWalk === walk._id
+																	? "bg-green-600 hover:bg-green-700"
+																	: "bg-blue-600 hover:bg-blue-700"
+															}`}
+														>
+															{selectedWalk === walk._id
+																? "Selected"
+																: "Select Walk"}
+														</button>
+													)
+												)}
+											</div>
+										))
+									)}
+								</div>
+							</>
+						)}
+					</div>
+				)}
 			</div>
 
 			{showForm && ["marshal", "admin"].includes(role) && (

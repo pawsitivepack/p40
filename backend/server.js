@@ -6,6 +6,7 @@ const dogRoutes = require("./routes/dogsRoute");
 const userRoutes = require("./routes/userRoute");
 const schedulewalk = require("./routes/walkRoute");
 const completedWalk = require("./routes/completedWalkRoute");
+const marshalApp = require("./routes/marshalAppRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -35,6 +36,7 @@ app.use("/users", userRoutes);
 app.use("/dogs", dogRoutes);
 app.use("/scheduledWalks", schedulewalk);
 app.use("/completedWalk", completedWalk);
+app.use("/marshalApps", marshalApp);
 
 // Start the Server
 app.listen(PORT, async () => {
