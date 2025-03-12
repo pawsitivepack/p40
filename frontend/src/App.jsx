@@ -18,6 +18,7 @@ import ViewCompletedWalks from "./components/ViewCompletedWalks";
 import MyWalks from "./components/MyWalks";
 import Users from "./components/Users/Users";
 import MarshalApplication from "./components/marshalApp/MarshalApplication";
+import NotFound from "./components/NotFound/NotFound";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -83,6 +84,7 @@ function App() {
 							path="/marshal-application"
 							element={<MarshalApplication />}
 						/>
+						<Route path="*" element={<NotFound />} />
 					</Routes>
 				</main>
 

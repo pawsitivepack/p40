@@ -55,6 +55,21 @@ exports.getAllScheduledWalks = async (req, res) => {
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };
+exports.getMyScheduledWalks = async (req, res) => {
+	const userId = req.user.id;
+
+	try {
+		const walks = await ScheduledWalk.find({ walker: userId })
+			.populate("walker", "firstName lastName") // Populate walker with firstName and lastName
+			.populate("marshal", "firstName lastName") // Populate marshal with firstName and lastName
+			.populate("dog", "name breed"); // Populate dog with name and breed
+
+		res.status(200).json(walks);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
+	}
+};
 
 exports.confirm = async (req, res) => {
 	const { walkId, userId } = req.body;

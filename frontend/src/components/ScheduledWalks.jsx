@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const ScheduledWalks = () => {
 	const [walksWithUsers, setWalksWithUsers] = useState([]);
-
 	const [refresh, setRefresh] = useState(false);
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const fetchWalks = async () => {
@@ -18,7 +19,7 @@ const ScheduledWalks = () => {
 					}
 				);
 
-				// Update dynamically based on the latest walker list
+				// Filter walks that have at least one walker
 				const filteredWalks = response.data.filter(
 					(walk) => walk.walker.length > 0
 				);
@@ -31,64 +32,60 @@ const ScheduledWalks = () => {
 		fetchWalks();
 	}, [refresh]);
 
-	// Function to trigger a re-fetch
+	// Trigger a re-fetch
 	const triggerRefresh = () => {
 		setRefresh((prev) => !prev);
 	};
 
 	return (
-		<div className="container mx-auto p-4">
-			<h1 className="text-2xl font-bold">Scheduled Walks with Users</h1>
-			<div className="flex gap-4">
+		<div className="container mx-auto p-6">
+			<h1 className="text-3xl font-bold text-gray-800 mb-6">
+				Scheduled Walks with Users 🐾
+			</h1>
+			<div className="flex gap-4 mb-6">
 				<button
-					className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
-					onClick={() => (window.location.href = "/checkin")} // Change this to navigate correctly
+					className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+					onClick={() => navigate("/checkin")}
 				>
-					Check In
+					🚶‍♂️ Check In
 				</button>
 				<button
-					className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
-					onClick={() => (window.location.href = "/completedwalks")} // Change this as needed
+					className="bg-green-600 text-white px-5 py-2 rounded-lg shadow hover:bg-green-700 transition"
+					onClick={() => navigate("/completedwalks")}
 				>
-					Completed Walks
+					✅ Past Walks
 				</button>
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				{walksWithUsers.length === 0 ? (
-					<p className="text-gray-600">No walks with users available.</p>
+					<p className="text-gray-600">No scheduled walks available.</p>
 				) : (
 					walksWithUsers.map((walk) => (
 						<div
 							key={walk._id}
-							className="bg-white border border-gray-200 rounded-lg shadow-md p-4"
+							className="bg-white border border-gray-300 rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer"
 						>
-							<p className="text-blue-600 font-bold">
-								Date & Time:{" "}
-								<span className="text-gray-800">
+							<div className="flex justify-between items-center mb-4">
+								<span className="text-sm bg-blue-100 text-blue-800 font-medium px-3 py-1 rounded-full">
 									{new Date(walk.date).toLocaleString([], {
 										dateStyle: "medium",
 										timeStyle: "short",
 									})}
 								</span>
-							</p>
-							<p className="text-blue-600">
-								Location: <span className="text-gray-800">{walk.location}</span>
-							</p>
-							<p className="text-blue-600">
-								Duration: <span className="text-gray-800">{walk.duration}</span>
-							</p>
-							<p className="text-blue-600">
-								Slots Remaining:{" "}
-								<span className="text-gray-800">{walk.slots}</span>
-							</p>
-							<p className="text-blue-600 font-semibold mt-2">Walkers:</p>
-							<ul className="list-disc list-inside">
-								{walk.walker.map((user) => (
-									<li key={user._id} className="text-gray-800">
-										{user.firstName} {user.lastName}
-									</li>
-								))}
-							</ul>
+							</div>
+							<div>
+								<p className="text-blue-700 font-semibold mb-2">Walkers:</p>
+								<ul className="space-y-1">
+									{walk.walker.map((user) => (
+										<li
+											key={user._id}
+											className="text-gray-800 bg-gray-100 px-3 py-1 rounded-md"
+										>
+											👤 {user.firstName} {user.lastName}
+										</li>
+									))}
+								</ul>
+							</div>
 						</div>
 					))
 				)}

@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema(
 				required: false,
 			},
 		], // Reference to Dog model
+		picture: { type: String, required: false },
 	},
 	{ timestamps: true }
 );

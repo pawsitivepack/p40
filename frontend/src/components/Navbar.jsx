@@ -19,6 +19,7 @@ export default function Navbar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [applications, setApplications] = useState([]);
 	const [showNotifications, setShowNotifications] = useState(false);
+	const [picture, setPicture] = useState("");
 
 	// Check token on mount and refresh the state
 	useEffect(() => {
@@ -29,6 +30,8 @@ export default function Navbar() {
 			setRole(decoded.role);
 			setUsername(decoded.username);
 			setEmail(decoded.email);
+			setPicture(decoded.picture);
+			console.log("Picture:", decoded.picture);
 			setIsLoggedIn(true);
 		}
 	}, [localStorage.getItem("token")]);
@@ -173,7 +176,7 @@ export default function Navbar() {
 								>
 									<img
 										className="h-8 w-8 rounded-full"
-										src="https://flowbite.com/docs/images/people/profile-picture-3.jpg"
+										src={picture || "https://via.placeholder.com/150"}
 										alt="User"
 									/>
 								</button>

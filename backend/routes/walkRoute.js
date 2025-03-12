@@ -10,7 +10,13 @@ router.post(
 	verifyMarshal,
 	WalkController.addScheduledWalk
 );
-router.get("/", verifyToken, WalkController.getAllScheduledWalks);
+router.get(
+	"/",
+	verifyToken,
+
+	WalkController.getAllScheduledWalks
+);
+router.get("/:id", verifyToken, WalkController.getMyScheduledWalks);
 router.post("/confirm", verifyToken, WalkController.confirm);
 router.delete("/cancel/:walkId", verifyToken, WalkController.cancelWalk);
 module.exports = router;

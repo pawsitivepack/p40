@@ -8,7 +8,9 @@ const MyWalks = () => {
 		const fetchMyWalks = async () => {
 			try {
 				const response = await axios.get(
-					`${import.meta.env.VITE_BACKEND_URL}/users/MyWalks`,
+					`${
+						import.meta.env.VITE_BACKEND_URL
+					}/scheduledWalks/${localStorage.getItem("userId")}`,
 					{
 						headers: {
 							Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -22,13 +24,12 @@ const MyWalks = () => {
 		};
 
 		fetchMyWalks();
-
 	}, []);
 
 	// Function to cancel a walk
 	const handleCancelWalk = async (walkId) => {
 		if (!window.confirm("Are you sure you want to cancel this walk?")) return;
-	
+
 		try {
 			await axios.delete(
 				`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/cancel/${walkId}`,
@@ -36,18 +37,16 @@ const MyWalks = () => {
 					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 				}
 			);
-	
+
 			// ✅ Remove only the cancelled walk from the UI
 			setWalks((prevWalks) => prevWalks.filter((walk) => walk._id !== walkId));
-	
+
 			toast.success("Walk appointment cancelled successfully!");
 		} catch (error) {
 			console.error("Error cancelling walk:", error);
 			toast.error("Failed to cancel walk.");
 		}
 	};
-	
-	
 
 	return (
 		<div className="container mx-auto p-4">
