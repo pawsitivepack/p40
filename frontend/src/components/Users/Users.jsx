@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { FaUserCircle } from "react-icons/fa";
 
 const Users = () => {
 	const [users, setUsers] = useState([]);
@@ -159,6 +160,7 @@ const Users = () => {
 				<table className="w-full text-white border border-gray-500 rounded-lg">
 					<thead>
 						<tr className="bg-gray-800 text-gray-200">
+							<th className="py-3 px-4 border-b border-gray-500">Picture</th>
 							<th className="py-3 px-4 border-b border-gray-500">First Name</th>
 							<th className="py-3 px-4 border-b border-gray-500">Last Name</th>
 							<th className="py-3 px-4 border-b border-gray-500">Email</th>
@@ -173,6 +175,17 @@ const Users = () => {
 								key={user._id}
 								className="text-center bg-gray-600 hover:bg-gray-500"
 							>
+								<td className="py-3 px-4 border-b border-gray-500">
+									{user.picture ? (
+										<img
+											src={user.picture}
+											alt="Profile"
+											className="w-7 h-7 rounded-full mx-auto"
+										/>
+									) : (
+										<FaUserCircle className="w-7 h-7 text-gray-400 mx-auto" />
+									)}
+								</td>
 								{editingUser === user._id ? (
 									<>
 										<td className="py-3 px-4 border-b border-gray-500">

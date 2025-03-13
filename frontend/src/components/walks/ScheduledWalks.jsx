@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
 
 const ScheduledWalks = () => {
 	const [walksWithUsers, setWalksWithUsers] = useState([]);
@@ -79,9 +80,20 @@ const ScheduledWalks = () => {
 									{walk.walker.map((user) => (
 										<li
 											key={user._id}
-											className="text-gray-800 bg-gray-100 px-3 py-1 rounded-md"
+											className="text-gray-800 bg-gray-100 px-3 py-1 rounded-md flex items-center gap-2"
 										>
-											👤 {user.firstName} {user.lastName}
+											{user.picture ? (
+												<img
+													src={user.picture}
+													alt="Profile"
+													className="w-6 h-6 rounded-full"
+												/>
+											) : (
+												<FaUserCircle className="w-6 h-6 text-gray-400" />
+											)}
+											<span>
+												{user.firstName} {user.lastName}
+											</span>
 										</li>
 									))}
 								</ul>

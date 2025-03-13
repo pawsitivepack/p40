@@ -4,8 +4,8 @@ import { toast } from "react-toastify";
 import { GoogleLogin } from "@react-oauth/google"; // Google OAuth package
 import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
-import logo from "../assets/underdogs.png";
-import dogBackground from "../assets/paw.png";
+import logo from "../../assets/underdogs.png";
+import dogBackground from "../../assets/paw.png";
 
 export default function Login() {
 	const [isRegistering, setIsRegistering] = useState(false);

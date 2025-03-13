@@ -6,6 +6,8 @@ import { BellIcon } from "@heroicons/react/24/outline";
 import logo from "../assets/underdogs.png";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { FiLogOut } from "react-icons/fi";
+import { HiOutlineUserCircle } from "react-icons/hi";
 
 export default function Navbar() {
 	const location = useLocation();
@@ -146,11 +148,12 @@ export default function Navbar() {
 											<div
 												key={app._id}
 												className="p-2 border-b hover:bg-gray-100 cursor-pointer"
-												onClick={() =>
+												onClick={() => {
+													setShowNotifications(false);
 													navigate("/marshal-application", {
 														state: { application: app },
-													})
-												}
+													});
+												}}
 											>
 												<p className="text-sm text-gray-800">
 													<strong>
@@ -190,17 +193,21 @@ export default function Navbar() {
 											<p className="text-xs text-gray-600">{email}</p>
 											<p className="text-xs text-gray-500 capitalize">{role}</p>
 										</div>
+
 										<a
 											href="/myprofile"
-											className="block px-4 py-2 text-sm text-gray-800 hover:bg-gray-100"
+											className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-blue-100"
 										>
-											Profile
+											<HiOutlineUserCircle className="text-lg" />
+											<span>Profile</span>
 										</a>
+
 										<button
 											onClick={handleLogout}
-											className="w-full text-left px-4 py-2 text-sm text-gray-800 hover:bg-gray-100"
+											className="flex items-center gap-2 w-full text-left px-4 my-1 py-2 text-sm text-gray-800 hover:bg-red-100"
 										>
-											Logout
+											<FiLogOut className="text-lg text-red-500" />
+											<span>Logout</span>
 										</button>
 									</div>
 								)}

@@ -65,7 +65,7 @@ export default function Home() {
 			></div>
 
 			{/* Foreground Content */}
-			<div className="relative z-10 text-red-950 text-center max-w-6xl mx-auto">
+			<div className="relative  text-red-950 text-center max-w-6xl mx-auto">
 				{/* Welcome Text */}
 				<h1 className="text-5xl font-bold mb-6">Welcome to P40-Dog!</h1>
 				<p className="text-2xl mb-10">Your best companion is waiting!</p>

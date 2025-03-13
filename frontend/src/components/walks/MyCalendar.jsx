@@ -14,7 +14,7 @@ const MyCalendar = () => {
 	const [view, setView] = useState("month");
 	const [showForm, setShowForm] = useState(false);
 	const [role, setRole] = useState("");
-	const [dogswalked, setDogsWalked] = useState([]);
+	const [userID, setUserID] = useState("");
 	const [availableWalks, setAvailableWalks] = useState([]);
 	const [selectedWalk, setSelectedWalk] = useState(null);
 	const [filteredWalks, setFilteredWalks] = useState([]);
@@ -31,6 +31,7 @@ const MyCalendar = () => {
 			try {
 				const decodedToken = jwtDecode(token);
 				setRole(decodedToken.role);
+				setUserID(decodedToken.id);
 			} catch (error) {
 				console.error("Failed to decode token:", error);
 			}
@@ -129,7 +130,6 @@ const MyCalendar = () => {
 	};
 
 	const handleSelectWalk = (walk) => {
-		console.log("Walk selected:", walk);
 		setSelectedWalk(walk._id);
 		handleConfirmWalk(walk); // Confirm the walk immediately
 	};
@@ -236,21 +236,18 @@ const MyCalendar = () => {
 								)}
 
 								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{filteredWalks.length === 0 ? (
-										<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
-											No walks available for this date.
-										</p>
-									) : (
-										filteredWalks.map((walk) => (
+									{filteredWalks.map((walk) => {
+										// Check if the current user's ID is already in the walker array
+										const isAlreadyWalked = walk.walker.some(
+											(walker) => walker._id === userID
+										);
+
+										return (
 											<div
 												key={walk._id}
 												className="border border-gray-300 rounded-lg p-5 shadow-lg bg-white hover:shadow-2xl transform hover:scale-105 transition-all"
 											>
 												<div className="space-y-2">
-													<p className="text-gray-800">
-														<span className="font-bold">🐶 Dog:</span>{" "}
-														{walk.dog.name}
-													</p>
 													<p className="text-gray-800">
 														<span className="font-bold">📅 Date:</span>{" "}
 														{new Date(walk.date).toLocaleDateString()}
@@ -262,6 +259,19 @@ const MyCalendar = () => {
 															minute: "2-digit",
 														})}
 													</p>
+
+													{role === "admin" && walk.walker.length > 0 && (
+														<>
+															<p className="text-gray-800">👥 Walkers:</p>
+															<ul className="list-disc list-inside text-gray-700">
+																{walk.walker.map((walker) => (
+																	<li key={walker._id}>
+																		{walker.firstName} {walker.lastName}
+																	</li>
+																))}
+															</ul>
+														</>
+													)}
 													<p className="text-gray-800">
 														<span className="font-bold">🚶 Marshal:</span>{" "}
 														{walk.marshal.firstName} {walk.marshal.lastName}
@@ -271,10 +281,6 @@ const MyCalendar = () => {
 															🎟️ Slots Available:
 														</span>{" "}
 														{walk.slots}
-													</p>
-													<p className="text-gray-800">
-														<span className="font-bold">⏳ Duration:</span>{" "}
-														{walk.duration || "1 hour"}
 													</p>
 												</div>
 
@@ -286,21 +292,20 @@ const MyCalendar = () => {
 													role === "user" && (
 														<button
 															onClick={() => handleSelectWalk(walk)}
+															disabled={isAlreadyWalked}
 															className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
-																selectedWalk === walk._id
-																	? "bg-green-600 hover:bg-green-700"
+																isAlreadyWalked
+																	? "bg-gray-400 cursor-not-allowed"
 																	: "bg-blue-600 hover:bg-blue-700"
 															}`}
 														>
-															{selectedWalk === walk._id
-																? "Selected"
-																: "Select Walk"}
+															{isAlreadyWalked ? "Selected" : "Select Walk"}
 														</button>
 													)
 												)}
 											</div>
-										))
-									)}
+										);
+									})}
 								</div>
 							</>
 						)}

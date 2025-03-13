@@ -45,7 +45,7 @@ exports.addScheduledWalk = async (req, res) => {
 exports.getAllScheduledWalks = async (req, res) => {
 	try {
 		const walks = await ScheduledWalk.find()
-			.populate("walker", "firstName lastName") // Populate walker with firstName and lastName
+			.populate("walker", "firstName lastName picture") // Populate walker with firstName and lastName
 			.populate("marshal", "firstName lastName") // Populate marshal with firstName and lastName
 			.populate("dog", "name breed"); // Populate dog with name and breed
 
