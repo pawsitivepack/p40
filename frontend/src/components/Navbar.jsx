@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
+import api from "../api/axios";
 import { BellIcon } from "@heroicons/react/24/outline";
 import logo from "../assets/underdogs.png";
 import { toast } from "react-toastify";
@@ -43,12 +43,7 @@ export default function Navbar() {
 			if (role === "admin") {
 				try {
 					const token = localStorage.getItem("token");
-					const res = await axios.get(
-						`${import.meta.env.VITE_BACKEND_URL}/marshalApps`,
-						{
-							headers: { Authorization: `Bearer ${token}` },
-						}
-					);
+					const res = await api.get(`/marshalApps`);
 					setApplications(res.data);
 				} catch (error) {
 					console.error("Error fetching applications:", error);

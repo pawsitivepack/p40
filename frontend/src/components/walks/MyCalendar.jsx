@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import axios from "axios";
+import api from "../../api/axios"; // Import custom Axios instance
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./MyCalendar.css";
@@ -50,12 +50,7 @@ const MyCalendar = () => {
 
 	const fetchAvailableWalks = async () => {
 		try {
-			const response = await axios.get(
-				`${import.meta.env.VITE_BACKEND_URL}/scheduledwalks`,
-				{
-					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-				}
-			);
+			const response = await api.get("/scheduledwalks");
 			setAvailableWalks(response.data);
 		} catch (error) {
 			console.error("Error fetching available walks:", error);
@@ -105,18 +100,10 @@ const MyCalendar = () => {
 				const decodedToken = jwtDecode(token);
 				const userId = decodedToken.id;
 
-				const response = await axios.post(
-					`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/confirm`,
-					{
-						walkId: walk._id,
-						userId: userId, // Send userId along with walkId
-					},
-					{
-						headers: {
-							Authorization: `Bearer ${token}`,
-						},
-					}
-				);
+				const response = await api.post(`/scheduledWalks/confirm`, {
+					walkId: walk._id,
+					userId: userId, // Send userId along with walkId
+				});
 				toast.success("Walk confirmed successfully!");
 				await fetchAvailableWalks(); // Refresh data after confirmation
 			} catch (error) {
@@ -142,20 +129,12 @@ const MyCalendar = () => {
 		}
 
 		try {
-			await axios.post(
-				`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/newWalk`,
-				{
-					marshal: newEvent.marshal,
-					date: newEvent.start,
-					location: newEvent.location,
-					status: "Scheduled",
-				},
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
-				}
-			);
+			await api.post(`/scheduledWalks/newWalk`, {
+				marshal: newEvent.marshal,
+				date: newEvent.start,
+				location: newEvent.location,
+				status: "Scheduled",
+			});
 
 			toast.success("Walk scheduled successfully!");
 			setShowForm(false);

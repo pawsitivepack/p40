@@ -4,8 +4,8 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
 const Walk = require("../models/walkmodel");
 
-// Helper function to generate a JWT
-const generateToken = (user) => {
+// ✅ Helper function to generate JWT token
+const generateUserToken = (user) => {
 	return jwt.sign(
 		{
 			id: user._id,
@@ -17,12 +17,30 @@ const generateToken = (user) => {
 			picture: user.picture,
 		},
 		process.env.JWT_SECRET,
-		{
-			expiresIn: "1h",
-		}
+		{ expiresIn: "10m" }
 	);
 };
 
+exports.refreshToken = async (req, res) => {
+	try {
+		const token = req.headers["authorization"].split(" ")[1];
+		const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+		// Find the user from the database
+		const user = await User.findById(decoded.id);
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		// ✅ Use the new token generator
+		const newToken = generateUserToken(user);
+
+		return res.status(200).json({ token: newToken, picture: user.picture });
+	} catch (error) {
+		console.error("Error refreshing token:", error);
+		return res.status(401).json({ message: "Token expired or invalid" });
+	}
+};
 // Login with email and password
 exports.login = async (req, res) => {
 	const { email, password } = req.body;
@@ -38,7 +56,7 @@ exports.login = async (req, res) => {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
-		const token = generateToken(user);
+		const token = generateUserToken(user);
 		res.status(200).json({
 			message: "Login successful",
 			token,
@@ -92,14 +110,14 @@ exports.googlelogin = async (req, res) => {
 			});
 		}
 
-		// 🔄 Update picture if it's not already saved or is different
-		if (!user.picture || user.picture !== picture) {
+		// 🔄 Update picture only if there is no existing picture
+		if (!user.picture) {
 			user.picture = picture;
 			await user.save();
 		}
 
 		// Generate a token for an existing user
-		const jwtToken = generateToken(user);
+		const jwtToken = generateUserToken(user);
 		res.status(200).json({ token: jwtToken, user });
 	} catch (error) {
 		console.error("Google Authentication failed:", error);
@@ -129,7 +147,7 @@ exports.googleSignup = async (req, res) => {
 		});
 
 		await user.save();
-		const jwtToken = generateToken(user);
+		const jwtToken = generateUserToken(user);
 		res.status(201).json({ token: jwtToken, user });
 	} catch (error) {
 		console.error("Signup failed:", error);
@@ -307,5 +325,24 @@ exports.deleteUser = async (req, res) => {
 	} catch (error) {
 		console.error("Error deleting user:", error);
 		res.status(500).json({ message: "Internal server error" });
+	}
+};
+exports.updateProfilePicture = async (req, res) => {
+	try {
+		const imageUrl = req.file.path; // Cloudinary URL
+
+		// Update the user's picture only if it doesn't exist
+		const user = await User.findById(req.user.id);
+
+		user.picture = imageUrl;
+		await user.save();
+
+		// ✅ Directly use the refreshToken logic to issue a new token
+		return this.refreshToken(req, res);
+	} catch (error) {
+		console.error("Error uploading picture:", error);
+		res
+			.status(500)
+			.json({ success: false, message: "Failed to upload image." });
 	}
 };
