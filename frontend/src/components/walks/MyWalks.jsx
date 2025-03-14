@@ -1,88 +1,95 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
+import { toast } from "react-toastify";
 
 const MyWalks = () => {
 	const [walks, setWalks] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
 
 	useEffect(() => {
 		const fetchMyWalks = async () => {
 			try {
-				const response = await axios.get(
-					`${
-						import.meta.env.VITE_BACKEND_URL
-					}/scheduledWalks/${localStorage.getItem("userId")}`,
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem("token")}`,
-						},
-					}
+				const response = await api.get(
+					`/scheduledWalks/${localStorage.getItem("userId")}`
 				);
 				setWalks(response.data);
-			} catch (error) {
-				console.error("Error fetching walks:", error);
+			} catch (err) {
+				console.error("Error fetching walks:", err);
+				setError("Failed to load scheduled walks. Please try again later.");
+			} finally {
+				setLoading(false);
 			}
 		};
 
 		fetchMyWalks();
 	}, []);
 
-	// Function to cancel a walk
+	// Cancel walk function
 	const handleCancelWalk = async (walkId) => {
 		if (!window.confirm("Are you sure you want to cancel this walk?")) return;
 
 		try {
-			await axios.delete(
-				`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/cancel/${walkId}`,
-				{
-					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-				}
-			);
-
-			// ✅ Remove only the cancelled walk from the UI
+			await api.delete(`/scheduledWalks/cancel/${walkId}`);
 			setWalks((prevWalks) => prevWalks.filter((walk) => walk._id !== walkId));
-
 			toast.success("Walk appointment cancelled successfully!");
-		} catch (error) {
-			console.error("Error cancelling walk:", error);
+		} catch (err) {
+			console.error("Error cancelling walk:", err);
 			toast.error("Failed to cancel walk.");
 		}
 	};
 
+	if (loading) {
+		return <p className="text-center text-gray-600">Loading your walks...</p>;
+	}
+
+	if (error) {
+		return <p className="text-center text-red-600">{error}</p>;
+	}
+
 	return (
 		<div className="container mx-auto p-4">
-			<h1 className="text-2xl font-bold mb-6">My Scheduled Walks</h1>
+			<h1 className="text-3xl font-bold mb-6 text-center">
+				My Scheduled Walks
+			</h1>
+
 			{walks.length === 0 ? (
-				<p className="text-gray-600">No scheduled walks found.</p>
+				<p className="text-center text-gray-600">No scheduled walks found.</p>
 			) : (
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 					{walks.map((walk) => (
 						<div
 							key={walk._id}
-							className="bg-white border rounded-lg p-4 shadow-md"
+							className="bg-white border rounded-xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300"
 						>
-							<p className="text-blue-700">
-								Date:{" "}
-								<span className="text-gray-800">
+							<div className="mb-3">
+								<p className="text-blue-700 font-semibold">Date:</p>
+								<p className="text-gray-800">
 									{new Date(walk.date).toLocaleString([], {
 										dateStyle: "medium",
 										timeStyle: "short",
 									})}
-								</span>
-							</p>
-							<p className="text-blue-700">
-								Location: <span className="text-gray-800">{walk.location}</span>
-							</p>
-							<p className="text-blue-700">
-								Marshal:{" "}
-								<span className="text-gray-800">{walk.marshal.firstName}</span>
-							</p>
-							<p className="text-blue-700">
-								Duration: <span className="text-gray-800">{walk.duration}</span>
-							</p>
-							{/* Cancel Button */}
+								</p>
+							</div>
+
+							<div className="mb-3">
+								<p className="text-blue-700 font-semibold">Location:</p>
+								<p className="text-gray-800">{walk.location}</p>
+							</div>
+
+							<div className="mb-3">
+								<p className="text-blue-700 font-semibold">Marshal:</p>
+								<p className="text-gray-800">{walk.marshal.firstName}</p>
+							</div>
+
+							<div className="mb-4">
+								<p className="text-blue-700 font-semibold">Duration:</p>
+								<p className="text-gray-800">{walk.duration}</p>
+							</div>
+
 							<button
 								onClick={() => handleCancelWalk(walk._id)}
-								className="mt-4 w-half bg-red-500 text-white py-2 px-2 rounded-md hover:bg-red-700 transition-all"
+								className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-all"
 							>
 								Cancel Walk
 							</button>

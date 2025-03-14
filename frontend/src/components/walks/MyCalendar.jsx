@@ -32,6 +32,14 @@ const MyCalendar = () => {
 				const decodedToken = jwtDecode(token);
 				setRole(decodedToken.role);
 				setUserID(decodedToken.id);
+
+				// Auto-assign marshal for marshals
+				if (decodedToken.role === "marshal") {
+					setNewEvent((prevEvent) => ({
+						...prevEvent,
+						marshal: decodedToken.id,
+					}));
+				}
 			} catch (error) {
 				console.error("Failed to decode token:", error);
 			}
@@ -123,8 +131,16 @@ const MyCalendar = () => {
 
 	const handleAddEvent = async (e) => {
 		e.preventDefault();
+
 		if (!newEvent.marshal || !newEvent.start) {
 			toast.error("Please fill out all required fields.");
+			return;
+		}
+
+		// Time restriction validation
+		const walkHour = new Date(newEvent.start).getHours();
+		if (walkHour < 10 || walkHour >= 15) {
+			toast.error("Walks can only be scheduled between 10:00 AM and 3:00 PM.");
 			return;
 		}
 
@@ -139,7 +155,7 @@ const MyCalendar = () => {
 			toast.success("Walk scheduled successfully!");
 			setShowForm(false);
 			setNewEvent({
-				marshal: "",
+				marshal: role === "marshal" ? userID : "",
 				start: new Date(),
 				end: new Date(),
 				location: "920 F Drive Monroe LA",
@@ -168,6 +184,11 @@ const MyCalendar = () => {
 						view={view}
 						onViewChange={setView}
 						className="custom-calendar w-full h-full"
+						tileDisabled={({ date }) => {
+							// Disable Saturday (6), Sunday (0), and Monday (1)
+							const day = date.getDay();
+							return day === 0 || day === 1 || day === 6;
+						}}
 						tileContent={({ date }) => {
 							const today = new Date();
 							today.setHours(0, 0, 0, 0);
@@ -193,100 +214,94 @@ const MyCalendar = () => {
 				{date && (
 					<div className="md:w-1/2 lg:w-1/2 bg-gray-100 shadow-lg rounded-lg p-6 border border-gray-300 overflow-y-auto h-[600px]">
 						<h2 className="text-3xl font-extrabold mb-6 text-gray-900 text-center">
-							{date
-								? `Walks on ${date.toLocaleDateString()}`
-								: "Select a date to view walks"}
+							{`Walks on ${date.toLocaleDateString()}`}
 						</h2>
 
-						{!date ? (
+						{["marshal", "admin"].includes(role) && (
+							<button
+								onClick={() => setShowForm(true)}
+								className="mb-4 flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-green-700 transition-all duration-300 shadow-md"
+							>
+								<PlusCircleIcon className="w-6 h-6" />
+								<span>Add Walk</span>
+							</button>
+						)}
+
+						{/* Show message if no walks are available */}
+						{filteredWalks.length === 0 ? (
 							<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
-								📅 Please select a date on the calendar to view available walks.
+								🚫 No walks available for this date.
 							</p>
 						) : (
-							<>
-								{["marshal", "admin"].includes(role) && (
-									<button
-										onClick={() => setShowForm(true)}
-										className="mb-4 flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-green-700 transition-all duration-300 shadow-md"
-									>
-										<PlusCircleIcon className="w-6 h-6" />
-										<span>Add Walk</span>
-									</button>
-								)}
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+								{filteredWalks.map((walk) => {
+									const isAlreadyWalked = walk.walker.some(
+										(walker) => walker._id === userID
+									);
 
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-									{filteredWalks.map((walk) => {
-										// Check if the current user's ID is already in the walker array
-										const isAlreadyWalked = walk.walker.some(
-											(walker) => walker._id === userID
-										);
+									return (
+										<div
+											key={walk._id}
+											className="border border-gray-300 rounded-lg p-5 shadow-lg bg-white hover:shadow-2xl transform hover:scale-105 transition-all"
+										>
+											<div className="space-y-2">
+												<p className="text-gray-800">
+													<span className="font-bold">📅 Date:</span>{" "}
+													{new Date(walk.date).toLocaleDateString()}
+												</p>
+												<p className="text-gray-800">
+													<span className="font-bold">⏰ Time:</span>{" "}
+													{new Date(walk.date).toLocaleTimeString([], {
+														hour: "2-digit",
+														minute: "2-digit",
+													})}
+												</p>
 
-										return (
-											<div
-												key={walk._id}
-												className="border border-gray-300 rounded-lg p-5 shadow-lg bg-white hover:shadow-2xl transform hover:scale-105 transition-all"
-											>
-												<div className="space-y-2">
-													<p className="text-gray-800">
-														<span className="font-bold">📅 Date:</span>{" "}
-														{new Date(walk.date).toLocaleDateString()}
-													</p>
-													<p className="text-gray-800">
-														<span className="font-bold">⏰ Time:</span>{" "}
-														{new Date(walk.date).toLocaleTimeString([], {
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-													</p>
-
-													{role === "admin" && walk.walker.length > 0 && (
-														<>
-															<p className="text-gray-800">👥 Walkers:</p>
-															<ul className="list-disc list-inside text-gray-700">
-																{walk.walker.map((walker) => (
-																	<li key={walker._id}>
-																		{walker.firstName} {walker.lastName}
-																	</li>
-																))}
-															</ul>
-														</>
-													)}
-													<p className="text-gray-800">
-														<span className="font-bold">🚶 Marshal:</span>{" "}
-														{walk.marshal.firstName} {walk.marshal.lastName}
-													</p>
-													<p className="text-gray-800">
-														<span className="font-bold">
-															🎟️ Slots Available:
-														</span>{" "}
-														{walk.slots}
-													</p>
-												</div>
-
-												{walk.slots === 0 ? (
-													<p className="mt-4 w-full text-center text-red-600 font-bold bg-red-100 p-2 rounded-md">
-														❌ This walk is full
-													</p>
-												) : (
-													role === "user" && (
-														<button
-															onClick={() => handleSelectWalk(walk)}
-															disabled={isAlreadyWalked}
-															className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
-																isAlreadyWalked
-																	? "bg-gray-400 cursor-not-allowed"
-																	: "bg-blue-600 hover:bg-blue-700"
-															}`}
-														>
-															{isAlreadyWalked ? "Selected" : "Select Walk"}
-														</button>
-													)
+												{role === "admin" && walk.walker.length > 0 && (
+													<>
+														<p className="text-gray-800">👥 Walkers:</p>
+														<ul className="list-disc list-inside text-gray-700">
+															{walk.walker.map((walker) => (
+																<li key={walker._id}>
+																	{walker.firstName} {walker.lastName}
+																</li>
+															))}
+														</ul>
+													</>
 												)}
+												<p className="text-gray-800">
+													<span className="font-bold">🚶 Marshal:</span>{" "}
+													{walk.marshal.firstName} {walk.marshal.lastName}
+												</p>
+												<p className="text-gray-800">
+													<span className="font-bold">🎟️ Slots Available:</span>{" "}
+													{walk.slots}
+												</p>
 											</div>
-										);
-									})}
-								</div>
-							</>
+
+											{walk.slots === 0 ? (
+												<p className="mt-4 w-full text-center text-red-600 font-bold bg-red-100 p-2 rounded-md">
+													❌ This walk is full
+												</p>
+											) : (
+												role === "user" && (
+													<button
+														onClick={() => handleSelectWalk(walk)}
+														disabled={isAlreadyWalked}
+														className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
+															isAlreadyWalked
+																? "bg-gray-400 cursor-not-allowed"
+																: "bg-blue-600 hover:bg-blue-700"
+														}`}
+													>
+														{isAlreadyWalked ? "Selected" : "Select Walk"}
+													</button>
+												)
+											)}
+										</div>
+									);
+								})}
+							</div>
 						)}
 					</div>
 				)}

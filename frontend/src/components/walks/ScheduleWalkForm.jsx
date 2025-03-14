@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { toast } from "react-toastify";
 
@@ -10,37 +10,61 @@ const ScheduleWalkForm = ({
 	handleAddEvent,
 }) => {
 	const [marshals, setMarshals] = useState([]);
+	const [selectedTime, setSelectedTime] = useState("");
 
 	useEffect(() => {
 		const fetchOptions = async () => {
 			try {
-				const [marshalResponse] = await Promise.all([
-					axios.get(
-						`${
-							import.meta.env.VITE_BACKEND_URL
-						}/users/getAllUsers?role=marshal`,
-						{
-							headers: {
-								Authorization: `Bearer ${localStorage.getItem("token")}`,
-							},
-						}
-					), // Fetch only marshals
-				]);
-
+				const marshalResponse = await api.get(
+					`/users/getAllUsers?role=marshal`
+				);
 				setMarshals(marshalResponse.data);
 			} catch (error) {
-				console.error("Error fetching options:", error);
-				toast.error("Failed to load options.");
+				console.error("Error fetching marshals:", error);
+				toast.error("Failed to load marshals.");
 			}
 		};
 
 		fetchOptions();
 	}, []);
 
-	const handleInputChange = (e) => {
-		const { name, value } = e.target;
-		setNewEvent({ ...newEvent, [name]: value });
+	// Handle Time Change (No UTC Conversion)
+	const handleTimeChange = (time) => {
+		const [hours, minutes] = time.split(":").map(Number);
+
+		const updatedDate = new Date(newEvent.start);
+		const day = updatedDate.getDay();
+
+		// Restrict scheduling on Sat (6), Sun (0), and Mon (1)
+		if ([0, 1, 6].includes(day)) {
+			toast.error("Scheduling is not allowed on Saturday, Sunday, or Monday.");
+			return;
+		}
+
+		updatedDate.setHours(hours);
+		updatedDate.setMinutes(minutes);
+		updatedDate.setSeconds(0);
+		updatedDate.setMilliseconds(0);
+
+		setSelectedTime(time);
+		setNewEvent({
+			...newEvent,
+			start: updatedDate,
+		});
 	};
+
+	// Time slots in 30 min intervals from 10:00 AM to 3:00 PM
+	const timeSlots = [
+		"10:00",
+		"10:30",
+		"11:00",
+		"11:30",
+		"12:00",
+		"12:30",
+		"13:00",
+		"13:30",
+		"14:00",
+	];
 
 	return (
 		<div className="fixed bg-white p-8 rounded-lg shadow-lg w-96 z-20 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -60,7 +84,9 @@ const ScheduleWalkForm = ({
 					<select
 						name="marshal"
 						value={newEvent.marshal}
-						onChange={handleInputChange}
+						onChange={(e) =>
+							setNewEvent({ ...newEvent, marshal: e.target.value })
+						}
 						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
 						required
 					>
@@ -71,57 +97,50 @@ const ScheduleWalkForm = ({
 							</option>
 						))}
 					</select>
-					<label className="absolute left-0 -top-3.5 text-sm text-gray-600 peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-3.5 peer-focus:text-sm">
-						Marshal
-					</label>
 				</div>
 
-				{/* Start Time */}
-				{/* Start Time */}
-				<div className="relative mb-4">
-					<input
-						type="datetime-local"
-						name="start"
-						value={
-							newEvent.start instanceof Date
-								? new Date(
-										newEvent.start.getTime() -
-											newEvent.start.getTimezoneOffset() * 60000
-								  )
-										.toISOString()
-										.slice(0, 16)
-								: new Date(
-										new Date(newEvent.start).getTime() -
-											new Date(newEvent.start).getTimezoneOffset() * 60000
-								  )
-										.toISOString()
-										.slice(0, 16)
-						}
-						onChange={(e) =>
-							setNewEvent({
-								...newEvent,
-								start: new Date(e.target.value),
-							})
-						}
-						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-500"
-						required
-					/>
-					<label className="absolute left-0 -top-3.5 text-sm text-gray-600 peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-3.5 peer-focus:text-sm">
-						Start Time
-					</label>
-				</div>
-
-				{/* Location */}
+				{/* Display Selected Date */}
 				<div className="relative mb-4">
 					<input
 						type="text"
-						name="location"
-						value={newEvent.location}
-						onChange={handleInputChange}
-						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-500"
+						value={newEvent.start.toLocaleDateString()}
+						disabled
+						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 bg-gray-100 cursor-not-allowed"
 					/>
-					<label className="absolute left-0 -top-3.5 text-sm text-gray-600 peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:-top-3.5 peer-focus:text-sm">
-						Location
+				</div>
+
+				{/* Custom Time Picker */}
+				<div className="relative mb-4">
+					<div className="grid grid-cols-2 gap-2">
+						{timeSlots.map((time) => (
+							<button
+								type="button"
+								key={time}
+								onClick={() => handleTimeChange(time)}
+								className={`px-4 py-2 rounded-lg border ${
+									selectedTime === time
+										? "bg-blue-600 text-white"
+										: "bg-gray-100 text-gray-800 hover:bg-blue-100"
+								}`}
+							>
+								{time}
+							</button>
+						))}
+					</div>
+				</div>
+
+				{/* Manual Time Input */}
+				<div className="relative mb-4">
+					<input
+						type="time"
+						min="10:00"
+						max="15:00"
+						step="1800" // Restrict to 30 min intervals
+						onChange={(e) => handleTimeChange(e.target.value)}
+						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
+					/>
+					<label className="absolute left-0 -top-3.5 text-sm text-gray-600">
+						Pick a Time (Optional)
 					</label>
 				</div>
 
