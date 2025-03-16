@@ -203,7 +203,9 @@ export default function Home() {
 
 					{/* Section 2: Upcoming Walks */}
 					<div className="p-4 bg-white shadow rounded">
-						<h2 className="text-lg font-semibold mb-3">Upcoming Walks</h2>
+						<a href="/scheduledwalk">
+							<h2 className="text-lg font-semibold mb-3">Upcoming Walks</h2>
+						</a>
 						{walks.length > 0 ? (
 							walks
 								.filter((walk) => walk.walker && walk.walker.length > 0) // Filter out walks without a walker
@@ -227,7 +229,7 @@ export default function Home() {
 						)}
 
 						{walks.filter((walk) => walk.walker && walk.walker.length > 0)
-							.length > 2 && (
+							.length >= 2 && (
 							<Link
 								to={role === "user" ? "/mywalks" : "/scheduledwalk"}
 								className="text-blue-500 text-sm underline hover:text-blue-700"

@@ -53,18 +53,8 @@ const ScheduleWalkForm = ({
 		});
 	};
 
-	// Time slots in 30 min intervals from 10:00 AM to 3:00 PM
-	const timeSlots = [
-		"10:00",
-		"10:30",
-		"11:00",
-		"11:30",
-		"12:00",
-		"12:30",
-		"13:00",
-		"13:30",
-		"14:00",
-	];
+	// Time slots in from 10:00 AM to 3:00 PM
+	const timeSlots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00"];
 
 	return (
 		<div className="fixed bg-white p-8 rounded-lg shadow-lg w-96 z-20 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">

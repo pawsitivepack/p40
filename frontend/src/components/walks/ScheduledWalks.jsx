@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 
 const ScheduledWalks = () => {
@@ -91,9 +91,12 @@ const ScheduledWalks = () => {
 											) : (
 												<FaUserCircle className="w-6 h-6 text-gray-400" />
 											)}
-											<span>
+											<Link
+												to={`/user/${user._id}`}
+												className="hover:text-blue-500 underline transition"
+											>
 												{user.firstName} {user.lastName}
-											</span>
+											</Link>
 										</li>
 									))}
 								</ul>

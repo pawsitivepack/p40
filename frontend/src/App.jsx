@@ -18,6 +18,7 @@ import ViewCompletedWalks from "./components/walks/ViewCompletedWalks";
 import MyWalks from "./components/walks/MyWalks";
 import Users from "./components/Users/Users";
 import MarshalApplication from "./components/marshalApp/MarshalApplication";
+import UserDetails from "./components/Users/UserDetails";
 import NotFound from "./components/NotFound/NotFound";
 
 function App() {
@@ -74,7 +75,7 @@ function App() {
 						<Route path="/scheduledwalk" element={<ScheduledWalk />} />
 						<Route path="/checkin" element={<CheckIn />} />
 						<Route path="/completedWalks" element={<ViewCompletedWalks />} />
-
+						<Route path="/user/:id" element={<UserDetails />} />
 						<Route path="/mywalks" element={<MyWalks />} />
 						<Route path="/donate" element={<Donate />} />
 						<Route path="/myprofile" element={<MyProfile />} />

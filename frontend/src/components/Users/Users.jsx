@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { FaUserCircle } from "react-icons/fa";
-
+import { Link } from "react-router-dom";
 const Users = () => {
 	const [users, setUsers] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -249,7 +249,12 @@ const Users = () => {
 								) : (
 									<>
 										<td className="py-3 px-4 border-b border-gray-500">
-											{user.firstName}
+											<Link
+												to={`/user/${user._id}`}
+												className="hover:text-blue-500 underline transition"
+											>
+												{user.firstName}
+											</Link>
 										</td>
 										<td className="py-3 px-4 border-b border-gray-500">
 											{user.lastName}

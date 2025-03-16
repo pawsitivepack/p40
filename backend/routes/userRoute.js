@@ -23,6 +23,12 @@ router.get(
 	userController.getAllUsers
 );
 router.put("/editUser/:id", verifyToken, verifyAdmin, userController.editUser);
+router.get(
+	"/viewUser/:id",
+	verifyToken,
+	verifyAdmin,
+	userController.viewUserDetail
+);
 router.delete(
 	"/deleteUser/:id",
 	verifyToken,

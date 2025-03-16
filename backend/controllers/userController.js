@@ -286,6 +286,36 @@ exports.editUser = async (req, res) => {
 		res.status(500).json({ message: "Internal server error" });
 	}
 };
+exports.viewUserDetail = async (req, res) => {
+	try {
+		const userId = req.params.id;
+		console.log("Fetching user details for ID:", userId);
+		// Fetch the user including all fields and populating necessary references
+		const user = await User.findById(userId)
+			.populate("completedWalks") // Populate completed walks if it's a reference
+			.populate("dogsWalked");
+
+		if (!user) {
+			return res.status(404).json({ message: "User not found" });
+		}
+
+		// Fetch the walks associated with this user
+		const walks = await Walk.find({
+			$or: [{ walker: userId }, { marshal: userId }],
+		})
+			.populate("walker")
+			.populate("marshal");
+
+		res.status(200).json({
+			message: "User details fetched successfully",
+			user,
+			walks,
+		});
+	} catch (error) {
+		console.error("Error fetching user details:", error);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
 
 exports.deleteUser = async (req, res) => {
 	try {
