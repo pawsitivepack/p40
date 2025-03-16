@@ -24,6 +24,7 @@ const MyCalendar = () => {
 		end: date,
 		location: "920 F Drive Monroe LA",
 	});
+	const [isBulk, setIsBulk] = useState(false); // Added isBulk state
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -128,40 +129,58 @@ const MyCalendar = () => {
 		setSelectedWalk(walk._id);
 		handleConfirmWalk(walk); // Confirm the walk immediately
 	};
-
-	const handleAddEvent = async (e) => {
+	const handleAddEvent = async (e, repeatUntil, selectedTimes) => {
 		e.preventDefault();
 
-		if (!newEvent.marshal || !newEvent.start) {
+		if (
+			!newEvent.marshal ||
+			(!isBulk && !newEvent.start) ||
+			(isBulk && (!repeatUntil || selectedTimes.length === 0))
+		) {
 			toast.error("Please fill out all required fields.");
 			return;
 		}
 
-		// Time restriction validation
-		const walkHour = new Date(newEvent.start).getHours();
-		if (walkHour < 10 || walkHour >= 15) {
-			toast.error("Walks can only be scheduled between 10:00 AM and 3:00 PM.");
-			return;
-		}
-
 		try {
-			await api.post(`/scheduledWalks/newWalk`, {
-				marshal: newEvent.marshal,
-				date: newEvent.start,
-				location: newEvent.location,
-				status: "Scheduled",
-			});
+			if (isBulk) {
+				const start = new Date(newEvent.start);
+				const end = new Date(
+					new Date(repeatUntil).setDate(new Date(repeatUntil).getDate() + 1)
+				);
+				end.setHours(0, 0, 0, 0); // Set to the start of the next day to ensure inclusion
 
-			toast.success("Walk scheduled successfully!");
+				let currentDate = new Date(start);
+				while (currentDate <= end) {
+					const day = currentDate.getDay();
+					if (day !== 0 && day !== 1 && day !== 6) {
+						// Only schedule on weekdays
+						for (const time of selectedTimes) {
+							const [hours, minutes] = time.split(":").map(Number);
+							const newDate = new Date(currentDate);
+							newDate.setHours(hours, minutes, 0, 0);
+
+							await api.post(`/scheduledWalks/newWalk`, {
+								marshal: newEvent.marshal,
+								date: newDate,
+								location: newEvent.location,
+								status: "Scheduled",
+							});
+						}
+					}
+					currentDate.setDate(currentDate.getDate() + 1);
+				}
+				toast.success("Bulk walks scheduled successfully!");
+			} else {
+				await api.post(`/scheduledWalks/newWalk`, {
+					marshal: newEvent.marshal,
+					date: newEvent.start,
+					location: newEvent.location,
+					status: "Scheduled",
+				});
+				toast.success("Walk scheduled successfully!");
+			}
+
 			setShowForm(false);
-			setNewEvent({
-				marshal: role === "marshal" ? userID : "",
-				start: new Date(),
-				end: new Date(),
-				location: "920 F Drive Monroe LA",
-			});
-
-			// Refresh available walks
 			await fetchAvailableWalks();
 		} catch (error) {
 			console.error("Error adding walk:", error);
@@ -313,6 +332,8 @@ const MyCalendar = () => {
 					setNewEvent={setNewEvent}
 					setShowForm={setShowForm}
 					handleAddEvent={handleAddEvent}
+					isBulk={isBulk} // Pass isBulk as a prop
+					setIsBulk={setIsBulk} // Pass setIsBulk as a prop
 				/>
 			)}
 		</div>

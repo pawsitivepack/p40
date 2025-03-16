@@ -8,9 +8,12 @@ const ScheduleWalkForm = ({
 	setNewEvent,
 	setShowForm,
 	handleAddEvent,
+	isBulk,
+	setIsBulk,
 }) => {
 	const [marshals, setMarshals] = useState([]);
-	const [selectedTime, setSelectedTime] = useState("");
+	const [selectedTimes, setSelectedTimes] = useState([]);
+	const [repeatUntil, setRepeatUntil] = useState("");
 
 	useEffect(() => {
 		const fetchOptions = async () => {
@@ -28,29 +31,24 @@ const ScheduleWalkForm = ({
 		fetchOptions();
 	}, []);
 
+	// Automatically show the repeat until field and set default date when bulk is selected
+	useEffect(() => {
+		if (isBulk && newEvent.start) {
+			setRepeatUntil(newEvent.start.toISOString().split("T")[0]);
+		}
+	}, [isBulk, newEvent.start]);
+
 	// Handle Time Change (No UTC Conversion)
 	const handleTimeChange = (time) => {
-		const [hours, minutes] = time.split(":").map(Number);
-
-		const updatedDate = new Date(newEvent.start);
-		const day = updatedDate.getDay();
-
-		// Restrict scheduling on Sat (6), Sun (0), and Mon (1)
-		if ([0, 1, 6].includes(day)) {
-			toast.error("Scheduling is not allowed on Saturday, Sunday, or Monday.");
-			return;
+		if (isBulk) {
+			setSelectedTimes((prevTimes) =>
+				prevTimes.includes(time)
+					? prevTimes.filter((t) => t !== time)
+					: [...prevTimes, time]
+			);
+		} else {
+			setSelectedTimes([time]);
 		}
-
-		updatedDate.setHours(hours);
-		updatedDate.setMinutes(minutes);
-		updatedDate.setSeconds(0);
-		updatedDate.setMilliseconds(0);
-
-		setSelectedTime(time);
-		setNewEvent({
-			...newEvent,
-			start: updatedDate,
-		});
 	};
 
 	// Time slots in from 10:00 AM to 3:00 PM
@@ -68,7 +66,18 @@ const ScheduleWalkForm = ({
 				/>
 			</div>
 
-			<form onSubmit={handleAddEvent}>
+			<form onSubmit={(e) => handleAddEvent(e, repeatUntil, selectedTimes)}>
+				<div className="relative mb-4">
+					<label className="inline-flex items-center cursor-pointer text-gray-800 hover:text-gray-900">
+						<input
+							type="checkbox"
+							checked={isBulk}
+							onChange={(e) => setIsBulk(e.target.checked)}
+							className="form-checkbox h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+						/>
+						<span className="ml-2">Bulk Walk</span>
+					</label>
+				</div>
 				{/* Marshal Selection */}
 				<div className="relative mb-4">
 					<select
@@ -108,7 +117,7 @@ const ScheduleWalkForm = ({
 								key={time}
 								onClick={() => handleTimeChange(time)}
 								className={`px-4 py-2 rounded-lg border ${
-									selectedTime === time
+									selectedTimes.includes(time)
 										? "bg-blue-600 text-white"
 										: "bg-gray-100 text-gray-800 hover:bg-blue-100"
 								}`}
@@ -127,12 +136,28 @@ const ScheduleWalkForm = ({
 						max="15:00"
 						step="1800" // Restrict to 30 min intervals
 						onChange={(e) => handleTimeChange(e.target.value)}
+						disabled={!isBulk && selectedTimes.length > 0}
 						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
 					/>
 					<label className="absolute left-0 -top-3.5 text-sm text-gray-600">
 						Pick a Time (Optional)
 					</label>
 				</div>
+
+				{/* Repeat Until Date Input */}
+				{isBulk && (
+					<div className="relative mb-4">
+						<label className="block mb-1 text-gray-700">Repeat Until:</label>
+						<input
+							type="date"
+							value={repeatUntil}
+							onChange={(e) => setRepeatUntil(e.target.value)}
+							min={newEvent.start.toISOString().split("T")[0]}
+							className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
+							required
+						/>
+					</div>
+				)}
 
 				<button className="w-full bg-blue-500 text-white rounded-md px-4 py-2 hover:bg-blue-600 transition-all focus:outline-none">
 					Schedule Walk

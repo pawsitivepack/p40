@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../api/axios";
 import { FaUserCircle } from "react-icons/fa";
+import { formatDistanceToNow } from "date-fns";
 
 const ViewUserDetails = () => {
 	const { id } = useParams();
@@ -62,6 +63,18 @@ const ViewUserDetails = () => {
 					<p className="text-gray-600">{user?.email}</p>
 					<p className="text-gray-600">Phone: {user?.phone}</p>
 					<p className="text-gray-600">Points: {user?.userPoints}</p>
+					<p className="text-gray-600">
+						Last Login:{" "}
+						{user?.lastLogin
+							? formatDistanceToNow(new Date(user.lastLogin), {
+									addSuffix: true,
+							  })
+							: user?.createdAt
+							? formatDistanceToNow(new Date(user.createdAt), {
+									addSuffix: true,
+							  })
+							: "Never"}
+					</p>
 					<p className="text-gray-600">
 						Account Created: {new Date(user?.createdAt).toLocaleDateString()}
 					</p>

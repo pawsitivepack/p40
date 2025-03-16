@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 import axios from "axios";
 import { FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -161,11 +162,11 @@ const Users = () => {
 					<thead>
 						<tr className="bg-gray-800 text-gray-200">
 							<th className="py-3 px-4 border-b border-gray-500">Picture</th>
-							<th className="py-3 px-4 border-b border-gray-500">First Name</th>
-							<th className="py-3 px-4 border-b border-gray-500">Last Name</th>
+							<th className="py-3 px-4 border-b border-gray-500">Name</th>
 							<th className="py-3 px-4 border-b border-gray-500">Email</th>
 							<th className="py-3 px-4 border-b border-gray-500">Phone</th>
 							<th className="py-3 px-4 border-b border-gray-500">Role</th>
+							<th className="py-3 px-4 border-b border-gray-500">last login</th>
 							<th className="py-3 px-4 border-b border-gray-500">Actions</th>
 						</tr>
 					</thead>
@@ -194,14 +195,14 @@ const Users = () => {
 												value={editedUserData.firstName}
 												onChange={(e) => handleFieldChange(e, "firstName")}
 												className="bg-gray-800 text-white px-2 py-1 rounded w-full"
+												placeholder="First Name"
 											/>
-										</td>
-										<td className="py-3 px-4 border-b border-gray-500">
 											<input
 												type="text"
 												value={editedUserData.lastName}
 												onChange={(e) => handleFieldChange(e, "lastName")}
-												className="bg-gray-800 text-white px-2 py-1 rounded w-full"
+												className="bg-gray-800 text-white px-2 py-1 rounded w-full mt-1"
+												placeholder="Last Name"
 											/>
 										</td>
 										<td className="py-3 px-4 border-b border-gray-500">
@@ -253,11 +254,8 @@ const Users = () => {
 												to={`/user/${user._id}`}
 												className="hover:text-blue-500 underline transition"
 											>
-												{user.firstName}
+												{`${user.firstName} ${user.lastName}`}
 											</Link>
-										</td>
-										<td className="py-3 px-4 border-b border-gray-500">
-											{user.lastName}
 										</td>
 										<td className="py-3 px-4 border-b border-gray-500">
 											{user.email}
@@ -267,6 +265,13 @@ const Users = () => {
 										</td>
 										<td className="py-3 px-4 border-b border-gray-500">
 											{user.role}
+										</td>
+										<td className="py-3 px-4 border-b border-gray-500">
+											{user.updatedAt
+												? `${formatDistanceToNow(
+														new Date(user.updatedAt)
+												  ).toLowerCase()} ago`
+												: "n/a"}
 										</td>
 										<td className="py-3 px-4 border-b border-gray-500 flex gap-2 justify-center">
 											<button
