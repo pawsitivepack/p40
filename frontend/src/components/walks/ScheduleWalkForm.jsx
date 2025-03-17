@@ -48,6 +48,12 @@ const ScheduleWalkForm = ({
 			);
 		} else {
 			setSelectedTimes([time]);
+			setNewEvent((prevEvent) => ({
+				...prevEvent,
+				start: new Date(
+					prevEvent.start.setHours(...time.split(":").map(Number))
+				),
+			}));
 		}
 	};
 
@@ -110,6 +116,9 @@ const ScheduleWalkForm = ({
 
 				{/* Custom Time Picker */}
 				<div className="relative mb-4">
+					{isBulk && (
+						<p className="text-gray-600 mb-2">Choose one or more times:</p>
+					)}
 					<div className="grid grid-cols-2 gap-2">
 						{timeSlots.map((time) => (
 							<button
@@ -129,20 +138,22 @@ const ScheduleWalkForm = ({
 				</div>
 
 				{/* Manual Time Input */}
-				<div className="relative mb-4">
-					<input
-						type="time"
-						min="10:00"
-						max="15:00"
-						step="1800" // Restrict to 30 min intervals
-						onChange={(e) => handleTimeChange(e.target.value)}
-						disabled={!isBulk && selectedTimes.length > 0}
-						className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
-					/>
-					<label className="absolute left-0 -top-3.5 text-sm text-gray-600">
-						Pick a Time (Optional)
-					</label>
-				</div>
+				{!isBulk && (
+					<div className="relative mb-4">
+						<input
+							type="time"
+							min="10:00"
+							max="15:00"
+							step="1800" // Restrict to 30 min intervals
+							onChange={(e) => handleTimeChange(e.target.value)}
+							disabled={!isBulk && selectedTimes.length > 0}
+							className="peer h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
+						/>
+						<label className="absolute left-0 -top-3.5 text-sm text-gray-600">
+							Pick a Time (Optional)
+						</label>
+					</div>
+				)}
 
 				{/* Repeat Until Date Input */}
 				{isBulk && (

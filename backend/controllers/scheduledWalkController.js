@@ -13,6 +13,18 @@ exports.addScheduledWalk = async (req, res) => {
 				.json({ error: "Assigned marshal must have the role of 'marshal'." });
 		}
 
+		// Check for duplicate walk
+		const existingWalk = await ScheduledWalk.findOne({
+			marshal,
+			date: new Date(date),
+		});
+
+		if (existingWalk) {
+			return res.status(400).json({
+				error: "This walk already exists.",
+			});
+		}
+
 		// Create a new ScheduledWalk
 		const newWalk = new ScheduledWalk({
 			dog,
@@ -37,7 +49,6 @@ exports.addScheduledWalk = async (req, res) => {
 			walk: populatedWalk,
 		});
 	} catch (error) {
-		console.error(error);
 		res.status(500).json({ error: "Failed to add scheduled walk" });
 	}
 };
@@ -51,7 +62,6 @@ exports.getAllScheduledWalks = async (req, res) => {
 
 		res.status(200).json(walks);
 	} catch (error) {
-		console.error(error);
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };

@@ -131,12 +131,14 @@ const MyCalendar = () => {
 	};
 	const handleAddEvent = async (e, repeatUntil, selectedTimes) => {
 		e.preventDefault();
+		const schedulingToastId = toast.loading("Scheduling...");
 
 		if (
 			!newEvent.marshal ||
 			(!isBulk && !newEvent.start) ||
 			(isBulk && (!repeatUntil || selectedTimes.length === 0))
 		) {
+			toast.dismiss(schedulingToastId);
 			toast.error("Please fill out all required fields.");
 			return;
 		}
@@ -169,7 +171,8 @@ const MyCalendar = () => {
 					}
 					currentDate.setDate(currentDate.getDate() + 1);
 				}
-				toast.success("Bulk walks scheduled successfully!");
+				toast.dismiss(schedulingToastId);
+				toast.success("Walk scheduled successfully!");
 			} else {
 				await api.post(`/scheduledWalks/newWalk`, {
 					marshal: newEvent.marshal,
@@ -177,14 +180,17 @@ const MyCalendar = () => {
 					location: newEvent.location,
 					status: "Scheduled",
 				});
+				toast.dismiss(schedulingToastId);
 				toast.success("Walk scheduled successfully!");
 			}
 
 			setShowForm(false);
 			await fetchAvailableWalks();
 		} catch (error) {
-			console.error("Error adding walk:", error);
-			toast.error("Failed to schedule the walk.");
+			toast.dismiss(schedulingToastId);
+			toast.error(
+				error.response?.data?.error || "Failed to schedule the walk."
+			);
 		}
 	};
 
