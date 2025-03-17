@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema(
 			default: "user", // Role defaults to 'user'
 		},
 		googleAuth: { type: Boolean, default: false },
+		lastLogin: { type: Date, required: false },
 		dogsWalked: [
 			{
 				type: mongoose.Schema.Types.ObjectId,

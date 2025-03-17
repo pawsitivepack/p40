@@ -57,6 +57,8 @@ exports.login = async (req, res) => {
 		}
 
 		const token = generateUserToken(user);
+		user.lastLogin = new Date();
+		await user.save();
 		res.status(200).json({
 			message: "Login successful",
 			token,
@@ -115,6 +117,9 @@ exports.googlelogin = async (req, res) => {
 			user.picture = picture;
 			await user.save();
 		}
+
+		user.lastLogin = new Date();
+		await user.save();
 
 		// Generate a token for an existing user
 		const jwtToken = generateUserToken(user);
