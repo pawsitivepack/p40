@@ -8,8 +8,9 @@ const dogSchema = new Schema(
 		color: { type: String, required: true },
 		age: { type: Number, required: true },
 		owner: { type: String, required: true },
-		adopeted: { type: Boolean, required: false },
+		adopted: { type: Boolean, default: false },
 		imageURL: { type: String, required: false },
+		tags: [{ type: String }], // Array of tags for filtering
 		adoptedDate: { type: Date },
 		size: { type: String, enum: ["Small", "Medium", "Large"], required: false },
 		healthIssues: { type: String },
