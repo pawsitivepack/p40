@@ -12,7 +12,7 @@ import image from "../assets/dog.png";
 function Footer() {
 	return (
 		<div>
-			<footer className="bg-red-950 dark:bg-gray-900 text-white">
+			<footer className="bg-gray-800 dark:bg-gray-900 text-white">
 				<div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
 					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
 						{/* Logo Section - First Column */}
