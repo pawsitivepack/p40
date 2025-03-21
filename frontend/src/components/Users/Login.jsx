@@ -18,8 +18,11 @@ export default function Login() {
 		password: "",
 		confirmPassword: "",
 	});
+	const [birthdate, setBirthdate] = useState(""); // Separate state for birthdate
+	const [isOldEnough, setIsOldEnough] = useState(true); // Ensure age is 12+
 	const [rememberMe, setRememberMe] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
+	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const navigate = useNavigate();
 
 	const handleChange = (e) => {
@@ -63,8 +66,36 @@ export default function Login() {
 		}
 	};
 
+	const handleBirthdateChange = (e) => {
+		const birthdateValue = e.target.value;
+		setBirthdate(birthdateValue);
+	
+		// Calculate age
+		const today = new Date();
+		const birthDate = new Date(birthdateValue);
+		let userAge = today.getFullYear() - birthDate.getFullYear();
+		const monthDiff = today.getMonth() - birthDate.getMonth();
+	
+		// Adjust age if birthday hasn't happened yet this year
+		if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+			userAge--;
+		}
+	
+		// Set calculated age in formData
+		setFormData({ ...formData, age: userAge });
+	
+		// Check if the user is at least 12 years old
+		setIsOldEnough(userAge >= 12);
+	};
+	
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+		if (!isOldEnough) {
+			toast.error("You must be at least 12 years old to create an account.");
+			return;
+		}
+
 		if (isRegistering && formData.password !== formData.confirmPassword) {
 			toast.error("Passwords do not match!");
 			return;
@@ -134,6 +165,11 @@ export default function Login() {
 		setShowPassword(!showPassword);
 	};
 
+    const toggleConfirmPasswordVisibility = () => {
+		setShowConfirmPassword(!showConfirmPassword);
+	};
+
+
 	return (
 		<div className="relative flex justify-center items-center min-h-screen bg-gray-100 overflow-hidden">
 			<div
@@ -154,7 +190,7 @@ export default function Login() {
 					<form onSubmit={handleSubmit}>
 						{isRegistering && (
 							<>
-								{["firstName", "lastName", "age", "phone"].map((field) => (
+								{["firstName", "lastName", "phone"].map((field) => (
 									<div key={field}>
 										<label className="block text-gray-600 mb-1 capitalize">
 											{field.replace(/([A-Z])/g, " $1")}
@@ -170,6 +206,18 @@ export default function Login() {
 										/>
 									</div>
 								))}
+								<label className="block text-gray-600 mb-1">Birthdate</label>
+								<input
+									type="date"
+									value={birthdate}
+									onChange={handleBirthdateChange}
+									className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-2"
+									required
+								/>
+								<p className="text-gray-500 mb-4">Age: {formData.age || "N/A"}</p>
+								{!isOldEnough && (
+									<p className="text-red-600 text-sm">You must be at least 12 years old to register.</p>
+								)}
 							</>
 						)}
 						<label className="block text-gray-600 mb-1">Email</label>
@@ -203,20 +251,28 @@ export default function Login() {
 						</div>
 						{isRegistering && (
 							<>
-								<label className="block text-gray-600 mb-1">
-									Confirm Password
-								</label>
-								<input
-									type="password"
-									name="confirmPassword"
-									value={formData.confirmPassword}
-									onChange={handleChange}
-									placeholder="Re-enter your password"
-									className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4"
-									required
-								/>
+								<label className="block text-gray-600 mb-1">Confirm Password</label>
+								<div className="relative">
+									<input
+										type={showConfirmPassword ? "text" : "password"}
+										name="confirmPassword"
+										value={formData.confirmPassword}
+										onChange={handleChange}
+										placeholder="Re-enter your password"
+										className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4 pr-16"
+										required
+									/>
+									<button
+										type="button"
+										className="absolute right-2 top-2 text-blue-600"
+										onClick={toggleConfirmPasswordVisibility}
+									>
+										{showConfirmPassword ? "Hide" : "Show"}
+									</button>
+								</div>
 							</>
 						)}
+
 						<button
 							type="submit"
 							className="w-full bg-gray-700 text-white py-2 rounded-md hover:bg-gray-800 transition"
