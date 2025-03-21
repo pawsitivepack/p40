@@ -3,4 +3,27 @@
 @theme {
 	--color-maroon-700: #800100; /* Deep Purple */
 	--color-maroon-600: #800100;
+	--primary-100: #ff7f50;
+	--primary-200: #dd6236;
+	--primary-300: #8f1e00;
+	--accent-100: #8b4513;
+	--accent-200: #ffd299;
+	--text-100: #000000;
+	--text-200: #2c2c2c;
+	--bg-100: #f7eedd;
+	--bg-200: #ede4d3;
+	--bg-300: #c4bcab;
+
+	/* Added based on Home.jsx usage */
+	--blue-100: #dbeafe;
+	--blue-600: #2563eb;
+	--blue-700: #1d4ed8;
+	--green-100: #d1fae5;
+	--green-600: #059669;
+	--purple-100: #e9d5ff;
+	--purple-600: #9333ea;
+	--red-100: #fee2e2;
+	--red-600: #dc2626;
+	--yellow-100: #fef3c7;
+	--yellow-600: #ca8a04;
 }

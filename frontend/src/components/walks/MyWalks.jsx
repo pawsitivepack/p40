@@ -49,7 +49,10 @@ const MyWalks = () => {
 
 	return (
 		<div className="container mx-auto p-4">
-			<h1 className="text-3xl font-bold mb-6 text-center">
+			<h1
+				className="text-3xl font-bold mb-6 text-center"
+				style={{ color: "var(--text-100)" }}
+			>
 				My Scheduled Walks
 			</h1>
 
@@ -60,11 +63,17 @@ const MyWalks = () => {
 					{walks.map((walk) => (
 						<div
 							key={walk._id}
-							className="bg-white border rounded-xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300"
+							className="border rounded-xl p-5 shadow-lg hover:shadow-xl transition-shadow duration-300"
+							style={{ backgroundColor: "var(--bg-200)" }}
 						>
 							<div className="mb-3">
-								<p className="text-blue-700 font-semibold">Date:</p>
-								<p className="text-gray-800">
+								<p
+									className="font-semibold"
+									style={{ color: "var(--primary-200)" }}
+								>
+									Date:
+								</p>
+								<p style={{ color: "var(--text-200)" }}>
 									{new Date(walk.date).toLocaleString([], {
 										dateStyle: "medium",
 										timeStyle: "short",
@@ -73,23 +82,41 @@ const MyWalks = () => {
 							</div>
 
 							<div className="mb-3">
-								<p className="text-blue-700 font-semibold">Location:</p>
-								<p className="text-gray-800">{walk.location}</p>
+								<p
+									className="font-semibold"
+									style={{ color: "var(--primary-200)" }}
+								>
+									Location:
+								</p>
+								<p style={{ color: "var(--text-200)" }}>{walk.location}</p>
 							</div>
 
 							<div className="mb-3">
-								<p className="text-blue-700 font-semibold">Marshal:</p>
-								<p className="text-gray-800">{walk.marshal.firstName}</p>
+								<p
+									className="font-semibold"
+									style={{ color: "var(--primary-200)" }}
+								>
+									Marshal:
+								</p>
+								<p style={{ color: "var(--text-200)" }}>
+									{walk.marshal.firstName}
+								</p>
 							</div>
 
 							<div className="mb-4">
-								<p className="text-blue-700 font-semibold">Duration:</p>
-								<p className="text-gray-800">{walk.duration}</p>
+								<p
+									className="font-semibold"
+									style={{ color: "var(--primary-200)" }}
+								>
+									Duration:
+								</p>
+								<p style={{ color: "var(--text-200)" }}>{walk.duration}</p>
 							</div>
 
 							<button
 								onClick={() => handleCancelWalk(walk._id)}
-								className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition-all"
+								className="w-full text-white py-2 rounded-lg transition-all"
+								style={{ backgroundColor: "var(--primary-200)" }}
 							>
 								Cancel Walk
 							</button>

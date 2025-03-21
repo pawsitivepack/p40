@@ -57,7 +57,10 @@ export default function Home() {
 	};
 
 	return (
-		<div className="relative min-h-screen flex flex-col items-center justify-center bg-gray-100">
+		<div
+			className="relative min-h-screen flex flex-col items-center justify-center"
+			style={{ backgroundColor: "var(--bg-100)" }}
+		>
 			{/* Background Image */}
 			<div
 				className="absolute inset-0 bg-center bg-cover blur-md opacity-40"
@@ -65,7 +68,10 @@ export default function Home() {
 			></div>
 
 			{/* Foreground Content */}
-			<div className="relative  text-red-950 text-center max-w-6xl mx-auto">
+			<div
+				className="relative text-center max-w-6xl mx-auto"
+				style={{ color: "var(--text-100)" }}
+			>
 				{/* Welcome Text */}
 				<h1 className="text-5xl font-bold mb-6">Welcome to P40-Dog!</h1>
 				<p className="text-2xl mb-10">Your best companion is waiting!</p>
@@ -73,8 +79,14 @@ export default function Home() {
 				{/* Management Sections */}
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 					{/* Section 1: Quick Links */}
-					<div className="p-4 bg-white shadow rounded-lg">
-						<h2 className="text-lg font-semibold mb-4 text-gray-800">
+					<div
+						className="p-4 shadow rounded-lg"
+						style={{ backgroundColor: "var(--bg-200)" }}
+					>
+						<h2
+							className="text-lg font-semibold mb-4"
+							style={{ color: "var(--text-200)" }}
+						>
 							Quick Links
 						</h2>
 
@@ -202,7 +214,10 @@ export default function Home() {
 					</div>
 
 					{/* Section 2: Upcoming Walks */}
-					<div className="p-4 bg-white shadow rounded">
+					<div
+						className="p-4 shadow rounded"
+						style={{ backgroundColor: "var(--bg-200)" }}
+					>
 						<a href="/scheduledwalk">
 							<h2 className="text-lg font-semibold mb-3">Upcoming Walks</h2>
 						</a>
@@ -212,7 +227,7 @@ export default function Home() {
 								.slice(0, 3) // Show only the first 3 walks
 								.map((walk) => (
 									<div key={walk._id} className="mb-2">
-										<p className="text-sm">
+										<p className="text-sm" style={{ color: "var(--text-200)" }}>
 											{new Date(walk.date).toLocaleDateString()} -{" "}
 											{new Date(walk.date).toLocaleTimeString([], {
 												hour: "2-digit",
@@ -225,7 +240,9 @@ export default function Home() {
 									</div>
 								))
 						) : (
-							<p className="text-sm">No upcoming walks available.</p>
+							<p className="text-sm" style={{ color: "var(--text-200)" }}>
+								No upcoming walks available.
+							</p>
 						)}
 
 						{walks.filter((walk) => walk.walker && walk.walker.length > 0)
@@ -240,15 +257,23 @@ export default function Home() {
 					</div>
 
 					{/* Section 3: Past Walks */}
-					<div className="p-6 bg-white shadow-md rounded-lg">
+					<div
+						className="p-6 shadow-md rounded-lg"
+						style={{ backgroundColor: "var(--bg-300)" }}
+					>
 						<h2 className="text-xl font-bold mb-4">Past Walks</h2>
-						<p>Coming Soon...</p>
+						<p style={{ color: "var(--text-200)" }}>Coming Soon...</p>
 					</div>
 
 					{/* Section 4: Management (Placeholder for future) */}
-					<div className="p-6 bg-white shadow-md rounded-lg">
+					<div
+						className="p-6 shadow-md rounded-lg"
+						style={{ backgroundColor: "var(--bg-300)" }}
+					>
 						<h2 className="text-xl font-bold mb-4">Management</h2>
-						<p>More management tools coming soon...</p>
+						<p style={{ color: "var(--text-200)" }}>
+							More management tools coming soon...
+						</p>
 					</div>
 				</div>
 			</div>

@@ -40,18 +40,23 @@ const ScheduledWalks = () => {
 
 	return (
 		<div className="container mx-auto p-6">
-			<h1 className="text-3xl font-bold text-gray-800 mb-6">
+			<h1
+				className="text-3xl font-bold mb-6"
+				style={{ color: "var(--text-100)" }}
+			>
 				Scheduled Walks with Users 🐾
 			</h1>
 			<div className="flex gap-4 mb-6">
 				<button
-					className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+					className="text-white px-5 py-2 rounded-lg shadow transition"
+					style={{ backgroundColor: "var(--primary-200)" }}
 					onClick={() => navigate("/checkin")}
 				>
 					🚶‍♂️ Check In
 				</button>
 				<button
-					className="bg-green-600 text-white px-5 py-2 rounded-lg shadow hover:bg-green-700 transition"
+					className="text-white px-5 py-2 rounded-lg shadow transition"
+					style={{ backgroundColor: "var(--accent-100)" }}
 					onClick={() => navigate("/completedwalks")}
 				>
 					✅ Past Walks
@@ -64,10 +69,20 @@ const ScheduledWalks = () => {
 					walksWithUsers.map((walk) => (
 						<div
 							key={walk._id}
-							className="bg-white border border-gray-300 rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer"
+							className="border rounded-lg shadow-md p-6 hover:shadow-lg transition cursor-pointer"
+							style={{
+								backgroundColor: "var(--bg-200)",
+								borderColor: "var(--bg-300)",
+							}}
 						>
 							<div className="flex justify-between items-center mb-4">
-								<span className="text-sm bg-blue-100 text-blue-800 font-medium px-3 py-1 rounded-full">
+								<span
+									className="text-sm font-medium px-3 py-1 rounded-full"
+									style={{
+										backgroundColor: "var(--primary-100)",
+										color: "white",
+									}}
+								>
 									{new Date(walk.date).toLocaleString([], {
 										dateStyle: "medium",
 										timeStyle: "short",
@@ -75,12 +90,22 @@ const ScheduledWalks = () => {
 								</span>
 							</div>
 							<div>
-								<p className="text-blue-700 font-semibold mb-2">Walkers:</p>
+								<p
+									className="font-semibold mb-2"
+									style={{ color: "var(--text-100)" }}
+								>
+									Walkers:
+								</p>
 								<ul className="space-y-1">
 									{walk.walker.map((user) => (
 										<li
 											key={user._id}
-											className="text-gray-800 bg-gray-100 px-3 py-1 rounded-md flex items-center gap-2"
+											className="px-3 py-1 rounded-md flex items-center gap-2"
+											style={{
+												backgroundColor: "var(--bg-300)",
+												color: "var(--text-100)", // Change text to primary readable color
+												fontWeight: "bold",
+											}}
 										>
 											{user.picture ? (
 												<img
@@ -93,7 +118,11 @@ const ScheduledWalks = () => {
 											)}
 											<Link
 												to={`/user/${user._id}`}
-												className="hover:text-blue-500 underline transition"
+												className="transition"
+												style={{
+													color: "var(--primary-200)",
+													textDecoration: "none",
+												}}
 											>
 												{user.firstName} {user.lastName}
 											</Link>

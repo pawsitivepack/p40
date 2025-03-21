@@ -140,8 +140,14 @@ function MarshalApplication() {
 	}, [role]);
 
 	return (
-		<div className="p-8 max-w-lg mx-auto bg-[#FFFDD0] rounded-lg shadow-2xl border border-gray-200">
-			<h2 className="text-3xl font-extrabold text-center mb-6 text-blue-600">
+		<div
+			className="p-8 max-w-lg mx-auto rounded-lg shadow-2xl border my-auto mt-10"
+			style={{ backgroundColor: "var(--bg-100)" }}
+		>
+			<h2
+				className="text-3xl font-extrabold text-center mb-6"
+				style={{ color: "var(--primary-200)" }}
+			>
 				Marshal Application
 			</h2>
 
@@ -149,14 +155,22 @@ function MarshalApplication() {
 			{role === "user" && (
 				<form onSubmit={handleSubmit} className="space-y-6">
 					<div>
-						<label className="block text-sm font-medium text-gray-700 mb-2">
+						<label
+							className="block text-sm font-medium mb-2"
+							style={{ color: "var(--text-200)" }}
+						>
 							Message
 						</label>
 						<textarea
 							value={message}
 							onChange={(e) => setMessage(e.target.value)}
 							placeholder="Why do you want to be a marshal?"
-							className="w-full border text-black border-gray-300 p-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+							className="w-full border p-3 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:border-transparent"
+							style={{
+								color: "var(--text-100)",
+								borderColor: "var(--bg-300)",
+								backgroundColor: "white",
+							}}
 							rows="4"
 							required
 						></textarea>
@@ -164,7 +178,8 @@ function MarshalApplication() {
 
 					<button
 						type="submit"
-						className="w-full bg-blue-600 text-white p-3 rounded-md shadow hover:bg-blue-700 transition duration-300 ease-in-out"
+						className="w-full text-white p-3 rounded-md shadow transition duration-300 ease-in-out"
+						style={{ backgroundColor: "var(--primary-200)" }}
 					>
 						Submit Application
 					</button>
@@ -174,7 +189,10 @@ function MarshalApplication() {
 			{/* Admin View for Applications */}
 			{role === "admin" && (
 				<div>
-					<h3 className="text-xl text-black font-bold mb-4">
+					<h3
+						className="text-xl font-bold mb-4"
+						style={{ color: "var(--text-100)" }}
+					>
 						Submitted Applications
 					</h3>
 					{applications.length === 0 ? (
@@ -183,7 +201,12 @@ function MarshalApplication() {
 						applications.map((app) => (
 							<div
 								key={app._id}
-								className="p-4 border rounded-md mb-3 shadow-sm text-black bg-white"
+								className="p-4 border rounded-md mb-3 shadow-sm"
+								style={{
+									backgroundColor: "var(--bg-200)",
+									color: "var(--text-100)",
+									borderColor: "var(--bg-300)",
+								}}
 							>
 								<p>
 									<strong>Applicant Name:</strong>{" "}
@@ -206,7 +229,8 @@ function MarshalApplication() {
 										onClick={() =>
 											updateApplicationStatus(app._id, "Approved", app.userId)
 										}
-										className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+										className="px-4 py-2 text-white rounded"
+										style={{ backgroundColor: "var(--primary-300)" }}
 										disabled={app.appStatus === "Approved"}
 									>
 										Accept
@@ -215,7 +239,8 @@ function MarshalApplication() {
 										onClick={() =>
 											updateApplicationStatus(app._id, "Rejected", app.userId)
 										}
-										className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+										className="px-4 py-2 text-white rounded"
+										style={{ backgroundColor: "var(--accent-100)" }}
 										disabled={app.appStatus === "Rejected"}
 									>
 										Reject
@@ -229,13 +254,27 @@ function MarshalApplication() {
 
 			{/* Display responses and errors */}
 			{response && (
-				<p className="mt-4 text-center text-green-600 font-medium border border-green-300 bg-green-50 p-2 rounded-md">
+				<p
+					className="mt-4 text-center font-medium p-2 rounded-md"
+					style={{
+						color: "var(--primary-300)",
+						backgroundColor: "var(--accent-200)",
+						border: "1px solid var(--primary-300)",
+					}}
+				>
 					{response}
 				</p>
 			)}
 
 			{error && (
-				<p className="mt-4 text-center text-red-600 font-medium border border-red-300 bg-red-50 p-2 rounded-md">
+				<p
+					className="mt-4 text-center font-medium p-2 rounded-md"
+					style={{
+						color: "var(--accent-100)",
+						backgroundColor: "#fff1e6",
+						border: "1px solid var(--accent-100)",
+					}}
+				>
 					{error}
 				</p>
 			)}

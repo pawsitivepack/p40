@@ -191,26 +191,25 @@ exports.signup = async (req, res) => {
 	}
 };
 
-// Middleware to verify token
-exports.verifyToken = (req, res, next) => {
-	const token = req.headers["authorization"];
-	if (!token) {
-		return res.status(401).json({ message: "No token provided" });
-	}
-
-	try {
-		const decoded = jwt.verify(token.split(" ")[1], process.env.JWT_SECRET);
-		req.user = decoded;
-		next();
-	} catch (error) {
-		res.status(401).json({ message: "Invalid or expired token" });
-	}
-};
-
 // Fetch my profile
 exports.myProfile = async (req, res) => {
 	try {
-		const user = await User.findById(req.user.id).select("-password");
+		console.log("Fetching profile for user:", req.user.id);
+		const user = await User.findById(req.user.id)
+			.select("-password")
+			.populate({
+				path: "completedWalks",
+				populate: [
+					{ path: "dogId", model: "Dog" },
+					{ path: "marshalId", model: "User" },
+					{ path: "walkId", model: "ScheduledWalk" },
+				],
+			})
+			.populate({
+				path: "dogsWalked",
+				populate: [{ path: "marshal", model: "User" }],
+			});
+
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
