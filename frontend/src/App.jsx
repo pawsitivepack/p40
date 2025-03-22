@@ -31,9 +31,7 @@ function App() {
 		if (isLoggedIn) {
 			const fetchDogs = async () => {
 				try {
-					const response = await axios.get(
-						`${import.meta.env.VITE_BACKEND_URL}`
-					);
+					const response = await api.get(`dogs`);
 					setDogs(response.data);
 				} catch (error) {
 					console.error("Error fetching data:", error);
