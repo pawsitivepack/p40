@@ -59,12 +59,12 @@ export default function Adoption() {
 		});
 
 	return (
-		<div className="bg-[var(--bg-100)] min-h-screen py-10">
-			<h1 className="text-3xl font-bold text-center text-[var(--primary-300)] mb-8">
+		<div className="bg-[var(--bg-100)] min-h-screen py-10 px-4 md:px-12">
+			<h1 className="text-3xl font-bold text-center text-[var(--primary-300)] mb-10">
 				Adopt a Dog
 			</h1>
-			<div className="flex flex-col md:flex-row gap-6 px-6 md:px-12">
-				<div className="w-full md:w-1/4 bg-[var(--bg-200)] p-4 rounded-lg shadow-md space-y-4">
+			<div className="flex flex-col md:flex-row gap-6">
+				<div className="w-full md:w-1/4 bg-[var(--bg-200)] p-6 rounded-lg shadow-md flex flex-col space-y-4">
 					<h2 className="text-xl font-semibold mb-2 text-[var(--text-100)]">
 						Filters
 					</h2>
@@ -73,52 +73,60 @@ export default function Adoption() {
 						<input
 							type="text"
 							placeholder="Search by name or breed"
-							className="border pl-10 pr-4 py-2 rounded-md w-full text-[var(--text-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+							className="border border-gray-300 pl-10 pr-4 py-2 rounded-md w-full text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 						/>
 					</div>
-					<select
-						className="border px-4 py-2 rounded-md text-[var(--text-100)]"
-						value={sortOption}
-						onChange={(e) => setSortOption(e.target.value)}
-					>
-						<option value="">Sort by</option>
-						<option value="name">Name</option>
-						<option value="age">Age</option>
-					</select>
-					<select
-						className="border px-4 py-2 rounded-md text-[var(--text-100)]"
-						value={filterAdopted}
-						onChange={(e) => setFilterAdopted(e.target.value)}
-					>
-						<option value="all">All</option>
-						<option value="adopted">Adopted</option>
-						<option value="notAdopted">Not Adopted</option>
-					</select>
-					<select
-						className="border px-4 py-2 rounded-md text-[var(--text-100)]"
-						value={filterCategory}
-						onChange={(e) => setFilterCategory(e.target.value)}
-					>
-						<option value="all">All Categories</option>
-						<option value="puppy">Puppy</option>
-						<option value="adult">Adult</option>
-						<option value="senior">Senior</option>
-					</select>
-					<select
-						className="border px-4 py-2 rounded-md text-[var(--text-100)]"
-						value={filterColor}
-						onChange={(e) => setFilterColor(e.target.value)}
-					>
-						<option value="all">All Colors</option>
-						<option value="black">Black</option>
-						<option value="brown">Brown</option>
-						<option value="white">White</option>
-						<option value="golden">Golden</option>
-					</select>
+					<div className="space-y-1">
+						<select
+							className="border border-gray-300 px-4 py-2 rounded-md text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+							value={sortOption}
+							onChange={(e) => setSortOption(e.target.value)}
+						>
+							<option value="">Sort by</option>
+							<option value="name">Name</option>
+							<option value="age">Age</option>
+						</select>
+					</div>
+					<div className="space-y-1">
+						<select
+							className="border border-gray-300 px-4 py-2 rounded-md text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+							value={filterAdopted}
+							onChange={(e) => setFilterAdopted(e.target.value)}
+						>
+							<option value="all">All</option>
+							<option value="adopted">Adopted</option>
+							<option value="notAdopted">Not Adopted</option>
+						</select>
+					</div>
+					<div className="space-y-1">
+						<select
+							className="border border-gray-300 px-4 py-2 rounded-md text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+							value={filterCategory}
+							onChange={(e) => setFilterCategory(e.target.value)}
+						>
+							<option value="all">All Categories</option>
+							<option value="puppy">Puppy</option>
+							<option value="adult">Adult</option>
+							<option value="senior">Senior</option>
+						</select>
+					</div>
+					<div className="space-y-1">
+						<select
+							className="border border-gray-300 px-4 py-2 rounded-md text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+							value={filterColor}
+							onChange={(e) => setFilterColor(e.target.value)}
+						>
+							<option value="all">All Colors</option>
+							<option value="black">Black</option>
+							<option value="brown">Brown</option>
+							<option value="white">White</option>
+							<option value="golden">Golden</option>
+						</select>
+					</div>
 				</div>
-				<div className="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				<div className="w-full md:w-3/4 bg-[var(--bg-200)] p-4 rounded-lg shadow-md grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{filteredDogs.map((dog) => (
 						<DogCard
 							key={dog._id}
