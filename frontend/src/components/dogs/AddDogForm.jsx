@@ -31,7 +31,7 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 		}
 
 		try {
-			const response = await api.post('/dogs',newDog);
+			const response = await api.post("/dogs", newDog);
 
 			setDogs((prevDogs) => [...prevDogs, response.data]); // Add new dog to state
 			setNewDog({

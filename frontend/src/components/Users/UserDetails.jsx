@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api from "../../api/axios";
-import { FaUserCircle } from "react-icons/fa";
+import { FaUserCircle, FaPhone, FaUserTag } from "react-icons/fa";
 import { formatDistanceToNow } from "date-fns";
 
 const ViewUserDetails = () => {
@@ -45,39 +45,58 @@ const ViewUserDetails = () => {
 	}
 
 	return (
-		<div className="max-w-3xl mx-auto mt-10 p-6 pb-10 bg-white shadow-lg rounded-lg">
-			<div className="flex items-center space-x-6 mb-6">
+		<div
+			className="max-w-4xl mx-auto mt-10 p-6 shadow-lg rounded-lg"
+			style={{ backgroundColor: "var(--bg-100)" }}
+		>
+			<div
+				className="flex flex-col md:flex-row items-start md:space-x-6 gap-10 p-6 rounded-lg border"
+				style={{ backgroundColor: "var(--bg-200)" }}
+			>
 				{user?.picture ? (
 					<img
 						src={user.picture}
 						alt="User Profile"
-						className="w-24 h-24 rounded-full shadow-md border border-gray-300"
+						className="w-72 h-72 rounded-full shadow-md border border-gray-300"
 					/>
 				) : (
-					<FaUserCircle className="w-24 h-24 text-gray-400" />
+					<FaUserCircle className="w-72 h-72 text-gray-400" />
 				)}
-				<div>
+				<div
+					className="p-4 rounded-lg w-full flex-1 text-center md:text-left h-72"
+					style={{ backgroundColor: "var(--accent-200)" }}
+				>
 					<h1 className="text-3xl font-bold text-indigo-800">
 						{user?.firstName} {user?.lastName}
 					</h1>
-					<p className="text-gray-600">{user?.email}</p>
-					<p className="text-gray-600">Phone: {user?.phone}</p>
-					<p className="text-gray-600">Points: {user?.userPoints}</p>
-					<p className="text-gray-600">
-						Last Login:{" "}
-						{user?.lastLogin
-							? formatDistanceToNow(new Date(user.lastLogin), {
-									addSuffix: true,
-							  })
-							: user?.createdAt
-							? formatDistanceToNow(new Date(user.createdAt), {
-									addSuffix: true,
-							  })
-							: "Never"}
-					</p>
-					<p className="text-gray-600">
-						Account Created: {new Date(user?.createdAt).toLocaleDateString()}
-					</p>
+					<hr className="my-2 border-gray-300" />
+					<div className="flex flex-col space-y-2">
+						<p className="text-gray-800">{user?.email}</p>
+						<p className="text-gray-800">
+							<FaUserTag className="inline mr-1" />
+							{user?.role}
+						</p>
+						<p className="text-gray-800">
+							<FaPhone className="inline mr-1" />
+							{user?.phone}
+						</p>
+						<p className="text-gray-800">Points: {user?.userPoints}</p>
+						<p className="text-gray-800">
+							Last Login:{" "}
+							{user?.lastLogin
+								? formatDistanceToNow(new Date(user.lastLogin), {
+										addSuffix: true,
+								  })
+								: user?.createdAt
+								? formatDistanceToNow(new Date(user.createdAt), {
+										addSuffix: true,
+								  })
+								: "Never"}
+						</p>
+						<p className="text-gray-800">
+							Account Created: {new Date(user?.createdAt).toLocaleDateString()}
+						</p>
+					</div>
 				</div>
 			</div>
 

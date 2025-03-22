@@ -20,6 +20,8 @@ import Users from "./components/Users/Users";
 import MarshalApplication from "./components/marshalApp/MarshalApplication";
 import UserDetails from "./components/Users/UserDetails";
 import NotFound from "./components/NotFound/NotFound";
+import Adoption from "./components/dogs/Adoption";
+import DogDetails from "./components/dogs/DogDetails";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -86,6 +88,8 @@ function App() {
 							element={<MarshalApplication />}
 						/>
 						<Route path="*" element={<NotFound />} />
+						<Route path="/adoption-board" element={<Adoption />} />
+						<Route path="dog/:id" element={<DogDetails dogs={dogs} />} />
 					</Routes>
 				</main>
 
