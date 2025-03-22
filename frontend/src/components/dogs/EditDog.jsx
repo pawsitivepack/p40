@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import React, { useEffect, useState } from "react";
+import api from "../../api/axios";
 
 const EditDog = ({ setFormVisible, setDogs, dog }) => {
 	const [updatedDog, setUpdatedDog] = useState({
@@ -54,15 +54,8 @@ const EditDog = ({ setFormVisible, setDogs, dog }) => {
 		setErrorMessage("");
 
 		try {
-			const response = await axios.put(
-				`${import.meta.env.VITE_BACKEND_URL}/dogs/${dog._id}`,
-				updatedDog,
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
-				}
-			);
+			const response = await api.put(
+				`/dogs/${dog._id}`,updatedDog);
 			const updatedData = response.data.updatedDog;
 			console.log(updatedData);
 			// Update the dog list with the updated data

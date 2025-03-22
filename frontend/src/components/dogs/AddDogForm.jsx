@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import axios from "axios";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import React, { useState } from "react";
+import api from "../../api/axios";
 
 const AddDogForm = ({ setFormVisible, setDogs }) => {
 	const [newDog, setNewDog] = useState({
@@ -31,15 +31,7 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 		}
 
 		try {
-			const response = await axios.post(
-				`${import.meta.env.VITE_BACKEND_URL}/dogs`,
-				newDog,
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
-				}
-			);
+			const response = await api.post('/dogs',newDog);
 
 			setDogs((prevDogs) => [...prevDogs, response.data]); // Add new dog to state
 			setNewDog({

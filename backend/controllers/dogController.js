@@ -7,7 +7,7 @@ exports.getDogs = async (req, res) => {
 		const data = await Dog.find({});
 		res.json(data);
 	} catch (error) {
-		console.error("Error fetching data:", error);
+		console.error("Error fetching data:");
 		res.status(500).json({ error: "Failed to fetch data" });
 	}
 };
@@ -18,7 +18,7 @@ exports.addDog = async (req, res) => {
 		const savedDog = await newDog.save(); // Save to the database
 		res.status(201).json(savedDog);
 	} catch (error) {
-		console.error("Error adding dog:", error);
+		console.error("Error adding dog:");
 		res.status(500).json({ error: "Failed to add dog" });
 	}
 };
@@ -43,7 +43,7 @@ exports.editDog = async (req, res) => {
 			updatedDog: updatedDogData,
 		});
 	} catch (error) {
-		console.error("Error updating dog:", error);
+		console.error("Error updating dog:");
 		res.status(500).json({ error: "Failed to update dog" });
 	}
 };
@@ -51,8 +51,6 @@ exports.editDog = async (req, res) => {
 exports.deleteDog = async (req, res) => {
 	try {
 		const { id } = req.params;
-		console.log(`Tried to delete a dog with id ${id}`);
-		console.log("times");
 		// Validate that the id is a valid ObjectId
 		const objectId = new mongoose.Types.ObjectId(id);
 
@@ -64,7 +62,7 @@ exports.deleteDog = async (req, res) => {
 
 		res.status(200).json({ message: "Dog deleted successfully" });
 	} catch (error) {
-		console.error("Error deleting dog:", error);
+		console.error("Error deleting dog:");
 		res.status(500).json({ error: "Failed to delete dog" });
 	}
 };
