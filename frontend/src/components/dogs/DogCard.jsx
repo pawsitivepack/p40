@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import axios from "axios";
 import { EllipsisHorizontalCircleIcon } from "@heroicons/react/24/solid";
+import React, { useEffect, useRef, useState } from "react";
+import api from "../../api/axios";
 
 function DogCard({ dog, onDelete, onEdit, role }) {
 	const [showMenu, setShowMenu] = useState(false);
@@ -25,14 +25,7 @@ function DogCard({ dog, onDelete, onEdit, role }) {
 
 	const handleDelete = async () => {
 		try {
-			const response = await axios.delete(
-				`${import.meta.env.VITE_BACKEND_URL}/dogs/${dog._id}`,
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
-				}
-			);
+			const response = await api.delete(`/dogs/${dog._id}`);
 
 			if (response.status !== 200) {
 				throw new Error("Failed to delete dog");

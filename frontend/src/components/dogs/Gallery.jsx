@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import DogCard from "./DogCard";
-import AddDogForm from "./AddDogForm";
-import EditDog from "./EditDog";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import { jwtDecode } from "jwt-decode";
+import React, { useEffect, useState } from "react";
+import api from "../../api/axios";
+import AddDogForm from "./AddDogForm";
+import DogCard from "./DogCard";
+import EditDog from "./EditDog";
 
 function Gallery() {
 	const [dogs, setDogs] = useState([]);
@@ -21,9 +21,7 @@ function Gallery() {
 	useEffect(() => {
 		const fetchDogs = async () => {
 			try {
-				const response = await axios.get(
-					`${import.meta.env.VITE_BACKEND_URL}/dogs`
-				);
+				const response = await api.get(`/dogs`);
 				setDogs(response.data);
 			} catch (error) {
 				setError("Failed to load dog data");

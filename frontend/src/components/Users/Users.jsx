@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import axios from "axios";
+import { useEffect, useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import api from "../../api/axios";
 const Users = () => {
 	const [users, setUsers] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -16,14 +16,7 @@ const Users = () => {
 	useEffect(() => {
 		const fetchUsers = async () => {
 			try {
-				const response = await axios.get(
-					`${import.meta.env.VITE_BACKEND_URL}/users/getAllUsers`,
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem("token")}`,
-						},
-					}
-				);
+				const response = await api.get(`/users/getAllUsers`);
 				setUsers(response.data);
 			} catch (err) {
 				if (err.response && err.response.status === 403) {
@@ -91,15 +84,7 @@ const Users = () => {
 	// Handle Save Changes
 	const handleConfirmEdit = async () => {
 		try {
-			await axios.put(
-				`${import.meta.env.VITE_BACKEND_URL}/users/editUser/${editingUser}`,
-				editedUserData,
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
-				}
-			);
+			await api.put(`/users/editUser/${editingUser}`,editedUserData);
 			setUsers((prevUsers) =>
 				prevUsers.map((user) =>
 					user._id === editingUser ? { ...editedUserData } : user
@@ -114,14 +99,7 @@ const Users = () => {
 	// Handle Delete Confirmation
 	const handleDeleteUser = async (userId) => {
 		try {
-			await axios.delete(
-				`${import.meta.env.VITE_BACKEND_URL}/users/deleteUser/${userId}`,
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
-				}
-			);
+			await api.delete(`/users/deleteUser/${userId}`);
 			setUsers((prevUsers) => prevUsers.filter((user) => user._id !== userId));
 			setConfirmDeleteUser(null);
 		} catch (error) {

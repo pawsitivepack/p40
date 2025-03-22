@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import api from "../../api/axios";
 import { XMarkIcon } from "@heroicons/react/24/solid";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import api from "../../api/axios";
 
 const ScheduleWalkForm = ({
 	newEvent,
