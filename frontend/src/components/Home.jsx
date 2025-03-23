@@ -9,6 +9,7 @@ import {
 	FaWalking,
 	FaDonate,
 	FaUsers,
+	FaPaw,
 } from "react-icons/fa";
 export default function Home() {
 	const [role, setRole] = useState("");
@@ -103,12 +104,20 @@ export default function Home() {
 											Marshal Application
 										</span>
 									</Link>
-
+									<Link
+										to="/dog-inventory"
+										className="flex items-center gap-3 p-3 border rounded hover:bg-blue-100 transition"
+									>
+										<FaDog className="text-green-600 text-xl" />
+										<span className="text-gray-800 font-medium">
+											Dog Inventory
+										</span>
+									</Link>
 									<Link
 										to="/adoption-board"
 										className="flex items-center gap-3 p-3 border rounded hover:bg-green-100 transition"
 									>
-										<FaDog className="text-green-600 text-xl" />
+										<FaPaw className="text-orange-600 text-xl" />
 										<span className="text-gray-800 font-medium">
 											Adoption Board
 										</span>
@@ -142,7 +151,7 @@ export default function Home() {
 										to="/adoption-board"
 										className="flex items-center gap-3 p-3 border rounded hover:bg-green-100 transition"
 									>
-										<FaDog className="text-green-600 text-xl" />
+										<FaPaw className="text-orange-600 text-xl" />
 										<span className="text-gray-800 font-medium">
 											Adoption Board
 										</span>
@@ -165,7 +174,7 @@ export default function Home() {
 										to="/adoption-board"
 										className="flex items-center gap-3 p-3 border rounded hover:bg-green-100 transition"
 									>
-										<FaDog className="text-green-600 text-xl" />
+										<FaPaw className="text-orange-600 text-xl" />
 										<span className="text-gray-800 font-medium">
 											Adoption Board
 										</span>
@@ -207,7 +216,7 @@ export default function Home() {
 										to="/adoption-board"
 										className="flex items-center gap-3 p-3 border rounded hover:bg-green-100 transition"
 									>
-										<FaDog className="text-green-600 text-xl" />
+										<FaPaw className="text-orange-600 text-xl" />
 										<span className="text-gray-800 font-medium">
 											Adoption Board
 										</span>

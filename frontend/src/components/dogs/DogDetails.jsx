@@ -49,19 +49,11 @@ const DogDetails = ({ dogs }) => {
 									<strong>Color:</strong> {dog.color}
 								</p>
 								<p className="text-[var(--text-200)]">
-									<strong>Category:</strong> {dog.category}
-								</p>
-								<p className="text-[var(--text-200)]">
 									<strong>Adopted:</strong> {dog.adopted ? "Yes" : "No"}
 								</p>
 								{dog.adopted && (
 									<p className="text-[var(--text-200)]">
 										<strong>Adopted Date:</strong> {dog.adoptedDate}
-									</p>
-								)}
-								{dog.description && (
-									<p className="text-[var(--text-200)]">
-										<strong>Description:</strong> {dog.description}
 									</p>
 								)}
 								{dog.size && (
@@ -74,10 +66,30 @@ const DogDetails = ({ dogs }) => {
 										<strong>Health Issues:</strong> {dog.healthIssues}
 									</p>
 								)}
-								{dog.notes && (
-									<p className="text-[var(--text-200)]">
-										<strong>Notes:</strong> {dog.notes}
-									</p>
+								{dog.notes && dog.notes.length > 0 && (
+									<div className="text-[var(--text-200)]">
+										<strong>Notes:</strong>
+										<ul className="list-disc list-inside ml-2">
+											{dog.notes.map((note, index) => (
+												<li key={index}>{note}</li>
+											))}
+										</ul>
+									</div>
+								)}
+								{dog.tags && dog.tags.length > 0 && (
+									<div className="text-[var(--text-200)]">
+										<strong>Tags:</strong>
+										<div className="flex flex-wrap gap-2 mt-1">
+											{dog.tags.map((tag, index) => (
+												<span
+													key={index}
+													className="bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded"
+												>
+													{tag}
+												</span>
+											))}
+										</div>
+									</div>
 								)}
 							</div>
 						</div>

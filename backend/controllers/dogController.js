@@ -14,7 +14,12 @@ exports.getDogs = async (req, res) => {
 
 exports.addDog = async (req, res) => {
 	try {
-		const newDog = new Dog(req.body); // Create a new instance of the Dog model
+		const newDog = new Dog({
+			...req.body,
+			tags: req.body.tags || [],
+			demeanor: req.body.demeanor || "Red",
+			notes: req.body.notes || [],
+		}); // Create a new instance of the Dog model
 		const savedDog = await newDog.save(); // Save to the database
 		res.status(201).json(savedDog);
 	} catch (error) {
@@ -26,7 +31,12 @@ exports.addDog = async (req, res) => {
 exports.editDog = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const updatedDog = req.body;
+		const updatedDog = {
+			...req.body,
+			tags: req.body.tags || [],
+			demeanor: req.body.demeanor || "Red",
+			notes: req.body.notes || [],
+		};
 
 		const updatedDogData = await Dog.findByIdAndUpdate(
 			id, // Find by ID
