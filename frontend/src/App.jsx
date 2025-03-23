@@ -21,6 +21,9 @@ import MarshalApplication from "./components/marshalApp/MarshalApplication";
 import UserDetails from "./components/Users/UserDetails";
 import NotFound from "./components/NotFound/NotFound";
 import OtpVerification from "./components/Users/OtpVerification";
+import Adoption from "./components/dogs/Adoption";
+import DogDetails from "./components/dogs/DogDetails";
+import DogInventory from "./components/dogs/DogInventory";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -30,9 +33,7 @@ function App() {
 		if (isLoggedIn) {
 			const fetchDogs = async () => {
 				try {
-					const response = await axios.get(
-						`${import.meta.env.VITE_BACKEND_URL}`
-					);
+					const response = await api.get(`dogs`);
 					setDogs(response.data);
 				} catch (error) {
 					console.error("Error fetching data:", error);
@@ -88,6 +89,9 @@ function App() {
 							element={<MarshalApplication />}
 						/>
 						<Route path="*" element={<NotFound />} />
+						<Route path="/adoption-board" element={<Adoption />} />
+						<Route path="dog/:id" element={<DogDetails dogs={dogs} />} />
+						<Route path="dog-inventory" element={<DogInventory />} />
 					</Routes>
 				</main>
 

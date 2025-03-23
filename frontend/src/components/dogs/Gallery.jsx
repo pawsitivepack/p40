@@ -1,169 +1,184 @@
-import { PlusCircleIcon } from "@heroicons/react/24/solid";
-import { jwtDecode } from "jwt-decode";
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
-import AddDogForm from "./AddDogForm";
-import DogCard from "./DogCard";
-import EditDog from "./EditDog";
+import { IoClose } from "react-icons/io5";
 
 function Gallery() {
 	const [dogs, setDogs] = useState([]);
-	const [formVisible, setFormVisible] = useState(false);
-	const [editingDog, setEditingDog] = useState(null); // Track which dog is being edited
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState("");
-	const [role, setRole] = useState("");
-	// Pagination States
-	const [activePage, setActivePage] = useState(1);
-	const dogsPerPage = 7;
-	const totalPages = Math.ceil(dogs.length / dogsPerPage);
+	const [popup, setPopup] = useState(false);
+	const [popupData, setPopupData] = useState("");
+	const [selectedIndex, setSelectedIndex] = useState(null);
+	const [touchStartX, setTouchStartX] = useState(null);
+	const [touchEndX, setTouchEndX] = useState(null);
+	const [fade, setFade] = useState(false);
 
 	useEffect(() => {
-		const fetchDogs = async () => {
+		const fetchGallery = async () => {
 			try {
-				const response = await api.get(`/dogs`);
+				const response = await api.get("/dogs");
 				setDogs(response.data);
 			} catch (error) {
-				setError("Failed to load dog data");
-				console.error("Error fetching dogs:", error);
-			} finally {
-				setLoading(false);
+				console.error("Error fetching gallery:", error);
 			}
 		};
 
-		fetchDogs();
+		fetchGallery();
 	}, []);
 
 	useEffect(() => {
-		const token = localStorage.getItem("token");
-		if (token) {
-			try {
-				const decodedToken = jwtDecode(token);
-				const userRole = decodedToken.role;
-				setRole(userRole);
-			} catch (error) {
-				console.error("Failed to decode token:", error);
+		const handleKeyDown = (e) => {
+			if (e.key === "Escape") closeModal();
+			if (!popup) return;
+
+			if (e.key === "ArrowLeft") {
+				const newIndex = (selectedIndex - 1 + dogs.length) % dogs.length;
+				setFade(true);
+				setTimeout(() => {
+					setSelectedIndex(newIndex);
+					setPopupData(dogs[newIndex].imageURL);
+					setFade(false);
+				}, 150);
 			}
-		} else {
-			console.warn("no token in the local storage");
-		}
-	}, []);
 
-	const removeDogFromList = (id) => {
-		setDogs((prevDogs) => {
-			const newDogs = prevDogs.filter((dog) => dog._id !== id);
-			if (activePage > Math.ceil(newDogs.length / dogsPerPage)) {
-				setActivePage(Math.max(activePage - 1, 1)); // Ensure we stay on a valid page
+			if (e.key === "ArrowRight") {
+				const newIndex = (selectedIndex + 1) % dogs.length;
+				setFade(true);
+				setTimeout(() => {
+					setSelectedIndex(newIndex);
+					setPopupData(dogs[newIndex].imageURL);
+					setFade(false);
+				}, 150);
 			}
-			return newDogs;
-		});
-	};
+		};
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [popup, selectedIndex, dogs]);
 
-	const handleEditDog = (dog) => {
-		setEditingDog(dog); // Set the dog to be edited
-		setFormVisible(true); // Show the form
-	};
-
-	const handleUpdateDog = (updatedDog) => {
-		const updatedDogs = dogs.map((dog) =>
-			dog._id === updatedDog._id ? updatedDog : dog
-		);
-
-		setDogs(updatedDogs);
-		setFormVisible(false); // Close the form after update
-	};
-	// Pagination Logic
-	const indexOfLastDog = activePage * dogsPerPage;
-	const indexOfFirstDog = indexOfLastDog - dogsPerPage;
-	const currentDogs = dogs.slice(indexOfFirstDog, indexOfLastDog);
+	const closeModal = () => setPopup(false);
 
 	return (
-		<div className="relative min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
-			<h1 className="text-4xl font-bold text-center text-red-800 mb-8">
+		<div>
+			<h1 className="text-3xl font-bold text-center text-[var(--primary-300)] mt-6 mb-4">
 				Gallery
 			</h1>
-
-			{loading && <p className="text-center text-gray-600">Loading dogs...</p>}
-			{error && <p className="text-center text-red-600">{error}</p>}
-
-			<div
-				className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${
-					formVisible ? "blur-sm" : ""
-				}`}
-			>
-				{role === "admin" && (
-					<div
-						className="bg-red-800 text-white p-6 rounded-lg shadow-lg w-full flex flex-col justify-center items-center cursor-pointer hover:bg-red-900 transition-all"
+			<div className="columns-2 sm:columns-3 md:columns-4 gap-4 p-4">
+				{dogs.map((dog, index) => (
+					<img
+						key={dog._id}
+						src={dog.imageURL}
+						alt={dog.name}
 						onClick={() => {
-							setEditingDog(null); // Ensure we're adding a new dog
-							setFormVisible(true);
+							setPopupData(dog.imageURL);
+							setSelectedIndex(index);
+							setPopup(true);
 						}}
-					>
-						<PlusCircleIcon className="h-12 w-12 text-white mb-2" />
-						<h3 className="text-lg font-semibold">Add a New Dog</h3>
-						<p className="mt-1 text-center text-sm">Click to add a new dog</p>
-						<button className="mt-4 flex items-center bg-white text-red-700 font-semibold px-4 py-2 rounded-lg hover:bg-gray-200 transition-all">
-							<PlusCircleIcon className="h-5 w-5 text-red-700 mr-2" />
-							Add Dog
-						</button>
-					</div>
-				)}
-
-				{currentDogs.length > 0
-					? currentDogs.map((dog) => (
-							<DogCard
-								key={dog._id}
-								dog={dog}
-								onDelete={removeDogFromList}
-								onEdit={handleEditDog} // Pass the handleEditDog function here
-								role={role}
-							/>
-					  ))
-					: !loading && (
-							<p className="text-center text-gray-600 col-span-full">
-								No dogs available.
-							</p>
-					  )}
-			</div>
-
-			{/* Show Add or Edit Form */}
-			{formVisible &&
-				(editingDog ? (
-					<EditDog
-						dog={editingDog}
-						setFormVisible={setFormVisible}
-						handleUpdateDog={handleUpdateDog}
-						setDogs={setDogs}
+						className="w-full mb-4 rounded-xl object-contain shadow-md cursor-pointer hover:scale-102 transition"
 					/>
-				) : (
-					<AddDogForm setFormVisible={setFormVisible} setDogs={setDogs} />
 				))}
-
-			{/* Pagination */}
-			<div className="flex justify-center mt-8">
-				<nav className="bg-gray-200 rounded-full px-4 py-2">
-					<ul className="flex text-gray-600 gap-4 font-medium py-2">
-						{Array.from({ length: totalPages }, (_, index) => {
-							const page = index + 1;
-							return (
-								<li key={page}>
-									<button
-										onClick={() => setActivePage(page)}
-										className={`rounded-full px-4 py-2 transition duration-300 ease-in-out 
-                                            ${
-																							activePage === page
-																								? "bg-white text-gray-600"
-																								: "hover:bg-white hover:text-gray-600"
-																						}`}
-									>
-										{page}
-									</button>
-								</li>
-							);
-						})}
-					</ul>
-				</nav>
 			</div>
+			{popup && (
+				<div
+					className="fixed inset-0 bg-slate-900 bg-opacity-90 z-50 flex justify-center items-center"
+					onClick={closeModal}
+				>
+					<div
+						className="relative w-full h-full flex justify-center items-center"
+						onClick={(e) => e.stopPropagation()}
+					>
+						<IoClose
+							className="w-10 h-10 text-white absolute top-6 right-6 z-50 cursor-pointer"
+							onClick={(e) => {
+								e.stopPropagation();
+								closeModal();
+							}}
+						/>
+						<img
+							src={popupData}
+							alt="Full View"
+							className={`w-full sm:w-5/6 md:w-1/2 max-h-[90%] object-contain rounded-lg shadow-lg transition-opacity duration-300 ${
+								fade ? "opacity-0" : "opacity-100"
+							}`}
+							onTouchStart={(e) => setTouchStartX(e.targetTouches[0].clientX)}
+							onTouchMove={(e) => setTouchEndX(e.targetTouches[0].clientX)}
+							onTouchEnd={() => {
+								if (!touchStartX || !touchEndX) return;
+								const diff = touchStartX - touchEndX;
+								if (diff > 50) {
+									// swipe left
+									const newIndex = (selectedIndex + 1) % dogs.length;
+									setFade(true);
+									setTimeout(() => {
+										setSelectedIndex(newIndex);
+										setPopupData(dogs[newIndex].imageURL);
+										setFade(false);
+									}, 150);
+								} else if (diff < -50) {
+									// swipe right
+									const newIndex =
+										(selectedIndex - 1 + dogs.length) % dogs.length;
+									setFade(true);
+									setTimeout(() => {
+										setSelectedIndex(newIndex);
+										setPopupData(dogs[newIndex].imageURL);
+										setFade(false);
+									}, 150);
+								}
+								setTouchStartX(null);
+								setTouchEndX(null);
+							}}
+						/>
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								const newIndex =
+									(selectedIndex - 1 + dogs.length) % dogs.length;
+								setFade(true);
+								setTimeout(() => {
+									setSelectedIndex(newIndex);
+									setPopupData(dogs[newIndex].imageURL);
+									setFade(false);
+								}, 150);
+							}}
+							className="absolute left-4 text-white text-3xl z-50"
+						>
+							‹
+						</button>
+						<button
+							onClick={(e) => {
+								e.stopPropagation();
+								const newIndex = (selectedIndex + 1) % dogs.length;
+								setFade(true);
+								setTimeout(() => {
+									setSelectedIndex(newIndex);
+									setPopupData(dogs[newIndex].imageURL);
+									setFade(false);
+								}, 150);
+							}}
+							className="absolute right-4 text-white text-3xl z-50"
+						>
+							›
+						</button>
+						<div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 overflow-x-auto px-4">
+							{dogs.map((dog, idx) => (
+								<img
+									key={dog._id}
+									src={dog.imageURL}
+									alt={dog.name}
+									onClick={(e) => {
+										e.stopPropagation();
+										setSelectedIndex(idx);
+										setPopupData(dog.imageURL);
+									}}
+									className={`w-16 h-16 object-contain rounded cursor-pointer border-2 hover:scale-105 transition ${
+										idx === selectedIndex
+											? "border-white"
+											: "border-transparent"
+									}`}
+								/>
+							))}
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

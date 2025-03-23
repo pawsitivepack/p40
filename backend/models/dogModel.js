@@ -7,7 +7,7 @@ const dogSchema = new Schema(
 		breed: { type: String, required: true },
 		color: { type: String, required: true },
 		age: { type: Number, required: true },
-		owner: { type: String, required: true },
+		owner: { type: String, required: false },
 		adopted: { type: Boolean, default: false },
 		imageURL: { type: String, required: false },
 		tags: [{ type: String }], // Array of tags for filtering
@@ -20,7 +20,7 @@ const dogSchema = new Schema(
 			default: "Available",
 		},
 		demeanor: { type: String, enum: ["Gray", "Yellow", "Red"], default: "Red" },
-		notes: { type: String },
+		notes: [{ type: String }],
 		lastWalk: { type: Date },
 	},
 	{ timestamps: true }

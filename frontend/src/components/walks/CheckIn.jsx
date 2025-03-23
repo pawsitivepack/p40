@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { jwtDecode } from "jwt-decode";
+import React, { useEffect, useState } from "react";
+import api from "../../api/axios"; //test
 
 const CheckIn = () => {
 	const [walksWithUsers, setWalksWithUsers] = useState([]);
@@ -15,14 +15,7 @@ const CheckIn = () => {
 	useEffect(() => {
 		const fetchWalks = async () => {
 			try {
-				const response = await axios.get(
-					`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks`,
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem("token")}`,
-						},
-					}
-				);
+				const response = await api.get(`/scheduledWalks`);
 
 				// Filter only today's walks
 				const today = new Date().toISOString().split("T")[0];
@@ -57,14 +50,7 @@ const CheckIn = () => {
 	useEffect(() => {
 		const fetchDogs = async () => {
 			try {
-				const response = await axios.get(
-					`${import.meta.env.VITE_BACKEND_URL}/dogs`,
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem("token")}`,
-						},
-					}
-				);
+				const response = await api.get(`/dogs`);
 				setDogs(response.data);
 			} catch (error) {
 				console.error("Error fetching dogs:", error);
@@ -77,13 +63,7 @@ const CheckIn = () => {
 	// Handle check-in
 	const handleCheckIn = async (walkId, walkerId, marshalId, date) => {
 		try {
-			const response = await axios.post(
-				`${import.meta.env.VITE_BACKEND_URL}/completedWalk`,
-				{ userId: walkerId, walkId, marshalId, date },
-				{
-					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-				}
-			);
+			const response = await api.post(`/completedWalk`,{ userId: walkerId, walkId, marshalId, date });
 			alert("Check-in successful!");
 			setCheckedInUsers((prev) => ({ ...prev, [walkerId]: true }));
 			setRefresh((prev) => !prev);
@@ -101,13 +81,7 @@ const CheckIn = () => {
 		}
 
 		try {
-			const response = await axios.put(
-				`${import.meta.env.VITE_BACKEND_URL}/completedWalk/dogadded`,
-				{ userId: walkerId, walkId, dogId },
-				{
-					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-				}
-			);
+			const response = await api.put(`/completedWalk/dogadded`,{ userId: walkerId, walkId, dogId });
 
 			alert("Dog walk recorded successfully!");
 
@@ -131,13 +105,7 @@ const CheckIn = () => {
 
 	const handleCompleteUserWalk = async (walkId, walkerId) => {
 		try {
-			await axios.put(
-				`${import.meta.env.VITE_BACKEND_URL}/completedWalk/completedUserWalk`,
-				{ userId: walkerId, walkId },
-				{
-					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-				}
-			);
+			await api.put(`/completedWalk/completedUserWalk`,{ userId: walkerId, walkId });
 
 			alert("User's full walk completed!");
 
@@ -150,13 +118,7 @@ const CheckIn = () => {
 
 	const handleDidNotShow = async (walkId, walkerId) => {
 		try {
-			await axios.put(
-				`${import.meta.env.VITE_BACKEND_URL}/completedWalk/didnotShowup`,
-				{ userId: walkerId, walkId },
-				{
-					headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-				}
-			);
+			await api.put(`/completedWalk/didnotShowup`,{ userId: walkerId, walkId });
 
 			alert("User marked as 'Did Not Show Up'. Points deducted.");
 
