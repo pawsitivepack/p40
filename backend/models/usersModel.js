@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema(
 	{
 		firstName: { type: String, required: true },
 		lastName: { type: String, required: true },
-		age: { type: Number, required: false },
+		dob: { type: Date, required: true },
 		phone: { type: String }, // Not required now
 		email: {
 			type: String,
@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
 		},
 		googleAuth: { type: Boolean, default: false },
 		lastLogin: { type: Date, required: false },
+		isVerified: { type: Boolean, default: false },
+		verificationToken: { type: String },
+		otp: { type: String, required: false },
+		otpExpires: { type: Date, required: false },
+
 		dogsWalked: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
@@ -34,6 +39,7 @@ const userSchema = new mongoose.Schema(
 				required: false,
 			},
 		], // Reference to Dog model
+
 		completedWalks: [
 			{
 				type: mongoose.Schema.Types.ObjectId,

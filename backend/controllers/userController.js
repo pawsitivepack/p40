@@ -3,6 +3,7 @@ const { OAuth2Client } = require("google-auth-library");
 const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
 const Walk = require("../models/walkmodel");
+const transporter = require("../config/mailer");
 
 // ✅ Helper function to generate JWT token
 const generateUserToken = (user) => {
@@ -56,6 +57,10 @@ exports.login = async (req, res) => {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
+        if (!user.isVerified) {
+			return res.status(403).json({ message: "Please verify your email before logging in." });
+		}
+		
 		const token = generateUserToken(user);
 		user.lastLogin = new Date();
 		await user.save();
@@ -68,6 +73,7 @@ exports.login = async (req, res) => {
 				name: `${user.firstName} ${user.lastName}`,
 			},
 		});
+		
 	} catch (error) {
 		console.error("Error during login:", error);
 		res.status(500).json({ error: "Internal server error" });
@@ -131,7 +137,7 @@ exports.googlelogin = async (req, res) => {
 };
 
 exports.googleSignup = async (req, res) => {
-	const { firstName, lastName, email, age, phone, picture } = req.body;
+	const { firstName, lastName, email, age, phone, picture, dob } = req.body;
 
 	try {
 		let user = await User.findOne({ email });
@@ -144,7 +150,7 @@ exports.googleSignup = async (req, res) => {
 			firstName,
 			lastName,
 			email,
-			age,
+			dob,
 			phone,
 			picture,
 			googleAuth: true,
@@ -159,9 +165,32 @@ exports.googleSignup = async (req, res) => {
 		res.status(500).json({ message: "Signup failed" });
 	}
 };
+
+exports.verifyOtp = async (req, res) => {
+	const { email, otp } = req.body;
+
+	try {
+		const user = await User.findOne({ email });
+		if (!user) return res.status(404).json({ message: "User not found" });
+		if (user.isVerified) return res.status(200).json({ message: "User already verified" });
+
+		if (user.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+		if (user.otpExpires < new Date()) return res.status(400).json({ message: "OTP expired" });
+
+		user.isVerified = true;
+		user.otp = undefined;
+		user.otpExpires = undefined;
+		await user.save();
+
+		res.status(200).json({ message: "Email verified successfully!" });
+	} catch (err) {
+		console.error("OTP Verification failed:", err);
+		res.status(500).json({ message: "Internal server error" });
+	}
+};
 // Signup
 exports.signup = async (req, res) => {
-	const { firstName, lastName, email, password, age, phone } = req.body;
+	const { firstName, lastName, email, password, age, phone, dob } = req.body;
 
 	try {
 		if (!email || !password || !firstName || !lastName) {
@@ -174,22 +203,78 @@ exports.signup = async (req, res) => {
 		}
 
 		const hashedPassword = bcrypt.hashSync(password, 10);
+
+		const otp = Math.floor(100000 + Math.random() * 900000).toString();
+		const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
 		const newUser = new User({
 			firstName,
 			lastName,
 			email,
-			age,
+			dob,
 			phone,
 			password: hashedPassword,
+			isVerified: false,
+			otp,
+			otpExpires,
 		});
 
 		await newUser.save();
-		res.status(201).json({ message: "User registered successfully" });
+
+		await transporter.sendMail({
+			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
+			to: email,
+			subject: "Your OTP Code - Underdogs",
+			html: `
+				<h2>Hi ${firstName},</h2>
+				<p>Your OTP is:</p>
+				<h3>${otp}</h3>
+				<p>This code expires in 10 minutes.</p>
+			`,
+		});
+
+		res.status(201).json({ message: "Signup successful. OTP sent to your email." });
 	} catch (error) {
-		console.error("Error during signup:", error);
-		res.status(500).json({ error: "Internal server error" });
+		console.error("Signup Error:", error);
+		res.status(500).json({ message: "Internal server error" });
 	}
 };
+
+exports.resendOtp = async (req, res) => {
+	const { email } = req.body;
+
+	try {
+		const user = await User.findOne({ email });
+		if (!user) return res.status(404).json({ message: "User not found" });
+		if (user.isVerified) return res.status(400).json({ message: "Email already verified" });
+
+		// Generate new OTP
+		const otp = Math.floor(100000 + Math.random() * 900000).toString();
+		const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+		user.otp = otp;
+		user.otpExpires = otpExpires;
+		await user.save();
+
+		await transporter.sendMail({
+			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
+			to: email,
+			subject: "Resent OTP - Underdogs",
+			html: `
+				<h2>Hi ${user.firstName},</h2>
+				<p>Your new OTP is:</p>
+				<h3>${otp}</h3>
+				<p>This OTP will expire in 10 minutes.</p>
+			`,
+		});
+
+		res.status(200).json({ message: "OTP resent successfully." });
+	} catch (error) {
+		console.error("Resend OTP Error:", error);
+		res.status(500).json({ message: "Failed to resend OTP" });
+	}
+};
+
 
 // Fetch my profile
 exports.myProfile = async (req, res) => {
@@ -251,7 +336,7 @@ exports.editUser = async (req, res) => {
 			"lastName",
 			"email",
 			"role",
-			"age",
+			"dob",
 			"phone",
 		];
 		const updates = {};

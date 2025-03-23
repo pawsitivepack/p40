@@ -38,6 +38,7 @@ app.use("/scheduledWalks", schedulewalk);
 app.use("/completedWalk", completedWalk);
 app.use("/marshalApps", marshalApp);
 
+
 // Start the Server
 app.listen(PORT, async () => {
 	console.log(`Server is running on http://localhost:${PORT}`);

@@ -20,6 +20,7 @@ import Users from "./components/Users/Users";
 import MarshalApplication from "./components/marshalApp/MarshalApplication";
 import UserDetails from "./components/Users/UserDetails";
 import NotFound from "./components/NotFound/NotFound";
+import OtpVerification from "./components/Users/OtpVerification";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -80,6 +81,7 @@ function App() {
 						<Route path="/donate" element={<Donate />} />
 						<Route path="/myprofile" element={<MyProfile />} />
 						<Route path="/google-signup" element={<GoogleSignup />} />
+						<Route path="/verify-otp" element={<OtpVerification />} />
 						<Route path="/users" element={<Users />} />
 						<Route
 							path="/marshal-application"
