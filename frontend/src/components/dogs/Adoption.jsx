@@ -10,8 +10,8 @@ export default function Adoption() {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [sortOption, setSortOption] = useState("");
 	const [filterAdopted, setFilterAdopted] = useState("all");
-	const [filterCategory, setFilterCategory] = useState("all");
 	const [filterColor, setFilterColor] = useState("all");
+	const [filterDemeanor, setFilterDemeanor] = useState("all");
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -47,10 +47,10 @@ export default function Adoption() {
 				filterAdopted === "all" ||
 				(filterAdopted === "adopted" && dog.adopted) ||
 				(filterAdopted === "notAdopted" && !dog.adopted);
-			const matchesCategory =
-				filterCategory === "all" || dog.category === filterCategory;
 			const matchesColor = filterColor === "all" || dog.color === filterColor;
-			return matchesSearch && matchesAdopted && matchesCategory && matchesColor;
+			const matchesDemeanor =
+				filterDemeanor === "all" || dog.demeanor === filterDemeanor;
+			return matchesSearch && matchesAdopted && matchesColor && matchesDemeanor;
 		})
 		.sort((a, b) => {
 			if (sortOption === "name") return a.name.localeCompare(b.name);
@@ -103,18 +103,6 @@ export default function Adoption() {
 					<div className="space-y-1">
 						<select
 							className="border border-gray-300 px-4 py-2 rounded-md text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
-							value={filterCategory}
-							onChange={(e) => setFilterCategory(e.target.value)}
-						>
-							<option value="all">All Categories</option>
-							<option value="puppy">Puppy</option>
-							<option value="adult">Adult</option>
-							<option value="senior">Senior</option>
-						</select>
-					</div>
-					<div className="space-y-1">
-						<select
-							className="border border-gray-300 px-4 py-2 rounded-md text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
 							value={filterColor}
 							onChange={(e) => setFilterColor(e.target.value)}
 						>
@@ -123,6 +111,18 @@ export default function Adoption() {
 							<option value="brown">Brown</option>
 							<option value="white">White</option>
 							<option value="golden">Golden</option>
+						</select>
+					</div>
+					<div className="space-y-1">
+						<select
+							className="border border-gray-300 px-4 py-2 rounded-md text-[var(--text-100)] bg-[var(--bg-100)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-200)]"
+							value={filterDemeanor}
+							onChange={(e) => setFilterDemeanor(e.target.value)}
+						>
+							<option value="all">All Demeanors</option>
+							<option value="Red">Red</option>
+							<option value="Gray">Gray</option>
+							<option value="Yellow">Yellow</option>
 						</select>
 					</div>
 				</div>
@@ -147,7 +147,15 @@ function DogCard({ dog, role, onViewDog }) {
 	return (
 		<div
 			ref={cardRef}
-			className="relative bg-[var(--bg-100)] rounded-lg shadow-md hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-200"
+			className={`relative rounded-lg shadow-md hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-200 ${
+				dog.demeanor === "Red"
+					? "bg-red-100"
+					: dog.demeanor === "Gray"
+					? "bg-gray-100"
+					: dog.demeanor === "Yellow"
+					? "bg-yellow-100"
+					: "bg-[var(--bg-100)]"
+			}`}
 			onClick={() => onViewDog(dog)}
 		>
 			<div className="absolute top-3 right-3 z-10">
@@ -176,10 +184,10 @@ function DogCard({ dog, role, onViewDog }) {
 						<strong>Color:</strong> {dog.color}
 					</p>
 					<p className="text-[var(--text-200)]">
-						<strong>Category:</strong> {dog.category}
+						<strong>Adopted:</strong> {dog.adopted ? "Yes" : "No"}
 					</p>
 					<p className="text-[var(--text-200)]">
-						<strong>Adopted:</strong> {dog.adopted ? "Yes" : "No"}
+						<strong>Demeanor:</strong> {dog.demeanor}
 					</p>
 					{dog.adopted && (
 						<p className="text-[var(--text-200)]">

@@ -53,7 +53,13 @@ function DogCard({ dog, onDelete, onEdit, role }) {
 	return (
 		<div
 			ref={cardRef}
-			className="bg-white rounded-lg shadow-lg hover:scale-105 transform transition-all cursor-pointer relative"
+			className={`${
+				dog.demeanor === "Red"
+					? "bg-red-100"
+					: dog.demeanor === "Gray"
+					? "bg-gray-100"
+					: "bg-yellow-100"
+			} rounded-lg shadow-lg hover:scale-105 transform transition-all cursor-pointer relative`}
 			onClick={() => showMenu && setShowMenu(false)}
 		>
 			<img
@@ -104,7 +110,7 @@ function DogCard({ dog, onDelete, onEdit, role }) {
 					<strong>Color:</strong> {dog.color}
 				</p>
 				<p className="text-gray-600">
-					<strong>Category:</strong> {dog.category}
+					<strong>Demeanor:</strong> {dog.demeanor}
 				</p>
 				<p className="text-gray-600">
 					<strong>Adopted:</strong> {dog.adopted ? "Yes" : "No"}
