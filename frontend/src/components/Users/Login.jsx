@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { GoogleLogin } from "@react-oauth/google"; // Google OAuth package
+import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import "react-toastify/dist/ReactToastify.css";
 import logo from "../../assets/underdogs.png";
@@ -12,14 +12,15 @@ export default function Login() {
 	const [formData, setFormData] = useState({
 		firstName: "",
 		lastName: "",
-		age: "",
+		dob: "",
 		phone: "",
 		email: "",
 		password: "",
 		confirmPassword: "",
 	});
-	const [birthdate, setBirthdate] = useState(""); // Separate state for birthdate
-	const [isOldEnough, setIsOldEnough] = useState(true); // Ensure age is 12+
+	const [birthdate, setBirthdate] = useState("");
+	const [userAge, setUserAge] = useState(null);
+	const [isOldEnough, setIsOldEnough] = useState(true);
 	const [rememberMe, setRememberMe] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -29,65 +30,22 @@ export default function Login() {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
-	const handleGoogleSuccess = async (credentialResponse) => {
-		try {
-			const token = credentialResponse.credential;
-
-			console.log("Google Token:", token); // Optional for debugging
-
-			// Send the token to the backend
-			const response = await fetch(
-				`${import.meta.env.VITE_BACKEND_URL}/users/google-login`,
-				{
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ token }),
-				}
-			);
-
-			const data = await response.json();
-			if (response.status === 302) {
-				navigate("/google-signup", { state: data.user }); // Redirect to a custom signup page
-			} else if (response.ok) {
-				toast.success("Google Login Successful");
-				console.log("Backend Response:", data); // Optional: log the response
-
-				// Save the JWT token in local storage
-				localStorage.setItem("token", data.token);
-				window.dispatchEvent(new Event("storage"));
-				// Navigate to the myprofile page
-				navigate("/myprofile");
-			} else {
-				toast.error(data.message || "Google Login failed");
-			}
-		} catch (error) {
-			console.error("Google Login Error:", error);
-			toast.error("Google Login Error. Please try again.");
-		}
-	};
-
 	const handleBirthdateChange = (e) => {
 		const birthdateValue = e.target.value;
 		setBirthdate(birthdateValue);
-	
-		// Calculate age
+
 		const today = new Date();
 		const birthDate = new Date(birthdateValue);
-		let userAge = today.getFullYear() - birthDate.getFullYear();
+		let age = today.getFullYear() - birthDate.getFullYear();
 		const monthDiff = today.getMonth() - birthDate.getMonth();
-	
-		// Adjust age if birthday hasn't happened yet this year
 		if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-			userAge--;
+			age--;
 		}
-	
-		// Set calculated age in formData
-		setFormData({ ...formData, age: userAge });
-	
-		// Check if the user is at least 12 years old
-		setIsOldEnough(userAge >= 12);
+
+		setUserAge(age);
+		setIsOldEnough(age >= 12);
+		setFormData({ ...formData, dob: birthdateValue }); // Store dob in formData
 	};
-	
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -102,10 +60,10 @@ export default function Login() {
 		}
 
 		const endpoint = isRegistering ? "/signup" : "/login";
+
 		try {
 			const response = await fetch(
 				`${import.meta.env.VITE_BACKEND_URL}/users${endpoint}`,
-
 				{
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
@@ -114,7 +72,7 @@ export default function Login() {
 							? {
 									firstName: formData.firstName,
 									lastName: formData.lastName,
-									age: formData.age,
+									dob: formData.dob,
 									phone: formData.phone,
 									email: formData.email,
 									password: formData.password,
@@ -132,9 +90,12 @@ export default function Login() {
 			if (response.ok) {
 				toast.success(data.message);
 
-				if (!isRegistering) {
-					localStorage.setItem("token", data.token); // ✅ Store JWT token
-					window.dispatchEvent(new Event("storage")); // ✅ Notify other components (like Navbar)
+				if (isRegistering) {
+					// ✅ Redirect to OTP page after signup
+					navigate("/verify-otp", { state: { email: formData.email } });
+				} else {
+					localStorage.setItem("token", data.token);
+					window.dispatchEvent(new Event("storage"));
 
 					if (rememberMe) {
 						localStorage.setItem("rememberedEmail", formData.email);
@@ -142,14 +103,49 @@ export default function Login() {
 						localStorage.removeItem("rememberedEmail");
 					}
 
-					navigate("/myprofile"); // ✅ Navigate after updating state
+					navigate("/myprofile");
 				}
+			} else if (
+				data.message === "Please verify your email using OTP." &&
+				data.email
+			) {
+				toast.info("Please verify your email.");
+				navigate("/verify-otp", { state: { email: data.email } });
 			} else {
 				toast.error(data.message || "Invalid password or email");
 			}
 		} catch (error) {
 			console.error("Error:", error);
 			toast.error("Server error. Please try again later.");
+		}
+	};
+
+	const handleGoogleSuccess = async (credentialResponse) => {
+		try {
+			const token = credentialResponse.credential;
+			const response = await fetch(
+				`${import.meta.env.VITE_BACKEND_URL}/users/google-login`,
+				{
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ token }),
+				}
+			);
+
+			const data = await response.json();
+			if (response.status === 302) {
+				navigate("/google-signup", { state: data.user });
+			} else if (response.ok) {
+				toast.success("Google Login Successful");
+				localStorage.setItem("token", data.token);
+				window.dispatchEvent(new Event("storage"));
+				navigate("/myprofile");
+			} else {
+				toast.error(data.message || "Google Login failed");
+			}
+		} catch (error) {
+			console.error("Google Login Error:", error);
+			toast.error("Google Login Error. Please try again.");
 		}
 	};
 
@@ -165,10 +161,9 @@ export default function Login() {
 		setShowPassword(!showPassword);
 	};
 
-    const toggleConfirmPasswordVisibility = () => {
+	const toggleConfirmPasswordVisibility = () => {
 		setShowConfirmPassword(!showConfirmPassword);
 	};
-
 
 	return (
 		<div className="relative flex justify-center items-center min-h-screen bg-gray-100 overflow-hidden">
@@ -196,7 +191,7 @@ export default function Login() {
 											{field.replace(/([A-Z])/g, " $1")}
 										</label>
 										<input
-											type={field === "age" ? "number" : "text"}
+											type="text"
 											name={field}
 											value={formData[field]}
 											onChange={handleChange}
@@ -214,12 +209,15 @@ export default function Login() {
 									className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-2"
 									required
 								/>
-								<p className="text-gray-500 mb-4">Age: {formData.age || "N/A"}</p>
+								<p className="text-gray-500 mb-4">Age: {userAge || "N/A"}</p>
 								{!isOldEnough && (
-									<p className="text-red-600 text-sm">You must be at least 12 years old to register.</p>
+									<p className="text-red-600 text-sm">
+										You must be at least 12 years old to register.
+									</p>
 								)}
 							</>
 						)}
+
 						<label className="block text-gray-600 mb-1">Email</label>
 						<input
 							type="email"
@@ -230,6 +228,7 @@ export default function Login() {
 							className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4"
 							required
 						/>
+
 						<label className="block text-gray-600 mb-1">Password</label>
 						<div className="relative">
 							<input
@@ -249,6 +248,7 @@ export default function Login() {
 								{showPassword ? "Hide" : "Show"}
 							</button>
 						</div>
+
 						{isRegistering && (
 							<>
 								<label className="block text-gray-600 mb-1">Confirm Password</label>
@@ -294,7 +294,6 @@ export default function Login() {
 					<div className="text-center my-4">
 						<span className="text-gray-500">OR</span>
 					</div>
-					{/* Google Login Button */}
 					<div className="flex justify-center">
 						<GoogleLogin
 							onSuccess={handleGoogleSuccess}

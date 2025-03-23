@@ -1,42 +1,47 @@
-import React, { useState, Fragment } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 function GoogleSignup() {
 	const location = useLocation();
 	const navigate = useNavigate();
-	const [birthdate, setBirthdate] = useState(""); // Separate state for birthdate
-	const [isOldEnough, setIsOldEnough] = useState(true); // Ensure age is 12+
 	const { firstName, lastName, email, picture } = location.state;
-	const [formData, setFormData] = useState({ age: "", phone: "" });
+
+	const [birthdate, setBirthdate] = useState("");
+	const [userAge, setUserAge] = useState(null);
+	const [isOldEnough, setIsOldEnough] = useState(true);
+	const [formData, setFormData] = useState({ phone: "", dob: "" });
 
 	const handleChange = (e) => {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
+
 	const handleBirthdateChange = (e) => {
 		const birthdateValue = e.target.value;
 		setBirthdate(birthdateValue);
-	
-		// Calculate age
+
+		// Calculate age from DOB
 		const today = new Date();
 		const birthDate = new Date(birthdateValue);
-		let userAge = today.getFullYear() - birthDate.getFullYear();
+		let age = today.getFullYear() - birthDate.getFullYear();
 		const monthDiff = today.getMonth() - birthDate.getMonth();
-	
-		// Adjust age if birthday hasn't happened yet this year
 		if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-			userAge--;
+			age--;
 		}
-	
-		// Set calculated age in formData
-		setFormData({ ...formData, age: userAge });
-	
-		// Check if the user is at least 12 years old
-		setIsOldEnough(userAge >= 12);
+
+		setUserAge(age);
+		setIsOldEnough(age >= 12);
+		setFormData({ ...formData, dob: birthdateValue }); // ✅ Save DOB instead of age
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
+
+		if (!isOldEnough) {
+			toast.error("You must be at least 12 years old to register.");
+			return;
+		}
+
 		try {
 			const response = await fetch(
 				`${import.meta.env.VITE_BACKEND_URL}/users/google-signup`,
@@ -75,16 +80,22 @@ function GoogleSignup() {
 				</h2>
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div>
-					<label className="block text-gray-600 mb-1">Birthdate</label>
-								<input
-									type="date"
-									value={birthdate}
-									onChange={handleBirthdateChange}
-									className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-2"
-									required
-								/>
-								<p className="text-gray-500 mb-4">Age: {formData.age || "N/A"}</p>
+						<label className="block text-gray-600 mb-1">Birthdate</label>
+						<input
+							type="date"
+							value={birthdate}
+							onChange={handleBirthdateChange}
+							className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-2"
+							required
+						/>
+						<p className="text-gray-500 mb-4">Age: {userAge || "N/A"}</p>
+						{!isOldEnough && (
+							<p className="text-red-600 text-sm">
+								You must be at least 12 years old to register.
+							</p>
+						)}
 					</div>
+
 					<div>
 						<label className="block text-sm font-medium text-gray-700">
 							Phone Number
@@ -99,6 +110,7 @@ function GoogleSignup() {
 							required
 						/>
 					</div>
+
 					<button
 						type="submit"
 						className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"

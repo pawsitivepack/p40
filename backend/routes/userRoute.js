@@ -29,6 +29,8 @@ router.get(
 	verifyAdmin,
 	userController.viewUserDetail
 );
+router.post("/verify-otp", userController.verifyOtp);
+router.post("/resend-otp", userController.resendOtp);
 router.delete(
 	"/deleteUser/:id",
 	verifyToken,
