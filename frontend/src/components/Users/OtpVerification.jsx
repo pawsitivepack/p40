@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -7,9 +7,36 @@ const OtpVerification = () => {
 	const navigate = useNavigate();
 
 	const [email, setEmail] = useState(location.state?.email || "");
+	const [password] = useState(location.state?.password || ""); // optional, passed from signup
 	const [otp, setOtp] = useState("");
 	const [loading, setLoading] = useState(false);
-
+    useEffect(() => {
+		const autoResend = async () => {
+		  if (!email || hasResent.current) return;
+	
+		  try {
+			const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/users/resend-otp`, {
+			  method: "POST",
+			  headers: { "Content-Type": "application/json" },
+			  body: JSON.stringify({ email }),
+			});
+			const data = await response.json();
+	
+			if (response.ok) {
+			  toast.info("A new OTP has been sent to your email.");
+			  hasResent.current = true; // ← Mark as sent
+			} else {
+			  toast.error(data.message || "Failed to resend OTP");
+			}
+		  } catch (error) {
+			console.error("Auto resend OTP error:", error);
+			toast.error("Something went wrong while resending OTP.");
+		  }
+		};
+	
+		autoResend();
+	  }, [email]);
+	
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setLoading(true);
@@ -27,7 +54,15 @@ const OtpVerification = () => {
 			const data = await response.json();
 			if (response.ok) {
 				toast.success(data.message);
-				navigate("/login");
+
+				// ✅ Navigate to login and pass credentials
+				navigate("/login", {
+					state: {
+						email,
+						password,
+						fromVerification: true,
+					},
+				});
 			} else {
 				toast.error(data.message || "OTP verification failed");
 			}
@@ -71,7 +106,7 @@ const OtpVerification = () => {
 				</p>
 
 				<form onSubmit={handleSubmit}>
-					{/* Only show email input if email is not passed in */}
+					{/* Only show email input if email was not passed */}
 					{!location.state?.email && (
 						<div className="mb-4 text-left">
 							<label className="block mb-1">Email</label>
@@ -115,6 +150,20 @@ const OtpVerification = () => {
 							onClick={handleResendOtp}
 						>
 							Resend OTP
+						</button>
+					</p>
+				</div>
+
+				{/* 🔙 Back to Login (without credentials) */}
+				<div className="mt-4">
+					<p className="text-sm text-gray-600">
+						Want to return?{" "}
+						<button
+							type="button"
+							className="text-blue-600 hover:underline"
+							onClick={() => navigate("/login")}
+						>
+							Back to Login
 						</button>
 					</p>
 				</div>
