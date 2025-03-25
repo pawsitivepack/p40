@@ -55,6 +55,12 @@ exports.login = async (req, res) => {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
+        if (!user.isVerified) {
+			return res.status(403).json({ 
+				message: "Please verify your email before logging in.",
+				email: user.email,
+			    
+			});
 		if (!user.isVerified) {
 			return res
 				.status(403)
@@ -200,8 +206,17 @@ exports.signup = async (req, res) => {
 
 		const existingUser = await User.findOne({ email });
 		if (existingUser) {
-			return res.status(400).json({ message: "Email is already registered" });
-		}
+			if (!existingUser.isVerified) {
+				// Unverified user trying to sign up again
+				return res.status(403).json({
+					message: "Email is already registered but not verified. Please verify your email.",
+					email,
+				});
+			}
+
+	// Verified user already exists
+	return res.status(400).json({ message: "Email is already registered" });
+}
 
 		const hashedPassword = bcrypt.hashSync(password, 10);
 
@@ -248,11 +263,10 @@ exports.resendOtp = async (req, res) => {
 
 	try {
 		const user = await User.findOne({ email });
-		if (!user) return res.status(404).json({ message: "User not found" });
-		if (user.isVerified)
-			return res.status(400).json({ message: "Email already verified" });
+		if (!user || user.isVerified) {
+			return res.status(400).json({ message: "Invalid request or already verified." });
+		}
 
-		// Generate new OTP
 		const otp = Math.floor(100000 + Math.random() * 900000).toString();
 		const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
@@ -263,7 +277,7 @@ exports.resendOtp = async (req, res) => {
 		await transporter.sendMail({
 			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
 			to: email,
-			subject: "Resent OTP - Underdogs",
+			subject: "Your OTP Code - Underdogs",
 			html: `
 				<h2>Hi ${user.firstName},</h2>
 				<p>Your new OTP is:</p>
@@ -278,6 +292,8 @@ exports.resendOtp = async (req, res) => {
 		res.status(500).json({ message: "Failed to resend OTP" });
 	}
 };
+;
+
 
 // Fetch my profile
 exports.myProfile = async (req, res) => {

@@ -106,14 +106,24 @@ export default function Login() {
 					navigate("/myprofile");
 				}
 			} else if (
-				data.message === "Please verify your email using OTP." &&
+				response.status === 403 &&
+				data.message?.includes("verify") &&
 				data.email
 			) {
 				toast.info("Please verify your email.");
 				navigate("/verify-otp", { state: { email: data.email } });
+			} else if (
+				isRegistering &&
+				data.message?.includes("already registered") &&
+				data.email
+			) {
+				// If email is already registered but not verified, backend sends status 400 + email
+				toast.info("Account exists but is not verified. Please check your email.");
+				navigate("/verify-otp", { state: { email: data.email } });
 			} else {
 				toast.error(data.message || "Invalid password or email");
 			}
+			
 		} catch (error) {
 			console.error("Error:", error);
 			toast.error("Server error. Please try again later.");
