@@ -14,16 +14,21 @@ exports.getDogs = async (req, res) => {
 
 exports.addDog = async (req, res) => {
 	try {
+		// Use the image uploaded via Cloudinary
+		const imageUrl = req.file?.path || "";
+
 		const newDog = new Dog({
 			...req.body,
-			tags: req.body.tags || [],
+			imageURL: imageUrl, // use `imageURL` field in the schema
+			tags: req.body.tags ? JSON.parse(req.body.tags) : [],
 			demeanor: req.body.demeanor || "Red",
-			notes: req.body.notes || [],
-		}); // Create a new instance of the Dog model
-		const savedDog = await newDog.save(); // Save to the database
+			notes: req.body.notes ? JSON.parse(req.body.notes) : [],
+		});
+
+		const savedDog = await newDog.save();
 		res.status(201).json(savedDog);
 	} catch (error) {
-		console.error("Error adding dog:");
+		console.error("Error adding dog:", error);
 		res.status(500).json({ error: "Failed to add dog" });
 	}
 };
