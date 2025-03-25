@@ -1,5 +1,3 @@
-// backend/config/cloudinary.js
-
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const multer = require("multer");
@@ -12,7 +10,7 @@ cloudinary.config({
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Multer Storage for Cloudinary
+// Multer Storage for profile picture Cloudinary
 const storage = new CloudinaryStorage({
 	cloudinary,
 	params: {
@@ -22,6 +20,17 @@ const storage = new CloudinaryStorage({
 	},
 });
 
-const upload = multer({ storage });
+// Multer Storage for dog picture Cloudinary
+const DogPicStorage = new CloudinaryStorage({
+	cloudinary,
+	params: {
+		folder: "dog_pictures", // Cloudinary folder name
+		allowed_formats: ["jpg", "png", "jpeg"],
+		public_id: (req, file) => `dog_${Date.now()}`, // Unique image name
+	},
+});
 
-module.exports = { cloudinary, upload };
+const upload = multer({ storage });
+const uploadDogPic = multer({ storage: DogPicStorage });
+
+module.exports = { cloudinary, upload, uploadDogPic };

@@ -1,6 +1,7 @@
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import React, { useState } from "react";
 import api from "../../api/axios";
+import { FiUpload } from "react-icons/fi";
 
 const AddDogForm = ({ setFormVisible, setDogs }) => {
 	const [newDog, setNewDog] = useState({
@@ -15,6 +16,7 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 		demeanor: "Red",
 		notes: [],
 	});
+	const [imageFile, setImageFile] = useState(null);
 
 	const handleInputChange = (e) => {
 		const { name, value } = e.target;
@@ -27,15 +29,24 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 	const handleAddDog = async (e) => {
 		e.preventDefault();
 
-		if (!newDog.imageURL.startsWith("http")) {
-			alert("Please enter a valid image URL");
-			return;
-		}
-
 		try {
-			const response = await api.post("/dogs", newDog);
+			const formData = new FormData();
+			formData.append("name", newDog.name);
+			formData.append("breed", newDog.breed);
+			formData.append("age", newDog.age);
+			formData.append("color", newDog.color);
+			formData.append("demeanor", newDog.demeanor);
+			formData.append("tags", JSON.stringify(newDog.tags));
+			formData.append("notes", JSON.stringify(newDog.notes));
+			if (imageFile) {
+				formData.append("image", imageFile);
+			}
 
-			setDogs((prevDogs) => [...prevDogs, response.data]); // Add new dog to state
+			const response = await api.post("/dogs", formData, {
+				headers: { "Content-Type": "multipart/form-data" },
+			});
+
+			setDogs((prevDogs) => [...prevDogs, response.data]);
 			setNewDog({
 				name: "",
 				breed: "",
@@ -49,6 +60,7 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 				notes: [],
 			});
 			setFormVisible(false);
+			setImageFile(null);
 		} catch (error) {
 			console.error(
 				"Error adding dog:",
@@ -70,25 +82,47 @@ const AddDogForm = ({ setFormVisible, setDogs }) => {
 			<form onSubmit={handleAddDog}>
 				{["name", "breed", "age", "color", "imageURL"].map((field) => (
 					<div className="relative mb-4" key={field}>
-						<input
-							autoComplete="off"
-							id={field}
-							name={field}
-							type={field === "age" ? "number" : "text"}
-							className="peer placeholder-transparent h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
-							placeholder={`Dog's ${
-								field.charAt(0).toUpperCase() + field.slice(1)
-							}`}
-							value={newDog[field]}
-							onChange={handleInputChange}
-							required
-						/>
-						<label
-							htmlFor={field}
-							className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
-						>
-							Dog's {field.charAt(0).toUpperCase() + field.slice(1)}
-						</label>
+						{field === "imageURL" ? (
+							<>
+								<label
+									htmlFor="image"
+									className="flex items-center justify-center w-full px-4 py-2 bg-blue-100 text-blue-700 border border-dashed border-blue-400 rounded-lg cursor-pointer hover:bg-blue-200"
+								>
+									<FiUpload className="mr-2" />
+									{imageFile ? imageFile.name : "Upload Dog Image"}
+									<input
+										id="image"
+										name="image"
+										type="file"
+										accept="image/*"
+										onChange={(e) => setImageFile(e.target.files[0])}
+										className="hidden"
+									/>
+								</label>
+							</>
+						) : (
+							<>
+								<input
+									autoComplete="off"
+									id={field}
+									name={field}
+									type={field === "age" ? "number" : "text"}
+									className="peer placeholder-transparent h-10 w-full border-b-2 border-gray-300 text-gray-900 focus:outline-none focus:border-blue-500"
+									placeholder={`Dog's ${
+										field.charAt(0).toUpperCase() + field.slice(1)
+									}`}
+									value={newDog[field]}
+									onChange={handleInputChange}
+									required
+								/>
+								<label
+									htmlFor={field}
+									className="absolute left-0 -top-3.5 text-gray-600 text-sm peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-440 peer-placeholder-shown:top-2 transition-all peer-focus:-top-3.5 peer-focus:text-gray-600 peer-focus:text-sm"
+								>
+									Dog's {field.charAt(0).toUpperCase() + field.slice(1)}
+								</label>
+							</>
+						)}
 					</div>
 				))}
 
