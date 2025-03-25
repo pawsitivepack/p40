@@ -55,16 +55,11 @@ exports.login = async (req, res) => {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
-        if (!user.isVerified) {
-			return res.status(403).json({ 
+		if (!user.isVerified) {
+			return res.status(403).json({
 				message: "Please verify your email before logging in.",
 				email: user.email,
-			    
 			});
-		if (!user.isVerified) {
-			return res
-				.status(403)
-				.json({ message: "Please verify your email before logging in." });
 		}
 
 		const token = generateUserToken(user);
@@ -209,14 +204,15 @@ exports.signup = async (req, res) => {
 			if (!existingUser.isVerified) {
 				// Unverified user trying to sign up again
 				return res.status(403).json({
-					message: "Email is already registered but not verified. Please verify your email.",
+					message:
+						"Email is already registered but not verified. Please verify your email.",
 					email,
 				});
 			}
 
-	// Verified user already exists
-	return res.status(400).json({ message: "Email is already registered" });
-}
+			// Verified user already exists
+			return res.status(400).json({ message: "Email is already registered" });
+		}
 
 		const hashedPassword = bcrypt.hashSync(password, 10);
 
@@ -264,7 +260,9 @@ exports.resendOtp = async (req, res) => {
 	try {
 		const user = await User.findOne({ email });
 		if (!user || user.isVerified) {
-			return res.status(400).json({ message: "Invalid request or already verified." });
+			return res
+				.status(400)
+				.json({ message: "Invalid request or already verified." });
 		}
 
 		const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -292,9 +290,6 @@ exports.resendOtp = async (req, res) => {
 		res.status(500).json({ message: "Failed to resend OTP" });
 	}
 };
-;
-
-
 // Fetch my profile
 exports.myProfile = async (req, res) => {
 	try {
