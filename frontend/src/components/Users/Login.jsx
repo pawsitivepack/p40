@@ -47,6 +47,10 @@ export default function Login() {
 		setFormData({ ...formData, dob: birthdateValue }); // Store dob in formData
 	};
 
+	const isPasswordValid = (password) =>
+		/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password);
+	
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (!isOldEnough) {
@@ -58,7 +62,13 @@ export default function Login() {
 			toast.error("Passwords do not match!");
 			return;
 		}
-
+		
+        if (isRegistering && !isPasswordValid(formData.password)) {
+			toast.error(
+				"Password must be at least 8 characters long, include uppercase, lowercase, a number, and a special character."
+			);
+			return;
+		}
 		const endpoint = isRegistering ? "/signup" : "/login";
 
 		try {
@@ -250,6 +260,12 @@ export default function Login() {
 								className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-4 pr-16"
 								required
 							/>
+							{isRegistering && formData.password && !isPasswordValid(formData.password) && (
+								<p className="text-sm text-red-500 mb-4">
+									Password must be at least 8 characters, contain uppercase, lowercase, a number, and a special character.
+								</p>
+)}
+
 							<button
 								type="button"
 								className="absolute right-2 top-2 text-blue-600"

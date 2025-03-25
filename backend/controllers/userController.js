@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
 const Walk = require("../models/walkmodel");
 const transporter = require("../config/mailer");
+const passwordPolicy = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
 // ✅ Helper function to generate JWT token
 const generateUserToken = (user) => {
@@ -194,7 +195,7 @@ exports.verifyOtp = async (req, res) => {
 };
 // Signup
 exports.signup = async (req, res) => {
-	const { firstName, lastName, email, password, age, phone, dob } = req.body;
+	const { firstName, lastName, email, password, phone, dob } = req.body;
 
 	try {
 		if (!email || !password || !firstName || !lastName) {
@@ -214,7 +215,13 @@ exports.signup = async (req, res) => {
 	// Verified user already exists
 	return res.status(400).json({ message: "Email is already registered" });
 }
-
+		if (!passwordPolicy.test(password)) {
+			return res.status(400).json({
+				message:
+					"Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
+			});
+		}
+   
 		const hashedPassword = bcrypt.hashSync(password, 10);
 
 		const otp = Math.floor(100000 + Math.random() * 900000).toString();
