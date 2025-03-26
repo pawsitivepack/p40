@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
+import api from "../api/axios"; // Import custom Axios instance
 import dogBackground from "../assets/dog.png";
 import {
 	FaUserShield,
@@ -19,6 +19,7 @@ import {
 export default function Home() {
 	const [role, setRole] = useState("");
 	const [walks, setWalks] = useState([]);
+	const [PastWalks, setPastWalks] = useState([]);
 	const [username, setUsername] = useState("");
 	const [loading, setLoading] = useState(true);
 
@@ -45,25 +46,19 @@ export default function Home() {
 		try {
 			setLoading(true);
 			let response;
+			let pastwalksgetter;
+	
 			if (userRole === "user") {
-				response = await axios.get(
-					`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks/${userId}`,
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem("token")}`,
-						},
-					}
-				);
+				response = await api.get(`/scheduledWalks/${userId}`);
+				pastwalksgetter = await api.get("/users/myprofile");
+				setPastWalks(pastwalksgetter.data.user.completedWalks || []);
 			} else {
-				response = await axios.get(
-					`${import.meta.env.VITE_BACKEND_URL}/scheduledWalks`,
-					{
-						headers: {
-							Authorization: `Bearer ${localStorage.getItem("token")}`,
-						},
-					}
-				);
+				response = await api.get(`/scheduledWalks`);
+				pastwalksgetter = await api.get(`/completedwalk`);
+				setPastWalks(pastwalksgetter.data || []);
+				console.log(pastwalksgetter.data)
 			}
+	
 			setWalks(response.data);
 		} catch (error) {
 			console.error("Error fetching walks:", error);
@@ -428,23 +423,73 @@ export default function Home() {
 						</div>
 
 						{/* Past Walks Section */}
-						<div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-							<div className="bg-[#e8d3a9] px-6 py-4 border-b border-gray-200">
-								<h3 className="text-xl font-bold text-[#8c1d35] flex items-center">
-									<FaHistory className="mr-2" /> Past Walks
-								</h3>
+<div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+	<div className="bg-[#e8d3a9] px-6 py-4 border-b border-gray-200">
+		<h3 className="text-xl font-bold text-[#8c1d35] flex items-center">
+			<FaHistory className="mr-2" /> Past Walks
+		</h3>
+	</div>
+	<div className="p-6">
+		{loading ? (
+			<div className="flex justify-center items-center h-40">
+				<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#8c1d35]"></div>
+			</div>
+		) : PastWalks.length > 0 ? (
+			<div className="space-y-4">
+				{PastWalks.slice(0, 3).map((walk) => (
+					<div
+						key={walk._id}
+						className="bg-[#f9f6f0] rounded-lg p-4 border border-gray-100"
+					>
+						<div className="flex items-start">
+							<div className="bg-[#8c1d35] rounded-full p-2 mr-3">
+								<FaHistory className="text-white text-lg" />
 							</div>
-							<div className="p-6">
-								<div className="text-center py-10">
-									<FaHistory className="mx-auto text-gray-300 text-4xl mb-3" />
-									<p className="text-gray-500 mb-2">Coming Soon...</p>
-									<p className="text-sm text-gray-400">
-										We're working on a feature to track your past walks and
-										achievements.
-									</p>
+							<div>
+								<div className="flex items-center">
+									<span className="font-semibold text-gray-800">
+										{formatDate(walk.date)}
+									</span>
+									<span className="mx-2 text-gray-400">•</span>
+									<span className="text-gray-600">
+										{new Date(walk.date).toLocaleTimeString([], {
+											hour: "2-digit",
+											minute: "2-digit",
+										})}
+									</span>
 								</div>
+								
+								<p className="text-sm text-gray-600 mt-1">
+									Dogs Walked:{" "}
+									<span className="font-medium">
+										{walk.dogId && walk.dogId.length > 0
+											? walk.dogId.map((dog) => dog.name).join(", ")
+											: "N/A"}
+									</span>
+								</p>
 							</div>
 						</div>
+					</div>
+				))}
+
+				{PastWalks.length > 2 && (
+					<Link
+						to={role === "user" ? "/mywalks" : "/completedwalks"}
+						className="inline-flex items-center text-[#8c1d35] font-medium hover:text-[#6b1528] mt-2"
+					>
+						View all past walks <FaArrowRight className="ml-1 text-sm" />
+					</Link>
+
+				)}
+			</div>
+		) : (
+			<div className="text-center py-10">
+				<FaHistory className="mx-auto text-gray-300 text-4xl mb-3" />
+				<p className="text-gray-500">No past walks available.</p>
+			</div>
+		)}
+	</div>
+</div>
 
 						{/* Management Section */}
 						<div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 md:col-span-2 lg:col-span-3">
