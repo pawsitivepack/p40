@@ -1,6 +1,7 @@
 const ScheduledWalk = require("../models/walkmodel");
 const User = require("../models/usersModel");
 const transporter = require("../config/mailer");
+const CompletedWalk = require("../models/completedWalkModel");
 
 exports.addScheduledWalk = async (req, res) => {
 	try {
@@ -179,5 +180,25 @@ exports.cancelWalk = async (req, res) => {
 	} catch (error) {
 		console.error("Error cancelling walk:", error);
 		res.status(500).json({ message: "Failed to cancel the walk." });
+	}
+};
+
+exports.checkInScheduledWalks = async (req, res) => {
+	console.log("THE REQUEST HIT HERE");
+	try {
+		const walks = await ScheduledWalk.find()
+			.populate("walker", "firstName lastName picture") // Populate walker with firstName and lastName
+			.populate("marshal", "firstName lastName") // Populate marshal with firstName and lastName
+			.populate("dog", "name breed"); // Populate dog with name and breed
+
+		const completedWalks = await CompletedWalk.find({
+			status: "pending",
+		})
+			.populate("userId", "firstName lastName picture dogs")
+			.populate("dogId", "name breed demeanor imageURL");
+		// return res.end("HELLO FROM SCHEDULED WALKS");
+		res.status(200).json({ data: { walks, completedWalks } });
+	} catch (error) {
+		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };
