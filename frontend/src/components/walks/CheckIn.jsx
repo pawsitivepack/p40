@@ -4,7 +4,7 @@ import api from "../../api/axios"; //test
 
 const CheckIn = () => {
 	const [walksWithUsers, setWalksWithUsers] = useState([]);
-	const [checkedInUsers, setCheckedInUsers] = useState({});
+	const [checkedInUsers, setCheckedInUsers] = useState([]);
 	const [dogs, setDogs] = useState([]);
 	const [selectedDog, setSelectedDog] = useState({});
 	const [completedDogWalks, setCompletedDogWalks] = useState({});
@@ -15,14 +15,16 @@ const CheckIn = () => {
 	useEffect(() => {
 		const fetchWalks = async () => {
 			try {
-				const response = await api.get(`/scheduledWalks`);
-
+				const response = await api.get(`/scheduledWalks/checkInSchedules`);
+				console.log("THE RESPONSE IN FETCH WALKS IS ", response.data.data);
 				// Filter only today's walks
 				const today = new Date().toISOString().split("T")[0];
-				const filteredWalks = response.data.filter(
+				const filteredWalks = response.data.data.walks.filter(
 					(walk) => new Date(walk.date).toISOString().split("T")[0] === today
 				);
 				setWalksWithUsers(filteredWalks);
+
+				setCheckedInUsers(response.data.data.completedWalks);
 			} catch (error) {
 				console.error("Error fetching walks:", error);
 			}
@@ -63,11 +65,17 @@ const CheckIn = () => {
 	// Handle check-in
 	const handleCheckIn = async (walkId, walkerId, marshalId, date) => {
 		try {
-			const response = await api.post(`/completedWalk`,{ userId: walkerId, walkId, marshalId, date });
+			const response = await api.post(`/completedWalk`, {
+				userId: walkerId,
+				walkId,
+				marshalId,
+				date,
+			});
 			alert("Check-in successful!");
-			setCheckedInUsers((prev) => ({ ...prev, [walkerId]: true }));
+			setCheckedInUsers((prev) => [...prev, walkerId]);
 			setRefresh((prev) => !prev);
 		} catch (error) {
+			alert(error);
 			console.error("Error checking in:", error);
 		}
 	};
@@ -81,7 +89,11 @@ const CheckIn = () => {
 		}
 
 		try {
-			const response = await api.put(`/completedWalk/dogadded`,{ userId: walkerId, walkId, dogId });
+			const response = await api.put(`/completedWalk/dogadded`, {
+				userId: walkerId,
+				walkId,
+				dogId,
+			});
 
 			alert("Dog walk recorded successfully!");
 
@@ -105,7 +117,10 @@ const CheckIn = () => {
 
 	const handleCompleteUserWalk = async (walkId, walkerId) => {
 		try {
-			await api.put(`/completedWalk/completedUserWalk`,{ userId: walkerId, walkId });
+			await api.put(`/completedWalk/completedUserWalk`, {
+				userId: walkerId,
+				walkId,
+			});
 
 			alert("User's full walk completed!");
 
@@ -118,7 +133,10 @@ const CheckIn = () => {
 
 	const handleDidNotShow = async (walkId, walkerId) => {
 		try {
-			await api.put(`/completedWalk/didnotShowup`,{ userId: walkerId, walkId });
+			await api.put(`/completedWalk/didnotShowup`, {
+				userId: walkerId,
+				walkId,
+			});
 
 			alert("User marked as 'Did Not Show Up'. Points deducted.");
 
@@ -177,32 +195,68 @@ const CheckIn = () => {
 											{walk.marshal ? walk.marshal.firstName : "Not Assigned"}
 										</p>
 
-										{/* Check-In and Did Not Show Up Buttons */}
-										<div className="flex justify-between">
-											<button
-												className="bg-blue-500 text-white px-4 py-2 rounded-md"
-												onClick={() =>
-													handleCheckIn(
-														walk._id,
-														user._id,
-														walk.marshal._id,
-														walk.date
-													)
-												}
-											>
-												Check In
-											</button>
-											<button
-												className="bg-red-500 text-white px-4 py-2 rounded-md"
-												onClick={() => handleDidNotShow(walk._id, user._id)}
-											>
-												Did Not Show Up
-											</button>
-										</div>
+										{/* Check-In and Did Not Show Up Buttons (only if not already checked in) */}
+										{!checkedInUsers.find((data) => {
+											const userData = data?.userId;
+											const walkData = data?.walkId;
+											return (
+												userData?._id === user._id && walkData === walk._id
+											);
+										}) && (
+											<div className="flex justify-between">
+												<button
+													className="bg-blue-500 text-white px-4 py-2 rounded-md"
+													onClick={() =>
+														handleCheckIn(
+															walk._id,
+															user._id,
+															walk.marshal._id,
+															walk.date
+														)
+													}
+												>
+													Check In
+												</button>
+												<button
+													className="bg-red-500 text-white px-4 py-2 rounded-md"
+													onClick={() => handleDidNotShow(walk._id, user._id)}
+												>
+													Did Not Show Up
+												</button>
+											</div>
+										)}
 
 										{/* Show remaining actions only after Check-In */}
-										{checkedInUsers[user._id] && (
+										{checkedInUsers.find((data) => {
+											const userData = data?.userId;
+											const walkData = data?.walkId;
+											return (
+												userData?._id === user._id && walkData === walk._id
+											);
+										}) && (
 											<>
+												{/* Show already walked dogs */}
+												{(() => {
+													const matched = checkedInUsers.find(
+														(data) =>
+															data?.userId?._id === user._id &&
+															data?.walkId === walk._id
+													);
+													return matched?.dogId?.length > 0 ? (
+														<div className="mt-3">
+															<p className="text-green-700 text-sm font-semibold">
+																Dogs Already Walked:
+															</p>
+															<ul className="list-disc list-inside text-sm text-gray-700">
+																{matched.dogId.map((dog) => (
+																	<li key={dog._id}>
+																		{dog?.name || "Unknown Dog"}
+																	</li>
+																))}
+															</ul>
+														</div>
+													) : null;
+												})()}
 												{/* Dog Selection */}
 												<p className="text-blue-600 font-medium mt-3">
 													Select a dog to assign:

@@ -100,6 +100,7 @@ exports.CompletedUserWalk = async (req, res) => {
 		// Store the completed walk ID in the user's completedWalks field
 		user.completedWalks = user.completedWalks || [];
 		user.completedWalks.push(completedWalk._id);
+		user.userPoints = (user.userPoints || 0) + 10;
 		await user.save();
 
 		// Remove the user from the scheduled walk's walker list
