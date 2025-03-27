@@ -16,7 +16,7 @@ const CheckIn = () => {
 		const fetchWalks = async () => {
 			try {
 				const response = await api.get(`/scheduledWalks/checkInSchedules`);
-				console.log("THE RESPONSE IN FETCH WALKS IS ", response.data.data);
+
 				// Filter only today's walks
 				const today = new Date().toISOString().split("T")[0];
 				const filteredWalks = response.data.data.walks.filter(
@@ -52,7 +52,8 @@ const CheckIn = () => {
 	useEffect(() => {
 		const fetchDogs = async () => {
 			try {
-				const response = await api.get(`/dogs`);
+				const response = await api.get(`/dogs/filtered`);
+
 				setDogs(response.data);
 			} catch (error) {
 				console.error("Error fetching dogs:", error);
@@ -60,7 +61,7 @@ const CheckIn = () => {
 		};
 
 		fetchDogs();
-	}, []);
+	}, [selectedDog, refresh]);
 
 	// Handle check-in
 	const handleCheckIn = async (walkId, walkerId, marshalId, date) => {
@@ -271,6 +272,9 @@ const CheckIn = () => {
 													<option value="">Select a dog</option>
 													{dogs.map((dog) => (
 														<option key={dog._id} value={dog._id}>
+															{dog.demeanor === "Red" && "🔴 "}
+															{dog.demeanor === "Yellow" && "🟡 "}
+															{dog.demeanor === "Gray" && "⚪ "}
 															{dog.name}
 														</option>
 													))}

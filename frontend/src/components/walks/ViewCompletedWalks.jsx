@@ -206,7 +206,6 @@ const ViewCompletedWalks = () => {
 	// Function to print the table
 	const handlePrint = () => {
 		const currentWalks = getCurrentWalks();
-
 		// Create a table with only the filtered and paginated data
 		let printTable = `<table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
       <thead style="background-color: #8c1d35; color: white;">
@@ -219,7 +218,6 @@ const ViewCompletedWalks = () => {
         </tr>
       </thead>
       <tbody>`;
-
 		currentWalks.forEach((walk) => {
 			const walker = walk.userId
 				? `${walk.userId.firstName} ${walk.userId.lastName}`
@@ -233,7 +231,6 @@ const ViewCompletedWalks = () => {
 				walk.dogId.length > 0
 					? walk.dogId.map((dog) => dog.name).join(", ")
 					: "No dogs walked";
-
 			printTable += `
         <tr style="background-color: #f8f5f0;">
           <td>${walker}</td>
@@ -245,9 +242,7 @@ const ViewCompletedWalks = () => {
           <td>${dogs}</td>
         </tr>`;
 		});
-
 		printTable += `</tbody></table>`;
-
 		// Get filter description
 		let filterDescription = "All walks";
 		if (filterPeriod === "week") {
@@ -267,11 +262,9 @@ const ViewCompletedWalks = () => {
 				customDateRange.end
 			).toLocaleDateString()}`;
 		}
-
 		if (searchTerm) {
 			filterDescription += ` (Search: "${searchTerm}")`;
 		}
-
 		// Create print content
 		const originalContent = document.body.innerHTML;
 		document.body.innerHTML = `
@@ -317,7 +310,7 @@ const ViewCompletedWalks = () => {
           }
           th {
             background-color: #8c1d35 !important;
-            color: white !important;
+            color: black !important;
             font-weight: bold;
             text-align: left;
             padding: 10px;
@@ -354,9 +347,41 @@ const ViewCompletedWalks = () => {
         ULM P40 UNDERDOGS © ${new Date().getFullYear()} | This is an official record of dog walking activities.
       </div>
     `;
-
 		window.print();
 		document.body.innerHTML = originalContent;
+	};
+
+	// Function to export current walks as CSV
+	const handleExportCSV = () => {
+		const currentWalks = getCurrentWalks();
+		const csvHeader = ["Walker", "Marshal", "Date", "Status", "Dogs Walked"];
+		const csvRows = currentWalks.map((walk) => {
+			const walker = walk.userId
+				? `${walk.userId.firstName} ${walk.userId.lastName}`
+				: "Anonymous";
+			const marshal = walk.marshalId
+				? `${walk.marshalId.firstName} ${walk.marshalId.lastName}`
+				: "Anonymous";
+			const date = new Date(walk.date).toLocaleDateString();
+			const status = walk.status;
+			const dogs =
+				walk.dogId.length > 0
+					? walk.dogId.map((dog) => dog.name).join(", ")
+					: "No dogs walked";
+			return [walker, marshal, date, status, dogs];
+		});
+		const csvContent =
+			"data:text/csv;charset=utf-8," +
+			[csvHeader, ...csvRows]
+				.map((e) => e.map((v) => `"${v}"`).join(","))
+				.join("\n");
+		const encodedUri = encodeURI(csvContent);
+		const link = document.createElement("a");
+		link.setAttribute("href", encodedUri);
+		link.setAttribute("download", "completed_walks.csv");
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
 	};
 
 	// Get sort direction indicator
@@ -610,6 +635,14 @@ const ViewCompletedWalks = () => {
 					>
 						<FaPrint />
 						Print Logs
+					</button>
+					<button
+						onClick={handleExportCSV}
+						className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg shadow transition"
+						style={{ backgroundColor: "var(--primary-300)" }}
+						disabled={filteredWalks.length === 0}
+					>
+						📥 Export CSV
 					</button>
 				</div>
 			</div>

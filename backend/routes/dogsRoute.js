@@ -6,6 +6,7 @@ const verifyToken = require("../middleware/authMiddleware");
 const { uploadDogPic } = require("../config/cloudinary");
 
 router.get("/", dogController.getDogs);
+router.get("/filtered", dogController.filteredDogs);
 router.post(
 	"/",
 	verifyToken,
