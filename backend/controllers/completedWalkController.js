@@ -1,6 +1,7 @@
 const CompletedWalk = require("../models/completedWalkModel");
 const User = require("../models/usersModel");
 const ScheduledWalk = require("../models/walkmodel");
+const Dog = require("../models/dogModel");
 
 exports.checkInWalker = async (req, res) => {
 	const { userId, walkId, marshalId, date } = req.body;
@@ -57,6 +58,7 @@ exports.walkedADog = async (req, res) => {
 		completedWalk.dogId.push(dogId);
 		await completedWalk.save();
 
+		await Dog.findByIdAndUpdate(dogId, { lastWalk: new Date() });
 		// Count how many dogs have been walked
 		const completedDogCount = completedWalk.dogId.length;
 

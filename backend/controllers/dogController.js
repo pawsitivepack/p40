@@ -11,7 +11,31 @@ exports.getDogs = async (req, res) => {
 		res.status(500).json({ error: "Failed to fetch data" });
 	}
 };
+exports.filteredDogs = async (req, res) => {
+	try {
+		const allDogs = await Dog.find({});
 
+		const today = new Date();
+		today.setHours(0, 0, 0, 0); // Reset time to midnight
+
+		const dogsWithNoWalk = allDogs.filter((dog) => !dog.lastWalk);
+		const dogsWithPastWalks = allDogs.filter(
+			(dog) => dog.lastWalk && new Date(dog.lastWalk) < today
+		);
+
+		// Sort dogs with past walks by oldest first
+		dogsWithPastWalks.sort(
+			(a, b) => new Date(a.lastWalk) - new Date(b.lastWalk)
+		);
+
+		const result = [...dogsWithNoWalk, ...dogsWithPastWalks];
+
+		res.json(result);
+	} catch (error) {
+		console.error("Error fetching data:", error);
+		res.status(500).json({ error: "Failed to fetch data" });
+	}
+};
 exports.addDog = async (req, res) => {
 	try {
 		// Use the image uploaded via Cloudinary
