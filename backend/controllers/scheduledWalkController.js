@@ -2,6 +2,7 @@ const ScheduledWalk = require("../models/walkmodel");
 const User = require("../models/usersModel");
 const transporter = require("../config/mailer");
 const CompletedWalk = require("../models/completedWalkModel");
+const Slots = require("../models/slotsModel");
 
 exports.addScheduledWalk = async (req, res) => {
 	try {
@@ -122,6 +123,15 @@ exports.confirm = async (req, res) => {
 
 		user.dogsWalked.push(walkId); // Push walkId to the dogsWalked array
 		await user.save();
+
+		// Create a new Slots entry
+		await Slots.create({
+			slots: walk.slots,
+			walkId: walk._id,
+			walkerId: userId,
+			marshalId: walk.marshal,
+		});
+
 		await transporter.sendMail({
 			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
 			to: user.email,
