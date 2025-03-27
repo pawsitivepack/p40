@@ -29,7 +29,6 @@ const Walkdogs = () => {
 		<div className="flex flex-col lg:flex-row gap-4 p-4">
 			{/* Calendar Section */}
 			<div className="w-full px-0 py-4 shadow-md rounded-md">
-				<h2 className="text-center font-bold text-xl mb-4">Calendar</h2>
 				<MyCalendar />
 			</div>
 		</div>
