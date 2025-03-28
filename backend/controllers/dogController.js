@@ -11,19 +11,48 @@ exports.getDogs = async (req, res) => {
 		res.status(500).json({ error: "Failed to fetch data" });
 	}
 };
+exports.filteredDogs = async (req, res) => {
+	try {
+		const allDogs = await Dog.find({});
 
+		const today = new Date();
+		today.setHours(0, 0, 0, 0); // Reset time to midnight
+
+		const dogsWithNoWalk = allDogs.filter((dog) => !dog.lastWalk);
+		const dogsWithPastWalks = allDogs.filter(
+			(dog) => dog.lastWalk && new Date(dog.lastWalk) < today
+		);
+
+		// Sort dogs with past walks by oldest first
+		dogsWithPastWalks.sort(
+			(a, b) => new Date(a.lastWalk) - new Date(b.lastWalk)
+		);
+
+		const result = [...dogsWithNoWalk, ...dogsWithPastWalks];
+
+		res.json(result);
+	} catch (error) {
+		console.error("Error fetching data:", error);
+		res.status(500).json({ error: "Failed to fetch data" });
+	}
+};
 exports.addDog = async (req, res) => {
 	try {
+		// Use the image uploaded via Cloudinary
+		const imageUrl = req.file?.path || "";
+
 		const newDog = new Dog({
 			...req.body,
-			tags: req.body.tags || [],
+			imageURL: imageUrl, // use `imageURL` field in the schema
+			tags: req.body.tags ? JSON.parse(req.body.tags) : [],
 			demeanor: req.body.demeanor || "Red",
-			notes: req.body.notes || [],
-		}); // Create a new instance of the Dog model
-		const savedDog = await newDog.save(); // Save to the database
+			notes: req.body.notes ? JSON.parse(req.body.notes) : [],
+		});
+
+		const savedDog = await newDog.save();
 		res.status(201).json(savedDog);
 	} catch (error) {
-		console.error("Error adding dog:");
+		console.error("Error adding dog:", error);
 		res.status(500).json({ error: "Failed to add dog" });
 	}
 };

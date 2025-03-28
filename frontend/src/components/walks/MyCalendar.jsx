@@ -7,7 +7,19 @@ import "react-toastify/dist/ReactToastify.css";
 import "./MyCalendar.css";
 import ScheduleWalkForm from "./ScheduleWalkForm";
 import { jwtDecode } from "jwt-decode";
-import { CheckBadgeIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
+import {
+	FaCalendarAlt,
+	FaPlus,
+	FaClock,
+	FaMapMarkerAlt,
+	FaUserShield,
+	FaTicketAlt,
+	FaCheck,
+	FaTimes,
+	FaUsers,
+	FaPaw,
+	FaSpinner,
+} from "react-icons/fa";
 
 const MyCalendar = () => {
 	const [date, setDate] = useState(null);
@@ -25,6 +37,10 @@ const MyCalendar = () => {
 		location: "920 F Drive Monroe LA",
 	});
 	const [isBulk, setIsBulk] = useState(false); // Added isBulk state
+	const [selectedWalkId, setSelectedWalkId] = useState(null);
+	const [slotSelections, setSlotSelections] = useState({});
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(null);
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -46,12 +62,14 @@ const MyCalendar = () => {
 			}
 		}
 	}, []);
+
 	useEffect(() => {
 		if (date) {
 			const selectedDateStr = date.toLocaleDateString();
 			const filtered = availableWalks.filter((walk) => {
-				const walkDateStr = new Date(walk.date).toLocaleDateString();
-				return walkDateStr === selectedDateStr;
+				const walkDate = new Date(walk.date);
+				walkDate.setHours(0, 0, 0, 0);
+				return walkDate.toLocaleDateString() === selectedDateStr;
 			});
 			setFilteredWalks(filtered);
 		}
@@ -59,10 +77,14 @@ const MyCalendar = () => {
 
 	const fetchAvailableWalks = async () => {
 		try {
+			setLoading(true);
 			const response = await api.get("/scheduledwalks");
 			setAvailableWalks(response.data);
+			setLoading(false);
 		} catch (error) {
 			console.error("Error fetching available walks:", error);
+			setError("Failed to load scheduled walks. Please try again.");
+			setLoading(false);
 		}
 	};
 
@@ -81,54 +103,62 @@ const MyCalendar = () => {
 		}));
 
 		const filtered = availableWalks.filter((walk) => {
-			const walkDateStr = new Date(walk.date).toLocaleDateString();
-			return walkDateStr === selectedDateStr;
+			const walkDate = new Date(walk.date);
+			walkDate.setHours(0, 0, 0, 0);
+			return walkDate.toLocaleDateString() === selectedDateStr;
 		});
 
 		setFilteredWalks(filtered);
 		setShowForm(false); // Hide form when a new date is selected
 	};
+
+	const handleSelectWalk = (walkId) => {
+		setSelectedWalkId(walkId);
+		setSlotSelections((prev) => ({
+			...prev,
+			[walkId]: prev[walkId] || 1,
+		}));
+	};
+
 	const handleConfirmWalk = async (walk) => {
+		const slotsSelected = slotSelections[walk._id] || 1;
+
 		const confirm = window.confirm(
-			`Do you want to confirm the walk on ${new Date(
-				walk.date
-			).toLocaleDateString()} at ${new Date(walk.date).toLocaleTimeString([], {
-				hour: "2-digit",
-				minute: "2-digit",
-			})}?`
+			`Confirm ${slotsSelected} slot${
+				slotsSelected > 1 ? "s" : ""
+			} for walk on ${new Date(walk.date).toLocaleString()}?`
 		);
 
-		if (confirm) {
-			try {
-				const token = localStorage.getItem("token");
-				if (!token) {
-					toast.error("You must be logged in to confirm a walk.");
-					return;
-				}
+		if (!confirm) return;
 
-				const decodedToken = jwtDecode(token);
-				const userId = decodedToken.id;
-
-				const response = await api.post(`/scheduledWalks/confirm`, {
-					walkId: walk._id,
-					userId: userId, // Send userId along with walkId
-				});
-				toast.success("Walk confirmed successfully!");
-				await fetchAvailableWalks(); // Refresh data after confirmation
-			} catch (error) {
-				console.error("Error confirming walk:", error);
-				toast.error(
-					error.response?.data?.message ||
-						"Failed to confirm the walk. Please try again."
-				);
+		try {
+			const token = localStorage.getItem("token");
+			if (!token) {
+				toast.error("You must be logged in to confirm a walk.");
+				return;
 			}
+
+			const decodedToken = jwtDecode(token);
+			const userId = decodedToken.id;
+
+			const response = await api.post(`/scheduledWalks/confirm`, {
+				walkId: walk._id,
+				userId: userId,
+				slots: slotsSelected,
+			});
+
+			toast.success("Walk confirmed successfully!");
+			await fetchAvailableWalks();
+			setSelectedWalkId(null);
+		} catch (error) {
+			console.error("Error confirming walk:", error);
+			toast.error(
+				error.response?.data?.message ||
+					"Failed to confirm the walk. Please try again."
+			);
 		}
 	};
 
-	const handleSelectWalk = (walk) => {
-		setSelectedWalk(walk._id);
-		handleConfirmWalk(walk); // Confirm the walk immediately
-	};
 	const handleAddEvent = async (e, repeatUntil, selectedTimes) => {
 		e.preventDefault();
 		const schedulingToastId = toast.loading("Scheduling...");
@@ -194,154 +224,375 @@ const MyCalendar = () => {
 		}
 	};
 
+	// Format date for better display
+	const formatDate = (dateString) => {
+		const options = {
+			weekday: "long",
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		};
+		return new Date(dateString).toLocaleDateString("en-US", options);
+	};
+
 	return (
-		<div className="container mx-auto px-4">
-			<ToastContainer />
-
-			<div className="flex flex-col md:flex-row gap-6">
-				<div
-					className={`bg-white shadow-md rounded-lg p-4 
-    ${date ? "md:w-1/2 lg:w-1/2" : "w-full"}`}
-				>
-					<Calendar
-						onChange={handleDateChange}
-						value={date}
-						view={view}
-						onViewChange={setView}
-						className="custom-calendar w-full h-full"
-						tileDisabled={({ date }) => {
-							// Disable Saturday (6), Sunday (0), and Monday (1)
-							const day = date.getDay();
-							return day === 0 || day === 1 || day === 6;
-						}}
-						tileContent={({ date }) => {
-							const today = new Date();
-							today.setHours(0, 0, 0, 0);
-
-							const walksForDate = availableWalks.some((walk) => {
-								const walkDate = new Date(walk.date);
-								walkDate.setHours(0, 0, 0, 0);
-								return (
-									walkDate.toLocaleDateString() === date.toLocaleDateString() &&
-									walkDate >= today
-								);
-							});
-
-							return walksForDate ? (
-								<div className="flex justify-center items-center mt-1">
-									<CheckBadgeIcon className="w-8 h-8 text-green-500" />
-								</div>
-							) : null;
-						}}
-					/>
+		<div className="min-h-screen bg-[#f8f5f0]">
+			{/* Header */}
+			<div className="bg-[#8c1d35] text-white py-8 px-4 mb-8">
+				<div className="max-w-7xl mx-auto">
+					<h1 className="text-4xl font-bold text-center mb-2">
+						Dog Walking Calendar
+					</h1>
+					<p className="text-center text-lg max-w-3xl mx-auto opacity-90">
+						Schedule and manage dog walking appointments
+					</p>
 				</div>
+			</div>
 
-				{date && (
-					<div className="md:w-1/2 lg:w-1/2 bg-gray-100 shadow-lg rounded-lg p-6 border border-gray-300 overflow-y-auto h-[600px]">
-						<h2 className="text-3xl font-extrabold mb-6 text-gray-900 text-center">
-							{`Walks on ${date.toLocaleDateString()}`}
-						</h2>
+			<div className="container mx-auto px-4 pb-12">
+				<ToastContainer
+					position="top-right"
+					autoClose={5000}
+					hideProgressBar={false}
+					newestOnTop
+					closeOnClick
+					rtl={false}
+					pauseOnFocusLoss
+					draggable
+					pauseOnHover
+					theme="light"
+				/>
 
-						{["marshal", "admin"].includes(role) && (
-							<button
-								onClick={() => setShowForm(true)}
-								className="mb-4 flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg text-lg font-bold hover:bg-green-700 transition-all duration-300 shadow-md"
-							>
-								<PlusCircleIcon className="w-6 h-6" />
-								<span>Add Walk</span>
-							</button>
-						)}
+				{loading ? (
+					<div className="flex justify-center items-center h-64">
+						<div className="flex flex-col items-center">
+							<FaSpinner className="animate-spin text-[#8c1d35] text-4xl mb-4" />
+							<p className="text-[#8c1d35] font-medium">Loading calendar...</p>
+						</div>
+					</div>
+				) : error ? (
+					<div className="bg-white rounded-xl shadow-md p-8 text-center">
+						<FaTimes className="text-[#8c1d35] text-5xl mx-auto mb-4" />
+						<h2 className="text-2xl font-bold text-[#8c1d35] mb-2">Error</h2>
+						<p className="text-gray-600 mb-4">{error}</p>
+						<button
+							onClick={() => fetchAvailableWalks()}
+							className="bg-[#8c1d35] text-white px-4 py-2 rounded-lg hover:bg-[#7c1025] transition-colors"
+						>
+							Try Again
+						</button>
+					</div>
+				) : (
+					<div className="flex flex-col md:flex-row gap-6">
+						{/* Calendar Section */}
+						<div
+							className={`bg-white shadow-md rounded-xl overflow-hidden ${
+								date ? "md:w-1/2 lg:w-1/2" : "w-full"
+							}`}
+						>
+							<div className="bg-[#e8d3a9] px-5 py-3 border-b border-[#d9c59a]">
+								<div className="flex items-center">
+									<FaCalendarAlt className="text-[#8c1d35] mr-2" />
+									<h2 className="text-xl font-semibold text-[#8c1d35]">
+										Select a Date
+									</h2>
+								</div>
+							</div>
+							<div className="p-4">
+								<Calendar
+									onChange={handleDateChange}
+									value={date}
+									view={view}
+									onViewChange={setView}
+									className="custom-calendar w-full h-full"
+									tileDisabled={({ date }) => {
+										// Disable Saturday (6), Sunday (0), and Monday (1)
+										const day = date.getDay();
+										return day === 0 || day === 1 || day === 6;
+									}}
+									tileContent={({ date }) => {
+										const today = new Date();
+										today.setHours(0, 0, 0, 0);
 
-						{/* Show message if no walks are available */}
-						{filteredWalks.length === 0 ? (
-							<p className="text-gray-700 bg-gray-200 rounded-lg text-center col-span-full p-6 shadow-md">
-								🚫 No walks available for this date.
-							</p>
-						) : (
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								{filteredWalks.map((walk) => {
-									const isAlreadyWalked = walk.walker.some(
-										(walker) => walker._id === userID
-									);
+										const walksForDate = availableWalks.some((walk) => {
+											const walkDate = new Date(walk.date);
+											walkDate.setHours(0, 0, 0, 0);
+											return (
+												walkDate.toLocaleDateString() ===
+													date.toLocaleDateString() && walkDate >= today
+											);
+										});
 
-									return (
-										<div
-											key={walk._id}
-											className="border border-gray-300 rounded-lg p-5 shadow-lg bg-white hover:shadow-2xl transform hover:scale-105 transition-all"
-										>
-											<div className="space-y-2">
-												<p className="text-gray-800">
-													<span className="font-bold">📅 Date:</span>{" "}
-													{new Date(walk.date).toLocaleDateString()}
-												</p>
-												<p className="text-gray-800">
-													<span className="font-bold">⏰ Time:</span>{" "}
-													{new Date(walk.date).toLocaleTimeString([], {
-														hour: "2-digit",
-														minute: "2-digit",
-													})}
-												</p>
-
-												{role === "admin" && walk.walker.length > 0 && (
-													<>
-														<p className="text-gray-800">👥 Walkers:</p>
-														<ul className="list-disc list-inside text-gray-700">
-															{walk.walker.map((walker) => (
-																<li key={walker._id}>
-																	{walker.firstName} {walker.lastName}
-																</li>
-															))}
-														</ul>
-													</>
-												)}
-												<p className="text-gray-800">
-													<span className="font-bold">🚶 Marshal:</span>{" "}
-													{walk.marshal.firstName} {walk.marshal.lastName}
-												</p>
-												<p className="text-gray-800">
-													<span className="font-bold">🎟️ Slots Available:</span>{" "}
-													{walk.slots}
-												</p>
+										return walksForDate ? (
+											<div className="flex justify-center items-center mt-1">
+												<FaPaw className="text-[#8c1d35] text-lg" />
 											</div>
+										) : null;
+									}}
+								/>
+							</div>
+						</div>
 
-											{walk.slots === 0 ? (
-												<p className="mt-4 w-full text-center text-red-600 font-bold bg-red-100 p-2 rounded-md">
-													❌ This walk is full
-												</p>
-											) : (
-												role === "user" && (
-													<button
-														onClick={() => handleSelectWalk(walk)}
-														disabled={isAlreadyWalked}
-														className={`mt-4 w-full py-2 rounded-md text-white font-semibold transition-colors duration-300 ${
-															isAlreadyWalked
-																? "bg-gray-400 cursor-not-allowed"
-																: "bg-blue-600 hover:bg-blue-700"
-														}`}
-													>
-														{isAlreadyWalked ? "Selected" : "Select Walk"}
-													</button>
-												)
+						{/* Walks Section */}
+						{date && (
+							<div className="md:w-1/2 lg:w-1/2 bg-white rounded-xl shadow-md overflow-hidden border border-[#e8d3a9]">
+								<div className="bg-[#e8d3a9] px-5 py-3 border-b border-[#d9c59a]">
+									<div className="flex justify-between items-center">
+										<div className="flex items-center">
+											<FaCalendarAlt className="text-[#8c1d35] mr-2" />
+											<h2 className="text-xl font-semibold text-[#8c1d35]">
+												{formatDate(date)}
+											</h2>
+										</div>
+										{["marshal", "admin"].includes(role) && (
+											<button
+												onClick={() => setShowForm(true)}
+												className="flex items-center gap-2 bg-[#8c1d35] text-white px-3 py-1 rounded-lg hover:bg-[#7c1025] transition-colors text-sm"
+											>
+												<FaPlus />
+												Add Walk
+											</button>
+										)}
+									</div>
+								</div>
+
+								<div className="p-5 max-h-[600px] overflow-y-auto">
+									{/* Show message if no walks are available */}
+									{filteredWalks.length === 0 ? (
+										<div className="bg-[#f8f5f0] rounded-lg p-8 text-center">
+											<FaPaw className="text-[#e8d3a9] text-5xl mx-auto mb-4" />
+											<h3 className="text-xl font-bold text-[#8c1d35] mb-2">
+												No Walks Available
+											</h3>
+											<p className="text-gray-600">
+												There are no walks scheduled for this date.
+											</p>
+											{["marshal", "admin"].includes(role) && (
+												<button
+													onClick={() => setShowForm(true)}
+													className="mt-4 flex items-center gap-2 bg-[#8c1d35] text-white px-4 py-2 rounded-lg hover:bg-[#7c1025] transition-colors mx-auto"
+												>
+													<FaPlus />
+													Schedule a Walk
+												</button>
 											)}
 										</div>
-									);
-								})}
+									) : (
+										<div className="grid grid-cols-1 gap-4">
+											{filteredWalks.map((walk) => {
+												const isAlreadyWalked = walk.walker.some(
+													(walker) => walker._id === userID
+												);
+
+												return (
+													<div
+														key={walk._id}
+														className="border border-[#e8d3a9] rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all"
+													>
+														{/* Walk Header */}
+														<div className="bg-[#f8f5f0] px-4 py-3 border-b border-[#e8d3a9]">
+															<div className="flex justify-between items-center">
+																<div className="flex items-center">
+																	<FaClock className="text-[#8c1d35] mr-2" />
+																	<span className="font-bold text-[#8c1d35]">
+																		{new Date(walk.date).toLocaleTimeString(
+																			[],
+																			{
+																				hour: "2-digit",
+																				minute: "2-digit",
+																			}
+																		)}
+																	</span>
+																</div>
+																<span
+																	className={`px-2 py-1 rounded-full text-xs font-medium ${
+																		walk.slots > 0
+																			? "bg-green-100 text-green-800"
+																			: "bg-red-100 text-red-800"
+																	}`}
+																>
+																	{walk.slots > 0 ? (
+																		<>
+																			<FaTicketAlt className="inline mr-1" />
+																			{walk.slots} slots available
+																		</>
+																	) : (
+																		<>
+																			<FaTimes className="inline mr-1" />
+																			Full
+																		</>
+																	)}
+																</span>
+															</div>
+														</div>
+
+														{/* Walk Details */}
+														<div className="p-4">
+															<div className="space-y-3">
+																{/* Location */}
+																<div className="flex">
+																	<div className="w-8 flex-shrink-0">
+																		<div className="w-6 h-6 rounded-full bg-[#f8f5f0] flex items-center justify-center">
+																			<FaMapMarkerAlt className="text-[#8c1d35] text-sm" />
+																		</div>
+																	</div>
+																	<div>
+																		<p className="text-xs text-gray-500">
+																			Location
+																		</p>
+																		<p className="font-medium text-gray-800">
+																			{walk.location}
+																		</p>
+																	</div>
+																</div>
+
+																{/* Marshal */}
+																<div className="flex">
+																	<div className="w-8 flex-shrink-0">
+																		<div className="w-6 h-6 rounded-full bg-[#f8f5f0] flex items-center justify-center">
+																			<FaUserShield className="text-[#8c1d35] text-sm" />
+																		</div>
+																	</div>
+																	<div>
+																		<p className="text-xs text-gray-500">
+																			Marshal
+																		</p>
+																		<p className="font-medium text-gray-800">
+																			{walk.marshal.firstName}{" "}
+																			{walk.marshal.lastName}
+																		</p>
+																	</div>
+																</div>
+
+																{/* Walkers (for admin) */}
+																{role === "admin" && walk.walker.length > 0 && (
+																	<div className="flex">
+																		<div className="w-8 flex-shrink-0">
+																			<div className="w-6 h-6 rounded-full bg-[#f8f5f0] flex items-center justify-center">
+																				<FaUsers className="text-[#8c1d35] text-sm" />
+																			</div>
+																		</div>
+																		<div>
+																			<p className="text-xs text-gray-500">
+																				Walkers
+																			</p>
+																			<ul className="space-y-1 mt-1">
+																				{walk.walker.map((walker) => (
+																					<li
+																						key={walker._id}
+																						className="text-gray-800 text-sm"
+																					>
+																						{walker.firstName} {walker.lastName}
+																					</li>
+																				))}
+																			</ul>
+																		</div>
+																	</div>
+																)}
+															</div>
+
+															{/* Action Buttons */}
+															{walk.slots === 0 ? (
+																<div className="mt-4 bg-red-50 border border-red-100 rounded-lg p-2 text-center">
+																	<p className="text-red-600 text-sm font-medium">
+																		This walk is full
+																	</p>
+																</div>
+															) : (
+																role === "user" && (
+																	<>
+																		{selectedWalkId === walk._id ? (
+																			<div className="mt-4 space-y-3">
+																				<div className="flex items-center justify-center gap-2 bg-[#f8f5f0] rounded-lg p-2">
+																					<button
+																						className="w-8 h-8 flex items-center justify-center bg-white rounded-full border border-[#8c1d35] text-[#8c1d35]"
+																						onClick={() =>
+																							setSlotSelections((prev) => ({
+																								...prev,
+																								[walk._id]: Math.max(
+																									1,
+																									(prev[walk._id] || 1) - 1
+																								),
+																							}))
+																						}
+																					>
+																						−
+																					</button>
+																					<span className="text-lg font-bold text-[#8c1d35] w-8 text-center">
+																						{slotSelections[walk._id] || 1}
+																					</span>
+																					<button
+																						className="w-8 h-8 flex items-center justify-center bg-white rounded-full border border-[#8c1d35] text-[#8c1d35]"
+																						onClick={() =>
+																							setSlotSelections((prev) => ({
+																								...prev,
+																								[walk._id]: Math.min(
+																									walk.slots,
+																									(prev[walk._id] || 1) + 1
+																								),
+																							}))
+																						}
+																					>
+																						＋
+																					</button>
+																				</div>
+																				<button
+																					onClick={() =>
+																						handleConfirmWalk(walk)
+																					}
+																					className="w-full py-2 rounded-lg bg-[#8c1d35] hover:bg-[#7c1025] text-white font-medium flex items-center justify-center gap-2"
+																				>
+																					<FaCheck />
+																					Confirm{" "}
+																					{slotSelections[walk._id] || 1} Slot
+																					{slotSelections[walk._id] > 1
+																						? "s"
+																						: ""}
+																				</button>
+																			</div>
+																		) : (
+																			<button
+																				onClick={() =>
+																					handleSelectWalk(walk._id)
+																				}
+																				disabled={isAlreadyWalked}
+																				className={`mt-4 w-full py-2 rounded-lg text-white font-medium transition-colors ${
+																					isAlreadyWalked
+																						? "bg-gray-400 cursor-not-allowed"
+																						: "bg-[#f5b82e] hover:bg-[#e5a81e] text-[#8c1d35]"
+																				}`}
+																			>
+																				{isAlreadyWalked
+																					? "Already Selected"
+																					: "Select Walk"}
+																			</button>
+																		)}
+																	</>
+																)
+															)}
+														</div>
+													</div>
+												);
+											})}
+										</div>
+									)}
+								</div>
 							</div>
 						)}
 					</div>
 				)}
-			</div>
 
-			{showForm && ["marshal", "admin"].includes(role) && (
-				<ScheduleWalkForm
-					newEvent={newEvent}
-					setNewEvent={setNewEvent}
-					setShowForm={setShowForm}
-					handleAddEvent={handleAddEvent}
-					isBulk={isBulk} // Pass isBulk as a prop
-					setIsBulk={setIsBulk} // Pass setIsBulk as a prop
-				/>
-			)}
+				{showForm && ["marshal", "admin"].includes(role) && (
+					<ScheduleWalkForm
+						newEvent={newEvent}
+						setNewEvent={setNewEvent}
+						setShowForm={setShowForm}
+						handleAddEvent={handleAddEvent}
+						isBulk={isBulk}
+						setIsBulk={setIsBulk}
+					/>
+				)}
+			</div>
 		</div>
 	);
 };

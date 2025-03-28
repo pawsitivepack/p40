@@ -10,6 +10,8 @@ router.post(
 	verifyMarshal,
 	WalkController.addScheduledWalk
 );
+router.get("/checkInSchedules", WalkController.checkInScheduledWalks);
+
 router.get(
 	"/",
 	verifyToken,

@@ -6,7 +6,6 @@ const Walk = require("../models/walkmodel");
 const transporter = require("../config/mailer");
 const passwordPolicy = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
-// ✅ Helper function to generate JWT token
 const generateUserToken = (user) => {
 	return jwt.sign(
 		{
@@ -34,7 +33,6 @@ exports.refreshToken = async (req, res) => {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		// ✅ Use the new token generator
 		const newToken = generateUserToken(user);
 
 		return res.status(200).json({ token: newToken, picture: user.picture });
@@ -58,14 +56,13 @@ exports.login = async (req, res) => {
 			return res.status(400).json({ message: "Invalid email or password" });
 		}
 
-        if (!user.isVerified) {
-			return res.status(403).json({ 
+		if (!user.isVerified) {
+			return res.status(403).json({
 				message: "Please verify your email before logging in.",
 				email: user.email,
-			    
 			});
 		}
-		
+
 		const token = generateUserToken(user);
 		user.lastLogin = new Date();
 		await user.save();
@@ -78,7 +75,6 @@ exports.login = async (req, res) => {
 				name: `${user.firstName} ${user.lastName}`,
 			},
 		});
-		
 	} catch (error) {
 		console.error("Error during login:", error);
 		res.status(500).json({ error: "Internal server error" });
@@ -123,7 +119,6 @@ exports.googlelogin = async (req, res) => {
 			});
 		}
 
-		// 🔄 Update picture only if there is no existing picture
 		if (!user.picture) {
 			user.picture = picture;
 			await user.save();
@@ -177,10 +172,13 @@ exports.verifyOtp = async (req, res) => {
 	try {
 		const user = await User.findOne({ email });
 		if (!user) return res.status(404).json({ message: "User not found" });
-		if (user.isVerified) return res.status(200).json({ message: "User already verified" });
+		if (user.isVerified)
+			return res.status(200).json({ message: "User already verified" });
 
-		if (user.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
-		if (user.otpExpires < new Date()) return res.status(400).json({ message: "OTP expired" });
+		if (user.otp !== otp)
+			return res.status(400).json({ message: "Invalid OTP" });
+		if (user.otpExpires < new Date())
+			return res.status(400).json({ message: "OTP expired" });
 
 		user.isVerified = true;
 		user.otp = undefined;
@@ -207,7 +205,8 @@ exports.signup = async (req, res) => {
 			if (!existingUser.isVerified) {
 				// Unverified user trying to sign up again
 				return res.status(403).json({
-					message: "Email is already registered but not verified. Please verify your email.",
+					message:
+						"Email is already registered but not verified. Please verify your email.",
 					email,
 				});
 			}
@@ -253,7 +252,9 @@ exports.signup = async (req, res) => {
 			`,
 		});
 
-		res.status(201).json({ message: "Signup successful. OTP sent to your email." });
+		res
+			.status(201)
+			.json({ message: "Signup successful. OTP sent to your email." });
 	} catch (error) {
 		console.error("Signup Error:", error);
 		res.status(500).json({ message: "Internal server error" });
@@ -266,7 +267,9 @@ exports.resendOtp = async (req, res) => {
 	try {
 		const user = await User.findOne({ email });
 		if (!user || user.isVerified) {
-			return res.status(400).json({ message: "Invalid request or already verified." });
+			return res
+				.status(400)
+				.json({ message: "Invalid request or already verified." });
 		}
 
 		const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -294,9 +297,6 @@ exports.resendOtp = async (req, res) => {
 		res.status(500).json({ message: "Failed to resend OTP" });
 	}
 };
-;
-
-
 // Fetch my profile
 exports.myProfile = async (req, res) => {
 	try {

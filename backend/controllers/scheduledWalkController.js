@@ -1,5 +1,8 @@
 const ScheduledWalk = require("../models/walkmodel");
 const User = require("../models/usersModel");
+const transporter = require("../config/mailer");
+const CompletedWalk = require("../models/completedWalkModel");
+const Slots = require("../models/slotsModel");
 
 exports.addScheduledWalk = async (req, res) => {
 	try {
@@ -121,6 +124,28 @@ exports.confirm = async (req, res) => {
 		user.dogsWalked.push(walkId); // Push walkId to the dogsWalked array
 		await user.save();
 
+		// Create a new Slots entry
+		await Slots.create({
+			slots: walk.slots,
+			walkId: walk._id,
+			walkerId: userId,
+			marshalId: walk.marshal,
+		});
+
+		await transporter.sendMail({
+			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
+			to: user.email,
+			subject: "Walk Confirmation - Underdogs",
+			html: `
+	<h2>Hi ${user.firstName},</h2>
+	<p>You have successfully confirmed your participation in a walk scheduled for <strong>${walk.date.toLocaleString()}</strong> at <strong>${
+				walk.location
+			}</strong>.</p>
+	<p>Thank you for supporting the Underdogs program!</p>
+	<p><a href="https://p40-positive.vercel.app//mywalks" target="_blank">See all your walks here</a></p>
+`,
+		});
+
 		res.status(200).json({ message: "Walk confirmed successfully", walk });
 	} catch (error) {
 		console.error("Error confirming walk:", error);
@@ -165,5 +190,25 @@ exports.cancelWalk = async (req, res) => {
 	} catch (error) {
 		console.error("Error cancelling walk:", error);
 		res.status(500).json({ message: "Failed to cancel the walk." });
+	}
+};
+
+exports.checkInScheduledWalks = async (req, res) => {
+	console.log("THE REQUEST HIT HERE");
+	try {
+		const walks = await ScheduledWalk.find()
+			.populate("walker", "firstName lastName picture") // Populate walker with firstName and lastName
+			.populate("marshal", "firstName lastName") // Populate marshal with firstName and lastName
+			.populate("dog", "name breed"); // Populate dog with name and breed
+
+		const completedWalks = await CompletedWalk.find({
+			status: "pending",
+		})
+			.populate("userId", "firstName lastName picture dogs")
+			.populate("dogId", "name breed demeanor imageURL");
+		// return res.end("HELLO FROM SCHEDULED WALKS");
+		res.status(200).json({ data: { walks, completedWalks } });
+	} catch (error) {
+		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };

@@ -2,10 +2,18 @@ const express = require("express");
 const router = express.Router();
 const dogController = require("../controllers/dogController");
 const verifyAdmin = require("../middleware/verifyAdmin");
-verifyToken = require("../middleware/authMiddleware");
+const verifyToken = require("../middleware/authMiddleware");
+const { uploadDogPic } = require("../config/cloudinary");
 
 router.get("/", dogController.getDogs);
-router.post("/", verifyToken, verifyAdmin, dogController.addDog);
+router.get("/filtered", dogController.filteredDogs);
+router.post(
+	"/",
+	verifyToken,
+	verifyAdmin,
+	uploadDogPic.single("image"),
+	dogController.addDog
+);
 router.put("/:id", verifyToken, verifyAdmin, dogController.editDog);
 router.delete("/:id", verifyToken, verifyAdmin, dogController.deleteDog);
 
