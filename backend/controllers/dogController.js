@@ -11,6 +11,46 @@ exports.getDogs = async (req, res) => {
 		res.status(500).json({ error: "Failed to fetch data" });
 	}
 };
+
+exports.getDogLogs = async (req, res) => {
+	try {
+		const data = await Dog.find({}).populate({
+			path: "walks",
+			populate: {
+				path: "walkId",
+			},
+		});
+
+		res.json(data);
+	} catch (error) {
+		console.error("Error fetching data:");
+		res.status(500).json({ error: "Failed to fetch data" });
+	}
+};
+
+exports.dogDetail = async (req, res) => {
+	// controllers/dogController.js
+	try {
+		const dogId = req.params.id;
+
+		const dog = await Dog.findById(dogId).populate({
+			path: "walks",
+			populate: {
+				path: "walkId",
+			},
+		});
+
+		if (!dog) {
+			return res.status(404).json({ error: "Dog not found" });
+		}
+
+		res.json(dog);
+	} catch (error) {
+		console.error("Error fetching dog:", error);
+		res.status(500).json({ error: "Failed to fetch dog data" });
+	}
+};
+
 exports.filteredDogs = async (req, res) => {
 	try {
 		const allDogs = await Dog.find({});

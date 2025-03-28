@@ -24,6 +24,7 @@ import OtpVerification from "./components/Users/OtpVerification";
 import Adoption from "./components/dogs/Adoption";
 import DogDetails from "./components/dogs/DogDetails";
 import DogInventory from "./components/dogs/DogInventory";
+import DogWalkSummary from "./components/walks/DogWalkSummary";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -92,6 +93,7 @@ function App() {
 						<Route path="/adoption-board" element={<Adoption />} />
 						<Route path="dog/:id" element={<DogDetails dogs={dogs} />} />
 						<Route path="dog-inventory" element={<DogInventory />} />
+						<Route path="dog-walk-summary" element={<DogWalkSummary />}/>
 					</Routes>
 				</main>
 

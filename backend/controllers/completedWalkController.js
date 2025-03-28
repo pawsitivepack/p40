@@ -58,7 +58,11 @@ exports.walkedADog = async (req, res) => {
 		completedWalk.dogId.push(dogId);
 		await completedWalk.save();
 
-		await Dog.findByIdAndUpdate(dogId, { lastWalk: new Date() });
+	await Dog.findByIdAndUpdate(dogId, {
+		lastWalk: new Date(),
+		$push: { walks: completedWalk._id },
+	});
+
 		// Count how many dogs have been walked
 		const completedDogCount = completedWalk.dogId.length;
 

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import api from "../api/axios"; // Import custom Axios instance
 import dogBackground from "../assets/dog.png";
+
 import {
 	FaUserShield,
 	FaDog,
@@ -174,7 +175,7 @@ export default function Home() {
 												<FaArrowRight className="text-gray-400" />
 											</Link>
 											<Link
-												to="/donate"
+												to="/dog-walk-summary"
 												className="flex items-center justify-between p-3 rounded-lg bg-white border border-gray-200 hover:bg-[#f5f0e8] hover:border-[#e8d3a9] transition-all duration-200"
 											>
 												<div className="flex items-center">
@@ -182,7 +183,7 @@ export default function Home() {
 														<FaDonate className="text-red-600 text-lg" />
 													</div>
 													<span className="font-medium text-gray-800">
-														Donate & Support
+														Reports
 													</span>
 												</div>
 												<FaArrowRight className="text-gray-400" />
