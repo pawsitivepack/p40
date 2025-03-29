@@ -2,6 +2,7 @@ const { ObjectId } = require("mongodb");
 const MarshalApp = require("../models/marshalAppModel");
 const mongoose = require("mongoose");
 const User = require("../models/usersModel");
+const { sendMarshalApplicationStatusEmail } = require("../config/mailer");
 
 exports.getMarshalApp = async (req, res) => {
 	try {
@@ -89,6 +90,12 @@ exports.updateMarshalAppStatus = async (req, res) => {
 			appStatus === "Approved"
 				? adminMessage || "Congratulations! Your application has been approved."
 				: adminMessage || "Unfortunately, your application has been rejected.";
+
+		await sendMarshalApplicationStatusEmail(
+			updatedApp.userId,
+			appStatus,
+			message
+		);
 
 		res.status(200).json({
 			message: `Application ${appStatus} and email notification sent.`,
