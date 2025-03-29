@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
+import { jwtDecode } from "jwt-decode";
 import {
 	FaCalendarAlt,
 	FaMapMarkerAlt,
@@ -18,33 +19,41 @@ const MyWalks = () => {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 
-	useEffect(() => {
+		useEffect(() => {
 		const fetchMyWalks = async () => {
 			try {
-				const response = await api.get(
-					`/scheduledWalks/${localStorage.getItem("userId")}`
-				);
-
-				// Filter to only include upcoming walks
-				const now = new Date();
-				const upcoming = response.data.filter(
-					(walk) => new Date(walk.date) >= now
-				);
-
-				// Sort upcoming walks by date (earliest first)
-				upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-				setUpcomingWalks(upcoming);
-			} catch (err) {
-				console.error("Error fetching walks:", err);
-				setError("Failed to load scheduled walks. Please try again later.");
-			} finally {
+			const token = localStorage.getItem("token");
+			if (!token) {
+				setError("User is not logged in.");
 				setLoading(false);
+				return;
+			}
+
+			const decoded = jwtDecode(token);
+			const userId = decoded.id;
+
+			const response = await api.get(`/scheduledWalks/${userId}`);
+			console.log("Upcoming Walks Data:", response.data);
+
+			// Filter upcoming walks
+			const now = new Date();
+			const upcoming = response.data.filter(
+				(walk) => new Date(walk.date) >= now
+			);
+			upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+			setUpcomingWalks(upcoming);
+			} catch (err) {
+			console.error("Error fetching walks:", err);
+			setError("Failed to load scheduled walks. Please try again later.");
+			} finally {
+			setLoading(false);
 			}
 		};
 
 		fetchMyWalks();
-	}, []);
+		}, []);
+
 
 	// Cancel walk function
 	const handleCancelWalk = async (walkId) => {
