@@ -318,6 +318,21 @@ export default function Home() {
 												<FaArrowRight className="text-gray-400" />
 											</Link>
 											<Link
+											to="/waiver"
+											className="flex items-center justify-between p-3 rounded-lg bg-white border border-gray-200 hover:bg-[#f5f0e8] hover:border-[#e8d3a9] transition-all duration-200"
+											>
+											<div className="flex items-center">
+												<div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+												<FaPaw className="text-yellow-600 text-lg" />
+												</div>
+												<span className="font-medium text-gray-800">
+												Waiver Form
+												</span>
+											</div>
+											<FaArrowRight className="text-gray-400" />
+											</Link>
+
+											<Link
 												to="/donate"
 												className="flex items-center justify-between p-3 rounded-lg bg-white border border-gray-200 hover:bg-[#f5f0e8] hover:border-[#e8d3a9] transition-all duration-200"
 											>
@@ -352,9 +367,14 @@ export default function Home() {
 								) : walks.length > 0 ? (
 									<div className="space-y-4">
 										{walks
-											.filter((walk) => walk.walker && walk.walker.length > 0)
+											.filter((walk) => {
+												const walkTime = new Date(walk.date);
+												const now = new Date();
+												return walkTime > now && walk.walker && walk.walker.length > 0;
+											  })
 											.slice(0, 3)
 											.map((walk) => (
+												
 												<div
 													key={walk._id}
 													className="bg-[#f9f6f0] rounded-lg p-4 border border-gray-100"

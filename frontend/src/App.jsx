@@ -27,6 +27,7 @@ import DogInventory from "./components/dogs/DogInventory";
 import DogWalkSummary from "./components/walks/DogWalkSummary";
 import ForgotPassword from "./components/Users/ForgotPassword";
 import ResetPassword from "./components/Users/ResetPassword";
+import DogWaiverForm from "./components/Waivers/DogWaiverform";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -98,6 +99,7 @@ function App() {
 						<Route path="dog/:id" element={<DogDetails dogs={dogs} />} />
 						<Route path="dog-inventory" element={<DogInventory />} />
 						<Route path="dog-walk-summary" element={<DogWalkSummary />}/>
+						<Route path="/waiver" element={<DogWaiverForm />} />
 					</Routes>
 				</main>
 

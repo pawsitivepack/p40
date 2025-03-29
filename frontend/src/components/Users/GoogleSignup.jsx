@@ -20,7 +20,6 @@ function GoogleSignup() {
 		const birthdateValue = e.target.value;
 		setBirthdate(birthdateValue);
 
-		// Calculate age from DOB
 		const today = new Date();
 		const birthDate = new Date(birthdateValue);
 		let age = today.getFullYear() - birthDate.getFullYear();
@@ -31,7 +30,7 @@ function GoogleSignup() {
 
 		setUserAge(age);
 		setIsOldEnough(age >= 12);
-		setFormData({ ...formData, dob: birthdateValue }); // ✅ Save DOB instead of age
+		setFormData({ ...formData, dob: birthdateValue });
 	};
 
 	const handleSubmit = async (e) => {
@@ -73,31 +72,34 @@ function GoogleSignup() {
 	};
 
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-100">
-			<div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-				<h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+		<div className="flex items-center justify-center min-h-screen bg-[#f8f5f0] px-4">
+			<div className="bg-white shadow-md border border-[#e8d3a9] rounded-xl w-full max-w-md p-8">
+				<h2 className="text-2xl font-bold text-center text-[#8c1d35] mb-6">
 					Complete Your Signup
 				</h2>
+
 				<form onSubmit={handleSubmit} className="space-y-4">
 					<div>
-						<label className="block text-gray-600 mb-1">Birthdate</label>
+						<label className="block text-sm font-medium text-gray-700 mb-1">
+							Birthdate
+						</label>
 						<input
 							type="date"
 							value={birthdate}
 							onChange={handleBirthdateChange}
-							className="w-full p-2 border border-gray-300 text-gray-500 rounded-md mb-2"
+							className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8c1d35] text-gray-900"
 							required
 						/>
-						<p className="text-gray-500 mb-4">Age: {userAge || "N/A"}</p>
+						<p className="text-sm text-gray-600 mt-1">Age: {userAge || "N/A"}</p>
 						{!isOldEnough && (
-							<p className="text-red-600 text-sm">
+							<p className="text-sm text-red-600">
 								You must be at least 12 years old to register.
 							</p>
 						)}
 					</div>
 
 					<div>
-						<label className="block text-sm font-medium text-gray-700">
+						<label className="block text-sm font-medium text-gray-700 mb-1">
 							Phone Number
 						</label>
 						<input
@@ -105,15 +107,15 @@ function GoogleSignup() {
 							name="phone"
 							value={formData.phone}
 							onChange={handleChange}
-							className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900"
 							placeholder="Enter your phone number"
+							className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8c1d35] text-gray-900"
 							required
 						/>
 					</div>
 
 					<button
 						type="submit"
-						className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
+						className="w-full bg-[#8c1d35] hover:bg-[#7a162c] text-white font-semibold py-2 rounded-md transition-colors"
 					>
 						Complete Signup
 					</button>
