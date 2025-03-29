@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "./MyCalendar.css";
 import ScheduleWalkForm from "./ScheduleWalkForm";
 import { jwtDecode } from "jwt-decode";
+import { Link } from "react-router-dom";
 import {
 	FaCalendarAlt,
 	FaPlus,
@@ -291,13 +292,28 @@ const MyCalendar = () => {
 							}`}
 						>
 							<div className="bg-[#e8d3a9] px-5 py-3 border-b border-[#d9c59a]">
+							<div className="flex items-center justify-between">
+								{/* Left: Calendar + Text */}
 								<div className="flex items-center">
-									<FaCalendarAlt className="text-[#8c1d35] mr-2" />
-									<h2 className="text-xl font-semibold text-[#8c1d35]">
-										Select a Date
-									</h2>
+								<FaCalendarAlt className="text-[#8c1d35] mr-2" />
+								<h2 className="text-xl font-semibold text-[#8c1d35]">
+									Select a Date
+								</h2>
+								</div>
+
+								{/* Right: Paw Icon + Link */}
+								<div className="flex items-center gap-2">
+								<FaPaw className="text-[#8c1d35] text-lg" />
+								<Link
+									to="/mywalks"
+									className="text-[#8c1d35] hover:underline font-medium"
+								>
+									Go to MyWalks
+								</Link>
 								</div>
 							</div>
+							</div>
+
 							<div className="p-4">
 								<Calendar
 									onChange={handleDateChange}
