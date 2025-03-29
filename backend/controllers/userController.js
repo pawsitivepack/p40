@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
 const Walk = require("../models/walkmodel");
 const transporter = require("../config/mailer");
+const passwordPolicy = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
 const generateUserToken = (user) => {
 	return jwt.sign(
@@ -192,7 +193,7 @@ exports.verifyOtp = async (req, res) => {
 };
 // Signup
 exports.signup = async (req, res) => {
-	const { firstName, lastName, email, password, age, phone, dob } = req.body;
+	const { firstName, lastName, email, password, phone, dob } = req.body;
 
 	try {
 		if (!email || !password || !firstName || !lastName) {
@@ -210,10 +211,16 @@ exports.signup = async (req, res) => {
 				});
 			}
 
-			// Verified user already exists
-			return res.status(400).json({ message: "Email is already registered" });
+	// Verified user already exists
+	return res.status(400).json({ message: "Email is already registered" });
+}
+		if (!passwordPolicy.test(password)) {
+			return res.status(400).json({
+				message:
+					"Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
+			});
 		}
-
+   
 		const hashedPassword = bcrypt.hashSync(password, 10);
 
 		const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -479,3 +486,64 @@ exports.updateProfilePicture = async (req, res) => {
 			.json({ success: false, message: "Failed to upload image." });
 	}
 };
+
+exports.forgotPassword = async (req, res) => {
+	const { email } = req.body;
+	try {
+		const user = await User.findOne({ email });
+		if (!user) {
+			return res.status(404).json({ message: "No user found with that email" });
+		}
+
+		const otp = Math.floor(100000 + Math.random() * 900000).toString();
+		const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+		user.otp = otp;
+		user.otpExpires = otpExpires;
+		await user.save();
+
+		await transporter.sendMail({
+			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
+			to: email,
+			subject: "Password Reset OTP",
+			html: `<h3>Your OTP is: ${otp}</h3><p>This code will expire in 10 minutes.</p>`,
+		});
+
+		res.status(200).json({ message: "OTP sent to email", email });
+	} catch (err) {
+		console.error("Forgot Password Error:", err);
+		res.status(500).json({ message: "Server error" });
+	}
+};
+
+exports.resetPassword = async (req, res) => {
+	const { email, otp, newPassword } = req.body;
+
+	try {
+		const user = await User.findOne({ email });
+		if (!user) return res.status(404).json({ message: "User not found" });
+
+		if (user.otp !== otp)
+			return res.status(400).json({ message: "Invalid OTP" });
+
+		if (user.otpExpires < new Date())
+			return res.status(400).json({ message: "OTP expired" });
+
+		if (!passwordPolicy.test(newPassword)) {
+			return res.status(400).json({
+				message: "Password must meet complexity requirements",
+			});
+		}
+
+		user.password = bcrypt.hashSync(newPassword, 10);
+		user.otp = undefined;
+		user.otpExpires = undefined;
+		await user.save();
+
+		res.status(200).json({ message: "Password reset successful" });
+	} catch (err) {
+		console.error("Reset Password Error:", err);
+		res.status(500).json({ message: "Server error" });
+	}
+};
+

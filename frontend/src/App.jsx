@@ -25,6 +25,8 @@ import Adoption from "./components/dogs/Adoption";
 import DogDetails from "./components/dogs/DogDetails";
 import DogInventory from "./components/dogs/DogInventory";
 import DogWalkSummary from "./components/walks/DogWalkSummary";
+import ForgotPassword from "./components/Users/ForgotPassword";
+import ResetPassword from "./components/Users/ResetPassword";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -91,6 +93,8 @@ function App() {
 						/>
 						<Route path="*" element={<NotFound />} />
 						<Route path="/adoption-board" element={<Adoption />} />
+						<Route path="/forgot-password" element={<ForgotPassword />} />
+						<Route path="/reset-password" element={<ResetPassword />} />
 						<Route path="dog/:id" element={<DogDetails dogs={dogs} />} />
 						<Route path="dog-inventory" element={<DogInventory />} />
 						<Route path="dog-walk-summary" element={<DogWalkSummary />}/>

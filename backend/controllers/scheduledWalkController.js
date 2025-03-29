@@ -3,6 +3,7 @@ const User = require("../models/usersModel");
 const transporter = require("../config/mailer");
 const CompletedWalk = require("../models/completedWalkModel");
 const Slots = require("../models/slotsModel");
+const mongoose = require("mongoose");
 
 exports.addScheduledWalk = async (req, res) => {
 	try {
@@ -83,6 +84,7 @@ exports.getMyScheduledWalks = async (req, res) => {
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };
+
 
 exports.confirm = async (req, res) => {
 	const { walkId, userId } = req.body;

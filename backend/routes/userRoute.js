@@ -37,7 +37,8 @@ router.delete(
 	verifyAdmin,
 	userController.deleteUser
 );
-
+router.post("/forgot-password", userController.forgotPassword);
+router.post("/reset-password", userController.resetPassword);
 router.post("/logout", userController.logout);
 
 // Route to Update Profile Picture
