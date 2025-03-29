@@ -91,9 +91,34 @@ const sendPasswordResetEmail = async (user, otp) => {
 	await transporter.sendMail(mailOptions);
 };
 
+const sendMarshalApplicationStatusEmail = async (
+	user,
+	status,
+	adminMessage
+) => {
+	const mailOptions = {
+		from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
+		to: user.email,
+		subject: `Marshal Application ${status} – ULM P40 Underdogs`,
+		text: `Hi ${user.firstName},\n\n${adminMessage}\n\nVisit us at: https://p40-positive.vercel.app/\n\nULM P40 Underdogs – Thank you for your support.\n\nThis is an automated email. Please do not reply.`,
+		html: `
+			<div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+				<h2 style="color: #8c1d35;">Hi ${user.firstName},</h2>
+				<p>${adminMessage}</p>
+				<p>Visit our website: <a href="https://p40-positive.vercel.app/" target="_blank">p40-positive.vercel.app</a></p>
+				<p style="font-size: 14px; margin-top: 10px;">ULM P40 Underdogs – Thank you for your support.</p>
+				<hr />
+				<p style="font-size: 12px; color: #888;">This is an automated message. Please do not reply.</p>
+			</div>
+		`,
+	};
+	await transporter.sendMail(mailOptions);
+};
+
 module.exports = {
 	transporter,
 	sendWalkConfirmationEmail,
 	sendOtpVerificationEmail,
 	sendPasswordResetEmail,
+	sendMarshalApplicationStatusEmail,
 };
