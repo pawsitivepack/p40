@@ -3,7 +3,10 @@ const { OAuth2Client } = require("google-auth-library");
 const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
 const Walk = require("../models/walkmodel");
-const transporter = require("../config/mailer");
+const {
+	sendOtpVerificationEmail,
+	sendPasswordResetEmail,
+} = require("../config/mailer");
 const passwordPolicy = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
 const generateUserToken = (user) => {
@@ -482,12 +485,7 @@ exports.forgotPassword = async (req, res) => {
 		user.otpExpires = otpExpires;
 		await user.save();
 
-		await transporter.sendMail({
-			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
-			to: email,
-			subject: "Password Reset OTP",
-			html: `<h3>Your OTP is: ${otp}</h3><p>This code will expire in 10 minutes.</p>`,
-		});
+		await sendPasswordResetEmail(user, otp);
 
 		res.status(200).json({ message: "OTP sent to email", email });
 	} catch (err) {
