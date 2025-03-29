@@ -28,8 +28,9 @@ const MyCalendar = () => {
 	const [showForm, setShowForm] = useState(false);
 	const [role, setRole] = useState("");
 	const [userID, setUserID] = useState("");
+	const [waiverSigned, setWaiverSigned] = useState(false);
 	const [availableWalks, setAvailableWalks] = useState([]);
-	const [selectedWalk, setSelectedWalk] = useState(null);
+    const [selectedWalk, setSelectedWalk] = useState(null);
 	const [filteredWalks, setFilteredWalks] = useState([]);
 	const [newEvent, setNewEvent] = useState({
 		marshal: "",
@@ -50,13 +51,26 @@ const MyCalendar = () => {
 				const decodedToken = jwtDecode(token);
 				setRole(decodedToken.role);
 				setUserID(decodedToken.id);
-
-				// Auto-assign marshal for marshals
+	
+				// Auto-assign marshal
 				if (decodedToken.role === "marshal") {
 					setNewEvent((prevEvent) => ({
 						...prevEvent,
 						marshal: decodedToken.id,
 					}));
+				}
+	
+				// 🛡️ Check waiver status for users
+				if (decodedToken.role === "user") {
+					api.get("/waiver/status", {
+						headers: { Authorization: `Bearer ${token}` },
+					})
+						.then((res) => {
+							setWaiverSigned(res.data.waiverSigned);
+						})
+						.catch((err) => {
+							console.error("Error fetching waiver status:", err);
+						});
 				}
 			} catch (error) {
 				console.error("Failed to decode token:", error);
@@ -124,6 +138,12 @@ const MyCalendar = () => {
 	const handleConfirmWalk = async (walk) => {
 		const slotsSelected = slotSelections[walk._id] || 1;
 
+		if (!waiverSigned) {
+			toast.warning("Please sign the waiver before booking a walk.");
+			return window.location.href = "/waiver";
+		}
+	
+	
 		const confirm = window.confirm(
 			`Confirm ${slotsSelected} slot${
 				slotsSelected > 1 ? "s" : ""
@@ -149,6 +169,9 @@ const MyCalendar = () => {
 			});
 
 			toast.success("Walk confirmed successfully!");
+			setTimeout(() => {
+				navigate("/walkdogs");
+			  }, 1500);
 			await fetchAvailableWalks();
 			setSelectedWalkId(null);
 		} catch (error) {

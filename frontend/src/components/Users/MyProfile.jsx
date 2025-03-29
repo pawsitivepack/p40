@@ -37,11 +37,17 @@ const MyProfile = () => {
 				const response = await api.get("/users/myprofile");
 				console.log("Profile data:", response.data);
 				if (response.data && response.data.user) {
+					const now = new Date();
+   					const upcoming = (response.data.user.dogsWalked || []).filter(
+						(walk) => new Date(walk.date) > now
+					);
+
+					const past = (response.data.user.dogsWalked || []).filter(
+						(walk) => new Date(walk.date) <= now
+					);
+
 					setUser(response.data.user);
-					setWalks({
-						upcoming: response.data.user.dogsWalked || [],
-						past: response.data.user.completedWalks || [],
-					});
+					setWalks({ upcoming, past });
 				} else {
 					throw new Error("Invalid user data received");
 				}
@@ -394,13 +400,19 @@ const MyProfile = () => {
 						{/* Upcoming Walks Tab */}
 						{activeTab === "upcoming" && (
 							<div>
-								<div className="flex items-center mb-4">
-									<FaCalendarAlt className="text-[#8c1d35] mr-2 text-xl" />
-									<h2 className="text-xl font-bold text-[#8c1d35]">
-										Upcoming Walks
-									</h2>
-								</div>
+								<div className="flex items-center justify-between mb-4">
+									<div className="flex items-center">
+										<FaCalendarAlt className="text-[#8c1d35] mr-2 text-xl" />
+										<h2 className="text-xl font-bold text-[#8c1d35]">Upcoming Walks</h2>
+									</div>
 
+									<button
+										onClick={() => navigate("/mywalks")}
+										className="text-sm text-[#8c1d35] hover:underline font-medium"
+									>
+										Go to My Walks
+									</button>
+								</div>
 								{walks.upcoming.length > 0 ? (
 									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 										{walks.upcoming.map((walk) => (
@@ -463,7 +475,7 @@ const MyProfile = () => {
 											You don't have any upcoming walks scheduled.
 										</p>
 										<button
-											onClick={() => navigate("/schedule-walk")}
+											onClick={() => navigate("/walkdogs")}
 											className="bg-[#8c1d35] text-white px-4 py-2 rounded-lg hover:bg-[#7c1025] transition-colors"
 										>
 											Schedule a Walk
