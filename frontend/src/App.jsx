@@ -25,6 +25,8 @@ import Adoption from "./components/dogs/Adoption";
 import DogDetails from "./components/dogs/DogDetails";
 import DogInventory from "./components/dogs/DogInventory";
 import DogWalkSummary from "./components/walks/DogWalkSummary";
+import ForgotPassword from "./components/Users/ForgotPassword";
+import ResetPassword from "./components/Users/ResetPassword";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
