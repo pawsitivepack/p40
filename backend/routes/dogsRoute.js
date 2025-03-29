@@ -7,7 +7,8 @@ const { uploadDogPic } = require("../config/cloudinary");
 
 router.get("/", dogController.getDogs);
 router.get("/filtered", dogController.filteredDogs);
-router.get("/logs", dogController.getDogLogs );
+router.get("/logs", dogController.getDogLogs);
+router.get("/logs/:id", dogController.getIndividualLog);
 router.post(
 	"/",
 	verifyToken,
