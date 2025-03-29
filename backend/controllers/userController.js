@@ -3,7 +3,7 @@ const { OAuth2Client } = require("google-auth-library");
 const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
 const Walk = require("../models/walkmodel");
-const transporter = require("../config/mailer");
+const { transporter, sendOtpVerificationEmail } = require("../config/mailer");
 
 const generateUserToken = (user) => {
 	return jwt.sign(
@@ -233,17 +233,7 @@ exports.signup = async (req, res) => {
 
 		await newUser.save();
 
-		await transporter.sendMail({
-			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
-			to: email,
-			subject: "Your OTP Code - Underdogs",
-			html: `
-				<h2>Hi ${firstName},</h2>
-				<p>Your OTP is:</p>
-				<h3>${otp}</h3>
-				<p>This code expires in 10 minutes.</p>
-			`,
-		});
+		await sendOtpVerificationEmail({ firstName, email }, otp);
 
 		res
 			.status(201)
@@ -272,17 +262,7 @@ exports.resendOtp = async (req, res) => {
 		user.otpExpires = otpExpires;
 		await user.save();
 
-		await transporter.sendMail({
-			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
-			to: email,
-			subject: "Your OTP Code - Underdogs",
-			html: `
-				<h2>Hi ${user.firstName},</h2>
-				<p>Your new OTP is:</p>
-				<h3>${otp}</h3>
-				<p>This OTP will expire in 10 minutes.</p>
-			`,
-		});
+		await sendOtpVerificationEmail(user, otp);
 
 		res.status(200).json({ message: "OTP resent successfully." });
 	} catch (error) {
