@@ -3,7 +3,10 @@ const { OAuth2Client } = require("google-auth-library");
 const bcrypt = require("bcryptjs");
 const User = require("../models/usersModel");
 const Walk = require("../models/walkmodel");
-const transporter = require("../config/mailer");
+const {
+	sendOtpVerificationEmail,
+	sendPasswordResetEmail,
+} = require("../config/mailer");
 const passwordPolicy = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
 const generateUserToken = (user) => {
@@ -211,16 +214,16 @@ exports.signup = async (req, res) => {
 				});
 			}
 
-	// Verified user already exists
-	return res.status(400).json({ message: "Email is already registered" });
-}
+			// Verified user already exists
+			return res.status(400).json({ message: "Email is already registered" });
+		}
 		if (!passwordPolicy.test(password)) {
 			return res.status(400).json({
 				message:
 					"Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.",
 			});
 		}
-   
+
 		const hashedPassword = bcrypt.hashSync(password, 10);
 
 		const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -240,17 +243,7 @@ exports.signup = async (req, res) => {
 
 		await newUser.save();
 
-		await transporter.sendMail({
-			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
-			to: email,
-			subject: "Your OTP Code - Underdogs",
-			html: `
-				<h2>Hi ${firstName},</h2>
-				<p>Your OTP is:</p>
-				<h3>${otp}</h3>
-				<p>This code expires in 10 minutes.</p>
-			`,
-		});
+		await sendOtpVerificationEmail({ firstName, email }, otp);
 
 		res
 			.status(201)
@@ -279,17 +272,7 @@ exports.resendOtp = async (req, res) => {
 		user.otpExpires = otpExpires;
 		await user.save();
 
-		await transporter.sendMail({
-			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
-			to: email,
-			subject: "Your OTP Code - Underdogs",
-			html: `
-				<h2>Hi ${user.firstName},</h2>
-				<p>Your new OTP is:</p>
-				<h3>${otp}</h3>
-				<p>This OTP will expire in 10 minutes.</p>
-			`,
-		});
+		await sendOtpVerificationEmail(user, otp);
 
 		res.status(200).json({ message: "OTP resent successfully." });
 	} catch (error) {
@@ -502,12 +485,7 @@ exports.forgotPassword = async (req, res) => {
 		user.otpExpires = otpExpires;
 		await user.save();
 
-		await transporter.sendMail({
-			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
-			to: email,
-			subject: "Password Reset OTP",
-			html: `<h3>Your OTP is: ${otp}</h3><p>This code will expire in 10 minutes.</p>`,
-		});
+		await sendPasswordResetEmail(user, otp);
 
 		res.status(200).json({ message: "OTP sent to email", email });
 	} catch (err) {
@@ -546,4 +524,3 @@ exports.resetPassword = async (req, res) => {
 		res.status(500).json({ message: "Server error" });
 	}
 };
-

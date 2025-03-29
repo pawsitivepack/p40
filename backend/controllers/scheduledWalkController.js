@@ -1,6 +1,6 @@
 const ScheduledWalk = require("../models/walkmodel");
 const User = require("../models/usersModel");
-const transporter = require("../config/mailer");
+const { transporter, sendWalkConfirmationEmail } = require("../config/mailer");
 const CompletedWalk = require("../models/completedWalkModel");
 const Slots = require("../models/slotsModel");
 const mongoose = require("mongoose");
@@ -134,19 +134,7 @@ exports.confirm = async (req, res) => {
 			marshalId: walk.marshal,
 		});
 
-		await transporter.sendMail({
-			from: `"Underdogs Team" <${process.env.EMAIL_USER}>`,
-			to: user.email,
-			subject: "Walk Confirmation - Underdogs",
-			html: `
-	<h2>Hi ${user.firstName},</h2>
-	<p>You have successfully confirmed your participation in a walk scheduled for <strong>${walk.date.toLocaleString()}</strong> at <strong>${
-				walk.location
-			}</strong>.</p>
-	<p>Thank you for supporting the Underdogs program!</p>
-	<p><a href="https://p40-positive.vercel.app//mywalks" target="_blank">See all your walks here</a></p>
-`,
-		});
+		await sendWalkConfirmationEmail(user, walk);
 
 		res.status(200).json({ message: "Walk confirmed successfully", walk });
 	} catch (error) {
