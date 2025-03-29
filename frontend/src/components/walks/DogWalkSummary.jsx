@@ -1,6 +1,5 @@
-"use client";
-
 import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import api from "../../api/axios";
 import {
 	FaCalendarAlt,
@@ -51,8 +50,8 @@ function DogWalkSummary() {
 	const handleWalkinSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			await api.post("/dogs/walkin", {
-				name: walkinDogName,
+			await api.post("/completedWalk/addManualWalk", {
+				dogId: walkinDogName,
 				date: walkinDate,
 			});
 			setWalkinDogName("");
@@ -408,13 +407,19 @@ function DogWalkSummary() {
 									<label className="block text-sm font-medium text-gray-700 mb-1">
 										Dog Name
 									</label>
-									<input
-										type="text"
+									<select
 										value={walkinDogName}
 										onChange={(e) => setWalkinDogName(e.target.value)}
-										className="w-full p-2 border border-gray-300 rounded-lg focus:ring-[#8c1d35] focus:border-[#8c1d35]"
+										className="w-full p-2 border border-gray-300 rounded-lg focus:ring-[#8c1d35] focus:border-[#8c1d35] text-black"
 										required
-									/>
+									>
+										<option value="">Select a dog</option>
+										{dogLogs.map((dog) => (
+											<option key={dog._id} value={dog._id}>
+												{dog.name}
+											</option>
+										))}
+									</select>
 								</div>
 								<div>
 									<label className="block text-sm font-medium text-gray-700 mb-1">
@@ -509,8 +514,15 @@ function DogWalkSummary() {
 												className="hover:bg-[#f8f5f0] transition-colors"
 											>
 												<td className="py-3 px-4 border-b border-gray-200 font-medium">
-													{dog.name}
+													<div className="space-y-1">
+														<Link to={`/dog/walklog/${dog._id}`}>
+															<div className="text-sm text-gray-800">
+																{dog.name}
+															</div>
+														</Link>
+													</div>
 												</td>
+
 												<td className="py-3 px-4 border-b border-gray-200">
 													<span className="bg-[#e8d3a9] text-[#8c1d35] px-2 py-1 rounded-full font-medium text-sm">
 														{dog.walks?.length || 0}

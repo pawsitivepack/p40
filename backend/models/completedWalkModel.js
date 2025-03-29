@@ -1,11 +1,10 @@
 const mongoose = require("mongoose");
 
 const CompletedWalkSchema = new mongoose.Schema({
-	userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+	userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 	walkId: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "ScheduledWalk",
-		required: true,
 	},
 	dogId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dog" }],
 	marshalId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Optional if a marshal is assigned

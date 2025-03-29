@@ -1,3 +1,4 @@
+import DogCharts from "./DogCharts";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../api/axios";
@@ -488,6 +489,17 @@ const DogDetails = () => {
 										</tbody>
 									</table>
 								</div>
+							</div>
+						)}
+
+						{dog && (
+							<div className="mt-8 print:hidden">
+								<Link
+									to={`/dog/walklog/${dog._id}`}
+									className="bg-[#8c1d35] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#7c1025] transition-colors inline-block"
+								>
+									View Walk Chart
+								</Link>
 							</div>
 						)}
 

@@ -58,10 +58,10 @@ exports.walkedADog = async (req, res) => {
 		completedWalk.dogId.push(dogId);
 		await completedWalk.save();
 
-	await Dog.findByIdAndUpdate(dogId, {
-		lastWalk: new Date(),
-		$push: { walks: completedWalk._id },
-	});
+		await Dog.findByIdAndUpdate(dogId, {
+			lastWalk: new Date(),
+			$push: { walks: completedWalk._id },
+		});
 
 		// Count how many dogs have been walked
 		const completedDogCount = completedWalk.dogId.length;
@@ -131,6 +131,36 @@ exports.CompletedUserWalk = async (req, res) => {
 			error: "Something went wrong while completing the walk.",
 			details: error.message,
 		});
+	}
+};
+
+exports.addManualCompletedWalk = async (req, res) => {
+	console.log("\n\n\nrequest hit here in thme manual waln\n\n=====\n\n\n");
+	try {
+		const { dogId, date } = req.body;
+
+		if (!dogId || !date) {
+			return res.status(400).json({ error: "dogId and date are required." });
+		}
+
+		// Create new completed walk (without userId and marshalId)
+		const newWalk = await CompletedWalk.create({
+			dogId: [dogId],
+			date: new Date(date),
+			status: "completed",
+		});
+
+		// Optional: Push walk ID to dog's completedWalks array
+		await Dog.findByIdAndUpdate(dogId, {
+			lastWalk: new Date(),
+			$push: { walks: newWalk._id },
+		});
+		res
+			.status(201)
+			.json({ message: "Walk created successfully", walk: newWalk });
+	} catch (err) {
+		console.error("Error creating manual walk:", err);
+		res.status(500).json({ error: "Internal Server Error" });
 	}
 };
 

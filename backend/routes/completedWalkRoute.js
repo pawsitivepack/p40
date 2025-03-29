@@ -5,6 +5,13 @@ const verifyToken = require("../middleware/authMiddleware");
 const verifyMarshal = require("../middleware/verifyMarshal");
 
 router.post("/", verifyToken, verifyMarshal, CompletedWalk.checkInWalker);
+router.post(
+	"/addManualWalk",
+	verifyToken,
+	verifyMarshal,
+	CompletedWalk.addManualCompletedWalk
+);
+
 router.put("/dogadded", verifyToken, verifyMarshal, CompletedWalk.walkedADog);
 router.put(
 	"/completedUserWalk",

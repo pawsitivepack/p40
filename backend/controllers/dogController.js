@@ -28,6 +28,28 @@ exports.getDogLogs = async (req, res) => {
 	}
 };
 
+exports.getIndividualLog = async (req, res) => {
+	const dogId = req.params.id;
+	console.log("Dog ID:", dogId);
+	try {
+		const data = await Dog.findById(dogId).populate({
+			path: "walks",
+			populate: {
+				path: "walkId",
+			},
+		});
+
+		if (!data) {
+			return res.status(404).json({ error: "Dog not found" });
+		}
+
+		res.json(data);
+	} catch (error) {
+		console.error("Error fetching data:", error);
+		res.status(500).json({ error: "Failed to fetch data" });
+	}
+};
+
 exports.dogDetail = async (req, res) => {
 	// controllers/dogController.js
 	try {
@@ -76,6 +98,7 @@ exports.filteredDogs = async (req, res) => {
 		res.status(500).json({ error: "Failed to fetch data" });
 	}
 };
+
 exports.addDog = async (req, res) => {
 	try {
 		// Use the image uploaded via Cloudinary
