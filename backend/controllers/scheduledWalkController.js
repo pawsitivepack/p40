@@ -29,6 +29,33 @@ exports.addScheduledWalk = async (req, res) => {
 			});
 		}
 
+		const walkWithSameDate = await ScheduledWalk.findOne({
+			date: new Date(date),
+			location,
+		});
+
+		if (walkWithSameDate) {
+			if (!walkWithSameDate.marshal.includes(marshal)) {
+				walkWithSameDate.slots += 4;
+				walkWithSameDate.marshal.push(marshal);
+				const updatedWalk = await walkWithSameDate.save();
+				const populatedWalk = await ScheduledWalk.findById(updatedWalk._id)
+					.populate("walker", "firstName lastName")
+					.populate("marshal", "firstName lastName")
+					.populate("dog", "name breed");
+
+				return res.status(200).json({
+					message: "Existing walk updated with new slots and marshal.",
+					walk: populatedWalk,
+				});
+			} else {
+				return res.status(400).json({
+					error:
+						"This marshal has already scheduled a walk at this date and time.",
+				});
+			}
+		}
+
 		// Create a new ScheduledWalk
 		const newWalk = new ScheduledWalk({
 			dog,
@@ -84,7 +111,6 @@ exports.getMyScheduledWalks = async (req, res) => {
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };
-
 
 exports.confirm = async (req, res) => {
 	const { walkId, userId } = req.body;

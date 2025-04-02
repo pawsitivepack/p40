@@ -178,3 +178,44 @@
 	}
 }
 /* Style for disabled dates */
+
+/* Add these styles to ensure square calendar tiles on mobile */
+@media (max-width: 768px) {
+	.react-calendar__tile {
+		aspect-ratio: 1 / 1;
+		padding: 0 !important;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+		min-height: unset !important;
+		height: auto;
+		position: relative;
+	}
+
+	.react-calendar__tile > abbr {
+		position: absolute !important;
+		top: 5px !important;
+		left: 5px !important;
+		font-size: 1rem !important;
+	}
+
+	/* Ensure the paw icon is visible and positioned correctly */
+	.react-calendar__tile .flex {
+		position: absolute;
+		bottom: 5px;
+		right: 5px;
+	}
+
+	/* Adjust the month view to fit properly */
+	.react-calendar__month-view__days {
+		display: grid !important;
+		grid-template-columns: repeat(7, 1fr);
+	}
+
+	/* Ensure the calendar fits within the screen width */
+	.react-calendar {
+		padding: 10px !important;
+		font-size: 0.9rem !important;
+	}
+}
