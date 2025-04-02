@@ -1,20 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import api from "../../api/axios";
-import { FaTimes, FaCalendarAlt, FaClock, FaUserShield, FaMapMarkerAlt, FaCalendarCheck, FaSpinner } from "react-icons/fa";
+import {
+	FaTimes,
+	FaCalendarAlt,
+	FaClock,
+	FaUserShield,
+	FaMapMarkerAlt,
+	FaCalendarCheck,
+	FaSpinner,
+} from "react-icons/fa";
 
 const ScheduleWalkForm = ({
 	newEvent,
 	setNewEvent,
 	setShowForm,
 	handleAddEvent,
-	isBulk,
 	setIsBulk,
 }) => {
 	const [marshals, setMarshals] = useState([]);
 	const [selectedTimes, setSelectedTimes] = useState([]);
 	const [repeatUntil, setRepeatUntil] = useState("");
 	const [loading, setLoading] = useState(true);
+	const isBulk = true;
 
 	useEffect(() => {
 		const fetchOptions = async () => {
@@ -33,6 +41,10 @@ const ScheduleWalkForm = ({
 		};
 
 		fetchOptions();
+	}, []);
+
+	useEffect(() => {
+		setIsBulk(true);
 	}, []);
 
 	// Automatically show the repeat until field and set default date when bulk is selected
@@ -66,29 +78,29 @@ const ScheduleWalkForm = ({
 
 	// Format time for display
 	const formatTime = (timeString) => {
-		const [hours, minutes] = timeString.split(':').map(Number);
+		const [hours, minutes] = timeString.split(":").map(Number);
 		return new Date(2023, 0, 1, hours, minutes).toLocaleTimeString([], {
-			hour: '2-digit',
-			minute: '2-digit',
+			hour: "2-digit",
+			minute: "2-digit",
 		});
 	};
 
 	// Prevent background scrolling when modal is open
 	useEffect(() => {
-		document.body.style.overflow = 'hidden';
+		document.body.style.overflow = "hidden";
 		return () => {
-			document.body.style.overflow = 'auto';
+			document.body.style.overflow = "auto";
 		};
 	}, []);
 
 	return (
 		<>
 			{/* Blurred Backdrop */}
-			<div 
+			<div
 				className="fixed inset-0 backdrop-blur-sm bg-white/30 z-10"
 				onClick={() => setShowForm(false)}
 			></div>
-			
+
 			{/* Modal */}
 			<div className="fixed bg-white rounded-xl shadow-xl z-20 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md overflow-hidden">
 				{/* Modal Header */}
@@ -114,29 +126,9 @@ const ScheduleWalkForm = ({
 							<FaSpinner className="animate-spin text-[#8c1d35] text-2xl" />
 						</div>
 					) : (
-						<form onSubmit={(e) => handleAddEvent(e, repeatUntil, selectedTimes)}>
-							{/* Bulk Toggle */}
-							<div className="mb-5">
-								<label className="inline-flex items-center cursor-pointer">
-									<div className="relative">
-										<input
-											type="checkbox"
-											checked={isBulk}
-											onChange={(e) => setIsBulk(e.target.checked)}
-											className="sr-only"
-										/>
-										<div className={`block w-10 h-6 rounded-full ${isBulk ? 'bg-[#8c1d35]' : 'bg-gray-300'}`}></div>
-										<div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition ${isBulk ? 'transform translate-x-4' : ''}`}></div>
-									</div>
-									<span className="ml-3 text-gray-800 font-medium">Bulk Schedule</span>
-								</label>
-								{isBulk && (
-									<p className="text-sm text-gray-600 mt-1">
-										Schedule multiple walks across different dates and times
-									</p>
-								)}
-							</div>
-							
+						<form
+							onSubmit={(e) => handleAddEvent(e, repeatUntil, selectedTimes)}
+						>
 							{/* Marshal Selection */}
 							<div className="mb-5">
 								<label className="block text-sm font-medium text-gray-800 mb-1 flex items-center">
@@ -168,7 +160,9 @@ const ScheduleWalkForm = ({
 								<input
 									type="text"
 									value={newEvent.location}
-									onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+									onChange={(e) =>
+										setNewEvent({ ...newEvent, location: e.target.value })
+									}
 									className="w-full p-2 border border-gray-300 rounded-lg focus:ring-[#8c1d35] focus:border-[#8c1d35] text-gray-800"
 									required
 								/>
@@ -177,14 +171,15 @@ const ScheduleWalkForm = ({
 							{/* Display Selected Date */}
 							<div className="mb-5">
 								<label className="block text-sm font-medium text-gray-800 mb-1 flex items-center">
-									<FaCalendarAlt className="mr-1 text-[#8c1d35]" /> Selected Date
+									<FaCalendarAlt className="mr-1 text-[#8c1d35]" /> Selected
+									Date
 								</label>
 								<div className="w-full p-2 bg-[#f8f5f0] border border-[#e8d3a9] rounded-lg text-gray-800 font-medium">
-									{newEvent.start.toLocaleDateString('en-US', {
-										weekday: 'short',
-										month: 'short',
-										day: 'numeric',
-										year: 'numeric'
+									{newEvent.start.toLocaleDateString("en-US", {
+										weekday: "short",
+										month: "short",
+										day: "numeric",
+										year: "numeric",
 									})}
 								</div>
 							</div>
@@ -192,7 +187,7 @@ const ScheduleWalkForm = ({
 							{/* Time Selection */}
 							<div className="mb-5">
 								<label className="block text-sm font-medium text-gray-800 mb-2 flex items-center">
-									<FaClock className="mr-1 text-[#8c1d35]" /> 
+									<FaClock className="mr-1 text-[#8c1d35]" />
 									{isBulk ? "Select Times" : "Select Time"}
 								</label>
 								<div className="grid grid-cols-3 gap-2">
@@ -222,7 +217,8 @@ const ScheduleWalkForm = ({
 							{isBulk && (
 								<div className="mb-5">
 									<label className="block text-sm font-medium text-gray-800 mb-1 flex items-center">
-										<FaCalendarAlt className="mr-1 text-[#8c1d35]" /> Repeat Until
+										<FaCalendarAlt className="mr-1 text-[#8c1d35]" /> Repeat
+										Until
 									</label>
 									<input
 										type="date"
@@ -233,7 +229,8 @@ const ScheduleWalkForm = ({
 										required
 									/>
 									<p className="text-sm text-gray-600 mt-1">
-										Walks will be scheduled on weekdays (Tue-Fri) between these dates
+										Walks will be scheduled on weekdays (Tue-Fri) between these
+										dates
 									</p>
 								</div>
 							)}
@@ -247,7 +244,7 @@ const ScheduleWalkForm = ({
 								>
 									Cancel
 								</button>
-								<button 
+								<button
 									type="submit"
 									disabled={selectedTimes.length === 0}
 									className={`px-4 py-2 rounded-lg text-white font-medium transition-colors ${
