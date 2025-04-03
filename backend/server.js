@@ -10,6 +10,7 @@ const marshalApp = require("./routes/marshalAppRoute");
 const waiver = require("./routes/waiverRoute");
 const review = require("./routes/reviewRoute");
 const adoptionRoutes = require("./routes/adoptionRoute");
+const settings = require("./routes/settingsRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -44,6 +45,7 @@ app.use("/marshalApps", marshalApp);
 app.use("/waiver", waiver);
 app.use("/review", review);
 
+app.use("/settings", settings);
 
 // Start the Server
 app.listen(PORT, async () => {

@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import api from "../../api/axios"; // Import custom Axios instance
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import "./MyCalendar.css";
 import ScheduleWalkForm from "./ScheduleWalkForm";
 import { jwtDecode } from "jwt-decode";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
 	FaCalendarAlt,
 	FaPlus,
@@ -20,6 +21,9 @@ import {
 	FaUsers,
 	FaPaw,
 	FaSpinner,
+	FaSave,
+	FaCog,
+	FaInfoCircle,
 } from "react-icons/fa";
 
 const MyCalendar = () => {
@@ -30,8 +34,11 @@ const MyCalendar = () => {
 	const [userID, setUserID] = useState("");
 	const [waiverSigned, setWaiverSigned] = useState(false);
 	const [availableWalks, setAvailableWalks] = useState([]);
-    const [selectedWalk, setSelectedWalk] = useState(null);
+	const [selectedWalk, setSelectedWalk] = useState(null);
+	const [showSettings, setShowSettings] = useState(false);
+	const [restrictedDays, setRestrictedDays] = useState([0, 1]); // Closed: Sunday, Monday
 	const [filteredWalks, setFilteredWalks] = useState([]);
+	const [restrictedDates, setRestrictedDates] = useState([]);
 	const [newEvent, setNewEvent] = useState({
 		marshal: "",
 		start: date,
@@ -43,6 +50,12 @@ const MyCalendar = () => {
 	const [slotSelections, setSlotSelections] = useState({});
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
+	const [newRestrictedDate, setNewRestrictedDate] = useState("");
+	const [newWeeklyHourDay, setNewWeeklyHourDay] = useState("2");
+	const [newStartHour, setNewStartHour] = useState("08:00");
+	const [newEndHour, setNewEndHour] = useState("17:00");
+
+	const navigate = useNavigate();
 
 	useEffect(() => {
 		const token = localStorage.getItem("token");
@@ -51,7 +64,7 @@ const MyCalendar = () => {
 				const decodedToken = jwtDecode(token);
 				setRole(decodedToken.role);
 				setUserID(decodedToken.id);
-	
+
 				// Auto-assign marshal
 				if (decodedToken.role === "marshal") {
 					setNewEvent((prevEvent) => ({
@@ -59,12 +72,13 @@ const MyCalendar = () => {
 						marshal: decodedToken.id,
 					}));
 				}
-	
+
 				// 🛡️ Check waiver status for users
 				if (decodedToken.role === "user") {
-					api.get("/waiver/status", {
-						headers: { Authorization: `Bearer ${token}` },
-					})
+					api
+						.get("/waiver/status", {
+							headers: { Authorization: `Bearer ${token}` },
+						})
 						.then((res) => {
 							setWaiverSigned(res.data.waiverSigned);
 						})
@@ -103,8 +117,40 @@ const MyCalendar = () => {
 		}
 	};
 
+	const saveDateSettings = async () => {
+		try {
+			await api.put("/settings/restrictions", {
+				daysClosed: restrictedDays,
+				specificDates: restrictedDates,
+				weeklyHours: newEvent.weeklyHours || {},
+			});
+			toast.success("Settings saved successfully!");
+		} catch (error) {
+			console.error("Failed to save settings:", error);
+			toast.error("Failed to save settings.");
+		}
+	};
+
 	useEffect(() => {
 		fetchAvailableWalks();
+		const fetchDateSettings = async () => {
+			try {
+				const response = await api.get("/settings/restrictions");
+				const { daysClosed, specificDates, weeklyHours } = response.data;
+				setRestrictedDays(daysClosed || []);
+				setRestrictedDates(specificDates || []);
+				if (weeklyHours) {
+					setNewStartHour(weeklyHours.start);
+					setNewEndHour(weeklyHours.end);
+				} else {
+					setNewStartHour("10:00");
+					setNewEndHour("15:00");
+				}
+			} catch (err) {
+				console.error("Failed to fetch calendar restrictions:", err);
+			}
+		};
+		fetchDateSettings();
 	}, []);
 
 	const handleDateChange = (selectedDate) => {
@@ -140,10 +186,9 @@ const MyCalendar = () => {
 
 		if (!waiverSigned) {
 			toast.warning("Please sign the waiver before booking a walk.");
-			return window.location.href = "/waiver";
+			return (window.location.href = "/waiver");
 		}
-	
-	
+
 		const confirm = window.confirm(
 			`Confirm ${slotsSelected} slot${
 				slotsSelected > 1 ? "s" : ""
@@ -171,7 +216,7 @@ const MyCalendar = () => {
 			toast.success("Walk confirmed successfully!");
 			setTimeout(() => {
 				navigate("/walkdogs");
-			  }, 1500);
+			}, 1500);
 			await fetchAvailableWalks();
 			setSelectedWalkId(null);
 		} catch (error) {
@@ -205,10 +250,14 @@ const MyCalendar = () => {
 				);
 				end.setHours(0, 0, 0, 0); // Set to the start of the next day to ensure inclusion
 
-				let currentDate = new Date(start);
+				const currentDate = new Date(start);
 				while (currentDate <= end) {
 					const day = currentDate.getDay();
-					if (day !== 0 && day !== 1 && day !== 6) {
+					const isDayBlocked = restrictedDays.includes(day);
+					const isDateBlocked = restrictedDates.some(
+						(d) => new Date(d).toDateString() === currentDate.toDateString()
+					);
+					if (!isDayBlocked && !isDateBlocked) {
 						// Only schedule on weekdays
 						for (const time of selectedTimes) {
 							const [hours, minutes] = time.split(":").map(Number);
@@ -265,6 +314,16 @@ const MyCalendar = () => {
 			<div className="bg-[#8c1d35] text-white py-8 px-4 mb-8">
 				<div className="max-w-7xl mx-auto">
 					<h1 className="text-4xl font-bold text-center mb-2">
+						{role === "admin" && (
+							<div className="flex justify-end">
+								<button
+									onClick={() => setShowSettings(!showSettings)}
+									className="text-white text-xl hover:text-yellow-200 transition"
+								>
+									<FaCog />
+								</button>
+							</div>
+						)}
 						Dog Walking Calendar
 					</h1>
 					<p className="text-center text-lg max-w-3xl mx-auto opacity-90">
@@ -274,19 +333,6 @@ const MyCalendar = () => {
 			</div>
 
 			<div className="container mx-auto px-4 pb-12">
-				<ToastContainer
-					position="top-right"
-					autoClose={5000}
-					hideProgressBar={false}
-					newestOnTop
-					closeOnClick
-					rtl={false}
-					pauseOnFocusLoss
-					draggable
-					pauseOnHover
-					theme="light"
-				/>
-
 				{loading ? (
 					<div className="flex justify-center items-center h-64">
 						<div className="flex flex-col items-center">
@@ -315,26 +361,26 @@ const MyCalendar = () => {
 							}`}
 						>
 							<div className="bg-[#e8d3a9] px-5 py-3 border-b border-[#d9c59a]">
-							<div className="flex items-center justify-between">
-								{/* Left: Calendar + Text */}
-								<div className="flex items-center">
-								<FaCalendarAlt className="text-[#8c1d35] mr-2" />
-								<h2 className="text-xl font-semibold text-[#8c1d35]">
-									Select a Date
-								</h2>
-								</div>
+								<div className="flex items-center justify-between">
+									{/* Left: Calendar + Text */}
+									<div className="flex items-center">
+										<FaCalendarAlt className="text-[#8c1d35] mr-2" />
+										<h2 className="text-xl font-semibold text-[#8c1d35]">
+											Select a Date
+										</h2>
+									</div>
 
-								{/* Right: Paw Icon + Link */}
-								<div className="flex items-center gap-2">
-								<FaPaw className="text-[#8c1d35] text-lg" />
-								<Link
-									to="/mywalks"
-									className="text-[#8c1d35] hover:underline font-medium"
-								>
-									Go to MyWalks
-								</Link>
+									{/* Right: Paw Icon + Link */}
+									<div className="flex items-center gap-2">
+										<FaPaw className="text-[#8c1d35] text-lg" />
+										<Link
+											to="/mywalks"
+											className="text-[#8c1d35] hover:underline font-medium"
+										>
+											Go to MyWalks
+										</Link>
+									</div>
 								</div>
-							</div>
 							</div>
 
 							<div className="p-4">
@@ -345,9 +391,12 @@ const MyCalendar = () => {
 									onViewChange={setView}
 									className="custom-calendar w-full h-full"
 									tileDisabled={({ date }) => {
-										// Disable Saturday (6), Sunday (0), and Monday (1)
 										const day = date.getDay();
-										return day === 0 || day === 1 || day === 6;
+										const isDayBlocked = restrictedDays.includes(day);
+										const isDateBlocked = restrictedDates.some(
+											(d) => new Date(d).toDateString() === date.toDateString()
+										);
+										return isDayBlocked || isDateBlocked;
 									}}
 									tileContent={({ date }) => {
 										const today = new Date();
@@ -497,8 +546,11 @@ const MyCalendar = () => {
 																			Marshal
 																		</p>
 																		<p className="font-medium text-gray-800">
-																			{walk.marshal.firstName}{" "}
-																			{walk.marshal.lastName}
+																			{walk.marshal
+																				.map(
+																					(m) => `${m.firstName} ${m.lastName}`
+																				)
+																				.join(", ")}
 																		</p>
 																	</div>
 																</div>
@@ -632,6 +684,270 @@ const MyCalendar = () => {
 					/>
 				)}
 			</div>
+			{showSettings && role === "admin" && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-lg">
+					<div className="bg-white rounded-xl shadow-xl overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col">
+						{/* Header */}
+						<div className="bg-[#8c1d35] px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+							<div className="flex items-center">
+								<FaCog className="text-white mr-3 text-xl" />
+								<h3 className="text-xl font-bold text-white">
+									Calendar Settings
+								</h3>
+							</div>
+							<button
+								onClick={() => setShowSettings(false)}
+								className="text-white hover:text-gray-200 transition-colors"
+								aria-label="Close settings"
+							>
+								<FaTimes className="text-xl" />
+							</button>
+						</div>
+
+						{/* Content */}
+						<div className="overflow-y-auto p-6 flex-grow">
+							{/* Tabs */}
+							<div className="flex border-b border-gray-200 mb-6">
+								<button className="px-4 py-2 border-b-2 border-[#8c1d35] text-[#8c1d35] font-medium relative">
+									Availability
+									<span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#8c1d35] transform scale-x-100 transition-transform origin-left"></span>
+								</button>
+							</div>
+							{/* Closed Days Section */}
+							<div className="mb-8 transition-all duration-300 hover:shadow-md rounded-lg p-4 border border-transparent hover:border-[#e8d3a9]">
+								<h4 className="text-lg font-medium text-[#8c1d35] mb-4 flex items-center">
+									<FaCalendarAlt className="mr-2" /> Closed Days
+								</h4>
+								<div className="bg-[#f8f5f0] p-5 rounded-lg border border-[#e8d3a9]">
+									<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+										{[0, 1, 2, 3, 4, 5, 6].map((day) => (
+											<div
+												key={day}
+												className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+													restrictedDays.includes(day)
+														? "bg-[#8c1d35] text-white"
+														: "bg-white text-gray-700 hover:bg-gray-100"
+												}`}
+												onClick={() =>
+													setRestrictedDays((prev) =>
+														prev.includes(day)
+															? prev.filter((d) => d !== day)
+															: [...prev, day]
+													)
+												}
+											>
+												<div
+													className={`w-5 h-5 rounded-full mr-3 flex items-center justify-center ${
+														restrictedDays.includes(day)
+															? "bg-white text-[#8c1d35]"
+															: "bg-gray-200"
+													}`}
+												>
+													{restrictedDays.includes(day) && (
+														<FaCheck className="text-xs" />
+													)}
+												</div>
+												<span className="font-medium">
+													{
+														[
+															"Sunday",
+															"Monday",
+															"Tuesday",
+															"Wednesday",
+															"Thursday",
+															"Friday",
+															"Saturday",
+														][day]
+													}
+												</span>
+											</div>
+										))}
+									</div>
+									<div className="mt-4 text-sm text-gray-500 italic">
+										Click on a day to toggle it as closed or open
+									</div>
+								</div>
+							</div>
+							{/* Restricted Dates Section */}
+							{/* Restricted Dates Section */}
+							<div className="mb-8 transition-all duration-300 hover:shadow-md rounded-lg p-4 border border-transparent hover:border-[#e8d3a9]">
+								<h4 className="text-lg font-medium text-[#8c1d35] mb-4 flex items-center">
+									<FaCalendarAlt className="mr-2" /> Specific Closed Dates
+								</h4>
+								<div className="bg-[#f8f5f0] p-5 rounded-lg border border-[#e8d3a9]">
+									<div className="flex flex-col md:flex-row gap-6">
+										<div className="flex-1">
+											<label className="block font-medium text-sm mb-2 text-gray-700">
+												Add Restricted Date:
+											</label>
+											<div className="flex gap-2">
+												<input
+													type="date"
+													value={newRestrictedDate}
+													onChange={(e) => setNewRestrictedDate(e.target.value)}
+													className="border border-gray-300 rounded-lg px-4 py-2 flex-1 text-gray-700 focus:border-[#8c1d35] focus:ring focus:ring-[#8c1d35] focus:ring-opacity-50 transition-all"
+												/>
+												<button
+													onClick={() => {
+														if (
+															newRestrictedDate &&
+															!restrictedDates.includes(newRestrictedDate)
+														) {
+															setRestrictedDates([
+																...restrictedDates,
+																newRestrictedDate,
+															]);
+															setNewRestrictedDate("");
+														} else if (
+															restrictedDates.includes(newRestrictedDate)
+														) {
+															toast.warning("This date is already restricted");
+														} else {
+															toast.error("Please select a date");
+														}
+													}}
+													className="bg-[#8c1d35] text-white px-4 py-2 rounded-lg hover:bg-[#7c1025] transition-colors flex items-center gap-2 min-w-[100px] justify-center"
+												>
+													<FaPlus className="text-sm" /> Add
+												</button>
+											</div>
+										</div>
+
+										<div className="flex-1">
+											<label className="block font-medium text-sm mb-2 text-gray-700">
+												Current Restricted Dates:
+											</label>
+											<div className="bg-white border border-gray-200 rounded-lg p-4 min-h-[120px] max-h-[200px] overflow-y-auto">
+												{restrictedDates.length > 0 ? (
+													<div className="flex flex-wrap gap-2">
+														{restrictedDates.map((date, index) => (
+															<div
+																key={index}
+																className="bg-[#f8f5f0] px-3 py-2 rounded-lg flex items-center gap-2 border border-[#e8d3a9] group hover:bg-[#e8d3a9] transition-colors"
+															>
+																<span className="text-sm text-gray-700">
+																	{date}
+																</span>
+																<button
+																	onClick={() => {
+																		const newDates = [...restrictedDates];
+																		newDates.splice(index, 1);
+																		setRestrictedDates(newDates);
+																		toast.info("Date removed");
+																	}}
+																	className="text-gray-400 hover:text-[#8c1d35] transition-colors group-hover:text-[#8c1d35]"
+																	aria-label="Remove date"
+																>
+																	<FaTimes size={14} />
+																</button>
+															</div>
+														))}
+													</div>
+												) : (
+													<div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm italic">
+														<FaCalendarAlt className="text-gray-300 text-3xl mb-2" />
+														<p>No restricted dates added</p>
+													</div>
+												)}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>{" "}
+							{/* Added missing closing div for Restricted Dates Section */}
+							{/* Office Hours Section */}
+							<div className="mb-6 transition-all duration-300 hover:shadow-md rounded-lg p-4 border border-transparent hover:border-[#e8d3a9]">
+								<h4 className="text-lg font-medium text-[#8c1d35] mb-4 flex items-center">
+									<FaClock className="mr-2" /> Office Hours
+								</h4>
+								<div className="bg-[#f8f5f0] p-5 rounded-lg border border-[#e8d3a9]">
+									<label className="block font-medium text-sm mb-3 text-gray-700">
+										Set Default Hours for All Days:
+									</label>
+									<div className="flex flex-wrap gap-4 items-center bg-white p-5 rounded-lg border border-gray-200">
+										<div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+											<div className="flex items-center">
+												<span className="text-gray-700 mr-3 font-medium">
+													From:
+												</span>
+												<input
+													type="time"
+													value={newStartHour}
+													onChange={(e) => setNewStartHour(e.target.value)}
+													className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:border-[#8c1d35] focus:ring focus:ring-[#8c1d35] focus:ring-opacity-50 transition-all"
+												/>
+											</div>
+											<div className="flex items-center">
+												<span className="text-gray-700 mr-3 font-medium">
+													To:
+												</span>
+												<input
+													type="time"
+													value={newEndHour}
+													onChange={(e) => setNewEndHour(e.target.value)}
+													className="border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:border-[#8c1d35] focus:ring focus:ring-[#8c1d35] focus:ring-opacity-50 transition-all"
+												/>
+											</div>
+										</div>
+
+										<button
+											onClick={() => {
+												setNewEvent((prev) => ({
+													...prev,
+													weeklyHours: {
+														0: { start: newStartHour, end: newEndHour },
+														1: { start: newStartHour, end: newEndHour },
+														2: { start: newStartHour, end: newEndHour },
+														3: { start: newStartHour, end: newEndHour },
+														4: { start: newStartHour, end: newEndHour },
+														5: { start: newStartHour, end: newEndHour },
+														6: { start: newStartHour, end: newEndHour },
+													},
+												}));
+												toast.success("Hours applied to all days");
+											}}
+											className="bg-[#8c1d35] text-white px-4 py-2 rounded-lg hover:bg-[#7c1025] transition-colors flex items-center gap-2"
+										>
+											<FaCheck className="text-sm" /> Apply to All Days
+										</button>
+									</div>
+
+									<div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+										<div className="flex items-start">
+											<FaInfoCircle className="text-yellow-600 mr-2 mt-0.5 flex-shrink-0" />
+											<p>
+												These hours will apply to all days that are not marked
+												as closed. Walks can only be scheduled during these
+												hours.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						{/* Footer with actions */}
+						<div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-end gap-3 sticky bottom-0">
+							<button
+								onClick={() => setShowSettings(false)}
+								className="px-5 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors font-medium"
+							>
+								Cancel
+							</button>
+							<button
+								onClick={() => {
+									saveDateSettings();
+									// Don't close the modal immediately to allow the user to see the success message
+									setTimeout(() => setShowSettings(false), 1500);
+								}}
+								className="px-6 py-2 bg-[#8c1d35] text-white rounded-lg hover:bg-[#7c1025] transition-colors flex items-center gap-2 font-medium"
+							>
+								<FaSave className="text-sm" /> Save Settings
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

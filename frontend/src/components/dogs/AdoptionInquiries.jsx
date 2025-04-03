@@ -30,7 +30,7 @@ export default function AdoptionInquiries() {
 	};
 
 	fetchInquiries();
-}, []);
+}, [replyingTo, sendingReply]); // re-fetch when replyingTo or sendingReply changes
 
   return (
     <div className="min-h-screen bg-[#f8f5f0] p-6">
