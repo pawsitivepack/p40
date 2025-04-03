@@ -173,6 +173,7 @@ export default function Home() {
             {renderLink("/marshal-application", <FaUserShield />, "Marshal Application")}
             {renderLink("/dog-inventory", <FaDog />, "Dog Inventory")}
             {renderLink("/adoption-board", <FaPaw />, "Adoption Board")}
+            {renderLink("/adoption-inquiries", <FaHandHoldingHeart />, "Adoption Inquiries")}
             {renderLink("/users", <FaUsers />, "Manage Users")}
             {renderLink("/dog-walk-summary", <FaDonate />, "Reports")}
           </>

@@ -38,6 +38,10 @@ export default function Adoption() {
 	if (loading) return <div>Loading...</div>;
 	if (error) return <div>{error}</div>;
 
+	const handleAdoptClick = (dog) => {
+		navigate(`/dog/${dog._id}`, { state: { fromAdoptionPage: true } });
+	};
+	
 	const filteredDogs = dogs
 		.filter((dog) => {
 			const matchesSearch =
@@ -133,8 +137,11 @@ export default function Adoption() {
 							dog={dog}
 							role="admin"
 							onViewDog={handleViewDog}
+							onAdoptClick={handleAdoptClick}
+							
 						/>
 					))}
+					
 				</div>
 			</div>
 		</div>
@@ -194,6 +201,7 @@ function DogCard({ dog, role, onViewDog }) {
 							<strong>Adopted Date:</strong> {dog.adoptedDate}
 						</p>
 					)}
+					
 				</div>
 			</div>
 		</div>
