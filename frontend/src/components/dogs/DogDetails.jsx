@@ -4,6 +4,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../../api/axios";
 import ReviewSection from "./ReviewSection";
 import { jwtDecode } from "jwt-decode";
+import { useLocation } from "react-router-dom";
 
 import {
 	FaArrowLeft,
@@ -50,6 +51,11 @@ const DogDetails = () => {
 	const [similarDogs, setSimilarDogs] = useState([]);
 	const [userId, setUserId] = useState();
 	const [role, setRole] = useState();
+	const location = useLocation();
+    const fromAdoptionPage = location.state?.fromAdoptionPage;
+	const [showInquiryForm, setShowInquiryForm] = useState(false);
+	const [existingInquiry, setExistingInquiry] = useState(null);
+
 
 	useEffect(() => {
 		const fetchDogDetails = async () => {
@@ -70,6 +76,8 @@ const DogDetails = () => {
 						similarRes.data.filter((d) => d._id !== id).slice(0, 3)
 					);
 				}
+				
+  
 			} catch (err) {
 				console.error("Error fetching dog details:", err);
 			} finally {
@@ -81,17 +89,49 @@ const DogDetails = () => {
 		// Scroll to top when component mounts
 		window.scrollTo(0, 0);
 	}, [id]);
+	useEffect(() => {
+		if (fromAdoptionPage) {
+			const inquirySection = document.getElementById("inquiry-section");
+			if (inquirySection) {
+				inquirySection.scrollIntoView({ behavior: "smooth" });
+			}
+		}
+	}, [fromAdoptionPage]);
+	
+	useEffect(() => {
+		if (userId && dog?._id) {
+			const fetchUserInquiry = async () => {
+				try {
+					const inquiryRes = await api.get(
+						`/adoptions/user-inquiry/${userId}/${dog._id}`
+					);
+					if (inquiryRes.data) {
+						setExistingInquiry(inquiryRes.data);
+						console.log("Fetched inquiry:", inquiryRes.data);
+					}
+				} catch (error) {
+					console.error("No existing inquiry found for this user and dog.");
+				}
+			};
+	        const interval = setInterval(fetchUserInquiry, 5000);
+			fetchUserInquiry();
+			return () => clearInterval(interval);
+		}
+	}, [userId, dog]);
+	
 
 	const handleInquiry = async (e) => {
 		e.preventDefault();
 		if (!message.trim()) return;
-
+	
 		setSending(true);
 		try {
-			await api.post("/inquiries", {
-				dogId: id,
-				message,
+			await api.post("/adoptions", {
+				Dogid: id,
+				Userid: userId,
+				Message: message,
 			});
+	
 			setSent(true);
 			setMessage("");
 			setTimeout(() => setSent(false), 5000);
@@ -102,6 +142,7 @@ const DogDetails = () => {
 			setSending(false);
 		}
 	};
+	
 
 	const handleShare = () => {
 		if (navigator.share) {
@@ -249,11 +290,21 @@ const DogDetails = () => {
 
 								{/* Action Buttons */}
 								<div className="flex flex-wrap gap-2 mt-4 print:hidden">
-									{!dog.adopted && (
-										<button className="flex-1 bg-[#8c1d35] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#7c1025] transition-colors flex items-center justify-center">
-											<FaHeart className="mr-2" /> Adoption Request
-										</button>
+								{!dog.adopted && (
+									<button
+										onClick={async () => {
+											setShowInquiryForm(true);
+											setTimeout(() => {
+												const section = document.getElementById("inquiry-section");
+												if (section) section.scrollIntoView({ behavior: "smooth" });
+											}, 100); // delay for smoother scroll
+										}}
+										className="flex-1 bg-[#8c1d35] text-white px-4 py-2 rounded-lg font-medium hover:bg-[#7c1025] transition-colors flex items-center justify-center"
+									>
+										<FaHeart className="mr-2" /> Inquire to Adopt
+									</button>
 									)}
+
 									<button
 										onClick={handleShare}
 										className="flex-1 bg-[#e8d3a9] text-[#8c1d35] px-4 py-2 rounded-lg font-medium hover:bg-[#d9c59a] transition-colors flex items-center justify-center"
@@ -504,29 +555,53 @@ const DogDetails = () => {
 						)}
 
 						{/* Inquiry Form - Hidden in print */}
-						{!dog.adopted && isLoggedIn && (
-							<div className="mt-8 print:hidden">
+						{!dog.adopted && isLoggedIn && showInquiryForm && (
+							<div id="inquiry-section" className="mt-8 print:hidden">
 								<div className="bg-[#f8f5f0] rounded-lg p-6 border border-[#e8d3a9]">
 									<h3 className="text-xl font-bold text-[#8c1d35] mb-4 flex items-center">
 										<FaEnvelope className="mr-2" /> Inquire About {dog.name}
 									</h3>
 
-									{sent ? (
-										<div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 flex items-center">
-											<FaCheck className="text-green-500 mr-2" />
-											Your inquiry has been sent! We'll get back to you soon.
-										</div>
-									) : (
+
+								      {existingInquiry ? (
+											<>
+											<div className="bg-green-50 border border-green-200 text-green-800 rounded-lg p-4 flex items-center mb-4">
+												<FaCheck className="text-green-500 mr-2" />
+												You’ve already inquired about this dog.
+											</div>
+
+											<p className="text-gray-700 text-sm italic mb-2">
+												<strong>Your message:</strong> "{existingInquiry.Message}"
+											</p>
+											<p className="text-xs text-gray-500 mt-1">
+											Inquired on {new Date(existingInquiry.createdAt).toLocaleString()}
+											</p>
+
+
+											{existingInquiry.ReplyMessage && (
+											<div className="mt-4 p-3 bg-[#f0f0f0] rounded-md border border-gray-200">
+												<p className="text-sm text-gray-700">
+												<span className="font-semibold text-[#8c1d35]">Admin Reply:</span> {existingInquiry.ReplyMessage}
+												</p>
+												{existingInquiry.ReplyDate && (
+												<p className="text-xs text-gray-500 mt-1">
+													Replied on {new Date(existingInquiry.ReplyDate).toLocaleString()}
+												</p>
+												)}
+											</div>
+											)}
+											</>
+										) : (
 										<form onSubmit={handleInquiry}>
 											<div className="mb-4">
-												<label className="block text-gray-700 text-sm font-medium mb-2">
+												<label className="block text-black text-sm font-medium mb-2">
 													Your Message
 												</label>
 												<textarea
 													value={message}
 													onChange={(e) => setMessage(e.target.value)}
 													rows="4"
-													className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1d35] focus:border-transparent"
+													className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8c1d35] focus:border-transparent text-black bg-white"
 													placeholder={`I'm interested in learning more about ${dog.name}...`}
 													required
 												/>
