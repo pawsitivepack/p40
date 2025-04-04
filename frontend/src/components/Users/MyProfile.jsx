@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import api from "../../api/axios";
@@ -34,20 +32,14 @@ const MyProfile = () => {
 		const fetchProfile = async () => {
 			try {
 				setLoading(true);
-				const response = await api.get("/users/myprofile");
-				console.log("Profile data:", response.data);
-				if (response.data && response.data.user) {
-					const now = new Date();
-   					const upcoming = (response.data.user.dogsWalked || []).filter(
-						(walk) => new Date(walk.date) > now
-					);
+				const upcomingRes = await api.get("/completedWalk/upcomingWalks");
+				const profileRes = await api.get("/users/myprofile");
+				const completedWalks = await api.get("/completedWalk/pastWalks");
+				console.log(completedWalks.data);
 
-					const past = (response.data.user.dogsWalked || []).filter(
-						(walk) => new Date(walk.date) <= now
-					);
-
-					setUser(response.data.user);
-					setWalks({ upcoming, past });
+				if (profileRes.data && profileRes.data.user) {
+					setUser(profileRes.data.user);
+					setWalks({ upcoming: upcomingRes.data, past: completedWalks.data });
 				} else {
 					throw new Error("Invalid user data received");
 				}
@@ -356,7 +348,7 @@ const MyProfile = () => {
 													{(() => {
 														const seen = new Set();
 														const allDogs = walks.past
-															.flatMap((walk) => walk.dogId || [])
+															.flatMap((walk) => walk.dogs || [])
 															.filter((dog) => {
 																if (!dog || seen.has(dog._id)) return false;
 																seen.add(dog._id);
@@ -403,7 +395,9 @@ const MyProfile = () => {
 								<div className="flex items-center justify-between mb-4">
 									<div className="flex items-center">
 										<FaCalendarAlt className="text-[#8c1d35] mr-2 text-xl" />
-										<h2 className="text-xl font-bold text-[#8c1d35]">Upcoming Walks</h2>
+										<h2 className="text-xl font-bold text-[#8c1d35]">
+											Upcoming Walks
+										</h2>
 									</div>
 
 									<button
@@ -443,7 +437,12 @@ const MyProfile = () => {
 													<div className="flex items-center">
 														<FaUserTag className="text-[#8c1d35] mr-2" />
 														<span className="text-gray-800">
-															Marshal: {walk.marshal?.firstName || "Unassigned"}
+															Marshal:{" "}
+															{walk.marshalId && walk.marshalId.length > 0
+																? walk.marshalId
+																		.map((marshal) => marshal.firstName)
+																		.join(", ")
+																: "Unassigned"}
 														</span>
 													</div>
 
@@ -525,15 +524,20 @@ const MyProfile = () => {
 													<div className="flex items-center">
 														<FaUserTag className="text-[#8c1d35] mr-2" />
 														<span className="text-gray-800">
-															Marshal: {walk.marshalId?.firstName || "N/A"}
+															Marshal:{" "}
+															{walk.marshalId && walk.marshalId.length > 0
+																? walk.marshalId
+																		.map((m) => m.firstName)
+																		.join(", ")
+																: "Unassigned"}
 														</span>
 													</div>
 
 													<div className="flex items-start">
 														<FaDog className="text-[#8c1d35] mr-2 mt-1" />
 														<span className="text-gray-800">
-															{walk.dogId && walk.dogId.length > 0
-																? walk.dogId.map((dog) => dog.name).join(", ")
+															{walk.dogs && walk.dogs.length > 0
+																? walk.dogs.map((dog) => dog.name).join(", ")
 																: "No dogs recorded"}
 														</span>
 													</div>

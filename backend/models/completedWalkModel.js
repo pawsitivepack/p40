@@ -7,7 +7,7 @@ const CompletedWalkSchema = new mongoose.Schema({
 		ref: "ScheduledWalk",
 	},
 	dogId: [{ type: mongoose.Schema.Types.ObjectId, ref: "Dog" }],
-	marshalId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Optional if a marshal is assigned
+	marshalId: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Optional if a marshal is assigned
 	date: { type: Date, default: Date.now },
 	status: { type: String, enum: ["pending", "completed"], default: "pending" }, // Track completion
 });

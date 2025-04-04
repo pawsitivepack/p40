@@ -1,8 +1,8 @@
 const ScheduledWalk = require("../models/walkmodel");
 const User = require("../models/usersModel");
-const { transporter, sendWalkConfirmationEmail } = require("../config/mailer");
-const CompletedWalk = require("../models/completedWalkModel");
-const Slots = require("../models/slotsModel");
+const { sendWalkConfirmationEmail } = require("../config/mailer");
+const BookedWalks = require("../models/BookedModel");
+
 const mongoose = require("mongoose");
 
 exports.addScheduledWalk = async (req, res) => {
@@ -113,8 +113,8 @@ exports.getMyScheduledWalks = async (req, res) => {
 };
 
 exports.confirm = async (req, res) => {
-	const { walkId, userId } = req.body;
-
+	const { walkId, userId, slots } = req.body;
+	console.log(req.body);
 	try {
 		// Find the walk by ID
 		const walk = await ScheduledWalk.findById(walkId);
@@ -124,10 +124,10 @@ exports.confirm = async (req, res) => {
 		}
 
 		// Check if slots are available
-		if (walk.slots <= 0) {
+		if (walk.slots < slots) {
 			return res
 				.status(400)
-				.json({ message: "No slots available for this walk." });
+				.json({ message: "Not enough slots available in this walk." });
 		}
 
 		// Check if the user is already in the walker list
@@ -138,7 +138,7 @@ exports.confirm = async (req, res) => {
 		}
 
 		// Subtract 1 from slots and add userId to the walker array
-		walk.slots -= 1;
+		walk.slots -= slots;
 		walk.walker.push(userId);
 
 		// Save the updated walk
@@ -153,12 +153,20 @@ exports.confirm = async (req, res) => {
 		await user.save();
 
 		// Create a new Slots entry
-		await Slots.create({
-			slots: walk.slots,
+		const booked = await BookedWalks.create({
+			slots: slots,
 			walkId: walk._id,
-			walkerId: userId,
+			userId: userId,
 			marshalId: walk.marshal,
+			date: walk.date,
+			location: walk.location,
 		});
+
+		user.bookedWalks = user.bookedWalks || [];
+		user.bookedWalks.push(booked._id);
+		await user.save();
+		walk.bookedWalk.push(booked._id); // Add the booked walk to the ScheduledWalk
+		await walk.save(); // Save the updated ScheduledWalk
 
 		await sendWalkConfirmationEmail(user, walk);
 
@@ -210,21 +218,33 @@ exports.cancelWalk = async (req, res) => {
 };
 
 exports.checkInScheduledWalks = async (req, res) => {
-	console.log("THE REQUEST HIT HERE");
 	try {
-		const walks = await ScheduledWalk.find()
-			.populate("walker", "firstName lastName picture") // Populate walker with firstName and lastName
-			.populate("marshal", "firstName lastName") // Populate marshal with firstName and lastName
-			.populate("dog", "name breed"); // Populate dog with name and breed
+		const now = new Date();
+		const tomorrow = new Date();
+		tomorrow.setDate(now.getDate() + 1);
+		tomorrow.setHours(0, 0, 0, 0);
 
-		const completedWalks = await CompletedWalk.find({
-			status: "pending",
+		const dayAfterTomorrow = new Date();
+		dayAfterTomorrow.setDate(now.getDate() + 2);
+		dayAfterTomorrow.setHours(0, 0, 0, 0);
+
+		const walks = await ScheduledWalk.find({
+			date: { $lt: dayAfterTomorrow },
 		})
-			.populate("userId", "firstName lastName picture dogs")
-			.populate("dogId", "name breed demeanor imageURL");
-		// return res.end("HELLO FROM SCHEDULED WALKS");
+			.populate("walker", "firstName lastName picture")
+			.populate("marshal", "firstName lastName")
+			.populate("dog", "name breed");
+
+		const completedWalks = await BookedWalks.find({
+			status: "walking",
+		})
+			.populate("userId", "firstName lastName picture")
+			.populate("dogs", "name breed demeanor imageURL");
+
+		console.log("Retrieved completed walks for check-in:", completedWalks);
 		res.status(200).json({ data: { walks, completedWalks } });
 	} catch (error) {
+		console.error("Error retrieving scheduled walks:", error);
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };

@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema(
 				return !this.googleAuth;
 			},
 		},
-	    waiverSigned: { type: Boolean, default: false }, // To check if the user has signed the waiver
+		waiverSigned: { type: Boolean, default: false }, // To check if the user has signed the waiver
 		userPoints: { type: Number, default: 0, required: false }, // Default user points
 		isAdmin: { type: Boolean, default: false, required: false }, // To identify admin users
 		role: {
@@ -45,6 +45,13 @@ const userSchema = new mongoose.Schema(
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "CompletedWalk",
+				required: false,
+			},
+		],
+		bookedWalks: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "BookedWalks",
 				required: false,
 			},
 		], // Reference to Dog model

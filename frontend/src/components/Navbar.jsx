@@ -33,12 +33,12 @@ export default function Navbar() {
 		if (token) {
 			try {
 				const decoded = jwtDecode(token);
-				console.log("Token found:", decoded);
+
 				setRole(decoded.role);
 				setUsername(decoded.username);
 				setEmail(decoded.email);
 				setPicture(decoded.picture);
-				console.log("Picture:", decoded.picture);
+
 				setIsLoggedIn(true);
 			} catch (error) {
 				console.error("Invalid token:", error);
