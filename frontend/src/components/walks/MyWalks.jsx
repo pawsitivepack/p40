@@ -16,8 +16,11 @@ import {
 	FaSpinner,
 	FaCalendarCheck,
 	FaHistory,
+	FaSearch,
+	FaDog,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import Map from "../maps/Map";
 
 const MyWalks = () => {
 	const [walks, setWalks] = useState([]);
@@ -211,6 +214,79 @@ const MyWalks = () => {
 						<FaCalendarCheck />
 						<span>Schedule Walk</span>
 					</Link>
+				</div>
+
+				{/* Map Section */}
+				<div className="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border border-[#e8d3a9]">
+					<div className="bg-[#8c1d35] text-white px-6 py-3 flex justify-between items-center">
+						<h3 className="text-xl font-bold flex items-center">
+							<FaMapMarkerAlt className="mr-2" /> Walk Locations
+						</h3>
+						<div className="flex items-center gap-2 text-sm">
+							<span className="bg-white text-[#8c1d35] px-2 py-1 rounded-full font-medium flex items-center">
+								<FaCalendarAlt className="mr-1" /> {filteredWalks.length}{" "}
+								{activeTab === "upcoming" ? "Upcoming" : "Past"} Walks
+							</span>
+						</div>
+					</div>
+
+					<div className="flex flex-col md:flex-row">
+						<div className="md:w-1/3 p-5 bg-[#f8f5f0] border-b md:border-b-0 md:border-r border-[#e8d3a9]">
+							<div className="mb-4">
+								<h4 className="font-medium text-gray-700 mb-2 flex items-center">
+									<FaPaw className="text-[#8c1d35] mr-2" /> Walk Information
+								</h4>
+								<p className="text-gray-600 text-sm">
+									View the locations of your{" "}
+									{activeTab === "upcoming" ? "upcoming" : "past"} dog walks on
+									the interactive map. Click on markers to see location details.
+								</p>
+							</div>
+
+							<div className="mt-4 pt-4 border-t border-[#e8d3a9]">
+								<div className="flex items-center justify-between">
+									<h4 className="font-medium text-gray-700 flex items-center">
+										<FaMapMarkerAlt className="text-[#8c1d35] mr-2" /> Map
+										Legend
+									</h4>
+								</div>
+								<div className="mt-2 space-y-2 text-sm">
+									<div className="flex items-center">
+										<img
+											src="https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+											alt="My Location"
+											className="w-4 h-4 mr-2"
+										/>
+										<span className="text-black">My Location</span>
+									</div>
+									<div className="flex items-center">
+										<img
+											src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+											alt="Shelter Location"
+											className="w-4 h-4 mr-2"
+										/>
+										<span className="text-black">Shelter Location</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div className="md:w-2/3 h-[400px] relative z-0">
+							<Map
+								activeTab={activeTab}
+								walks={filteredWalks}
+								className="w-full h-full"
+							/>
+							<div className="absolute bottom-4 right-4 z-10 flex gap-2">
+								<button className="bg-white p-2 rounded-lg shadow-md hover:bg-[#f8f5f0] transition-colors">
+									<FaSearch className="text-[#8c1d35]" />
+								</button>
+								<button className="bg-white p-2 rounded-lg shadow-md hover:bg-[#f8f5f0] transition-colors">
+									<FaMapMarkerAlt className="text-[#8c1d35]" />
+								</button>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				{/* Walks List */}
