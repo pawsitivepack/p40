@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api/axios";
@@ -24,6 +23,8 @@ const ViewUserDetails = () => {
 	const navigate = useNavigate();
 	const [user, setUser] = useState(null);
 	const [walks, setWalks] = useState([]);
+	const [upcomingWalks, setUpcomingWalks] = useState([]);
+	const [completedWalks, setCompletedWalks] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [activeTab, setActiveTab] = useState("profile");
@@ -35,6 +36,8 @@ const ViewUserDetails = () => {
 				const response = await api.get(`/users/viewUser/${id}`);
 				setUser(response.data.user);
 				setWalks(response.data.walks || []);
+				setUpcomingWalks(response.data.upcomingWalks || []);
+				setCompletedWalks(response.data.pastWalks || []);
 			} catch (err) {
 				console.error("Failed to fetch user details:", err);
 				setError("Failed to fetch user details.");
@@ -64,12 +67,7 @@ const ViewUserDetails = () => {
 		return "Master";
 	};
 
-	// Filter walks by status
-	const upcomingWalks = walks.filter(
-		(walk) => walk.status === "scheduled" || walk.status === "pending"
-	);
-
-	const completedWalks = user?.completedWalks || [];
+	// Removed filtering logic as upcomingWalks and completedWalks are now set from API response
 
 	if (loading) {
 		return (
