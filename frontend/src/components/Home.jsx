@@ -160,7 +160,6 @@ export default function Home() {
 			</motion.div>
 		);
 	};
-
 	// Quick Links Section Component
 	const QuickLinksSection = () => (
 		<div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
@@ -179,6 +178,11 @@ export default function Home() {
 						)}
 						{renderLink("/dog-inventory", <FaDog />, "Dog Inventory")}
 						{renderLink("/adoption-board", <FaPaw />, "Adoption Board")}
+						{renderLink(
+							"/adoption-inquiries",
+							<FaHandHoldingHeart />,
+							"Adoption Inquiries"
+						)}
 						{renderLink("/users", <FaUsers />, "Manage Users")}
 						{renderLink("/dog-walk-summary", <FaDonate />, "Reports")}
 					</>
