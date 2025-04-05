@@ -390,25 +390,36 @@ exports.viewUserDetail = async (req, res) => {
 	try {
 		const userId = req.params.id;
 		console.log("Fetching user details for ID:", userId);
-		// Fetch the user including all fields and populating necessary references
-		const user = await User.findById(userId)
-			.populate("BookedWalks") // Populate completed walks if it's a reference
-			.populate("dogsWalked");
 
+		const user = await User.findById(userId).populate(
+			"bookedWalks",
+			"slots status"
+		);
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		// Fetch the walks associated with this user
+		const upcomingWalks = user.bookedWalks.filter(
+			(walk) => walk.status === "booked"
+		);
+		const pastWalks = user.bookedWalks.filter(
+			(walk) => walk.status !== "booked"
+		);
+
 		const walks = await Walk.find({
 			$or: [{ walker: userId }, { marshal: userId }],
 		})
 			.populate("walker")
 			.populate("marshal");
 
+		console.log("User found:", user);
+		console.log("Walks found for user:", walks);
+
 		res.status(200).json({
 			message: "User details fetched successfully",
 			user,
+			upcomingWalks,
+			pastWalks,
 			walks,
 		});
 	} catch (error) {
