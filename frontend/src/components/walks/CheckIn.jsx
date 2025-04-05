@@ -24,13 +24,8 @@ const CheckIn = () => {
 		const fetchWalks = async () => {
 			try {
 				const response = await api.get(`/scheduledWalks/checkInSchedules`);
-
-				// Filter only today's walks
-				const today = new Date().toISOString().split("T")[0];
-				const filteredWalks = response.data.data.walks.filter(
-					(walk) => new Date(walk.date).toISOString().split("T")[0] === today
-				);
-				setWalksWithUsers(filteredWalks);
+				console.log(response.data.data);
+				setWalksWithUsers(response.data.data.walks);
 
 				setCheckedInUsers(response.data.data.completedWalks);
 			} catch (error) {

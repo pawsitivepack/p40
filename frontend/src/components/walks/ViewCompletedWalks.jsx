@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
 import api from "../../api/axios";
 import { jwtDecode } from "jwt-decode";
 import {
@@ -8,6 +10,9 @@ import {
 	FaChevronLeft,
 	FaChevronRight,
 	FaSearch,
+	FaDownload,
+	FaPaw,
+	FaSpinner,
 } from "react-icons/fa";
 
 const ViewCompletedWalks = () => {
@@ -140,8 +145,8 @@ const ViewCompletedWalks = () => {
 						`${walk.marshalId.firstName} ${walk.marshalId.lastName}`
 							.toLowerCase()
 							.includes(term)) ||
-					(walk.dogId &&
-						walk.dogId.some((dog) => dog.name.toLowerCase().includes(term)))
+					(walk.dogs &&
+						walk.dogs.some((dog) => dog.name.toLowerCase().includes(term)))
 			);
 		}
 
@@ -167,8 +172,8 @@ const ViewCompletedWalks = () => {
 					aValue = a.status;
 					bValue = b.status;
 				} else if (sortConfig.key === "dogs") {
-					aValue = a.dogId ? a.dogId.length : 0;
-					bValue = b.dogId ? b.dogId.length : 0;
+					aValue = a.dogs ? a.dogs.length : 0;
+					bValue = b.dogs ? b.dogs.length : 0;
 				} else {
 					aValue = a[sortConfig.key];
 					bValue = b[sortConfig.key];
@@ -222,14 +227,15 @@ const ViewCompletedWalks = () => {
 			const walker = walk.userId
 				? `${walk.userId.firstName} ${walk.userId.lastName}`
 				: "Anonymous";
-			const marshal = walk.marshalId
-				? `${walk.marshalId.firstName} ${walk.marshalId.lastName}`
-				: "Anonymous";
+			const marshal =
+				Array.isArray(walk.marshalId) && walk.marshalId.length > 0
+					? walk.marshalId.map((m) => `${m.firstName} ${m.lastName}`).join(", ")
+					: "Anonymous";
 			const date = new Date(walk.date).toLocaleDateString();
 			const status = walk.status;
 			const dogs =
-				walk.dogId.length > 0
-					? walk.dogId.map((dog) => dog.name).join(", ")
+				walk.dogs.length > 0
+					? walk.dogs.map((dog) => dog.name).join(", ")
 					: "No dogs walked";
 			printTable += `
         <tr style="background-color: #f8f5f0;">
@@ -310,7 +316,7 @@ const ViewCompletedWalks = () => {
           }
           th {
             background-color: #8c1d35 !important;
-            color: black !important;
+            color: white !important;
             font-weight: bold;
             text-align: left;
             padding: 10px;
@@ -359,14 +365,15 @@ const ViewCompletedWalks = () => {
 			const walker = walk.userId
 				? `${walk.userId.firstName} ${walk.userId.lastName}`
 				: "Anonymous";
-			const marshal = walk.marshalId
-				? `${walk.marshalId.firstName} ${walk.marshalId.lastName}`
-				: "Anonymous";
+			const marshal =
+				Array.isArray(walk.marshalId) && walk.marshalId.length > 0
+					? walk.marshalId.map((m) => `${m.firstName} ${m.lastName}`).join(", ")
+					: "Anonymous";
 			const date = new Date(walk.date).toLocaleDateString();
 			const status = walk.status;
 			const dogs =
-				walk.dogId.length > 0
-					? walk.dogId.map((dog) => dog.name).join(", ")
+				walk.dogs.length > 0
+					? walk.dogs.map((dog) => dog.name).join(", ")
 					: "No dogs walked";
 			return [walker, marshal, date, status, dogs];
 		});
@@ -404,10 +411,10 @@ const ViewCompletedWalks = () => {
 	if (loading)
 		return (
 			<div className="flex justify-center items-center h-64">
-				<div
-					className="animate-spin rounded-full h-12 w-12 border-b-2"
-					style={{ borderColor: "var(--primary-300)" }}
-				></div>
+				<div className="flex flex-col items-center">
+					<FaSpinner className="animate-spin text-[#8c1d35] text-4xl mb-4" />
+					<p className="text-[#8c1d35] font-medium">Loading walk logs...</p>
+				</div>
 			</div>
 		);
 
@@ -417,8 +424,7 @@ const ViewCompletedWalks = () => {
 				<p className="text-red-500 text-lg">{error}</p>
 				<button
 					onClick={() => window.location.reload()}
-					className="mt-4 px-4 py-2 rounded-lg text-white"
-					style={{ backgroundColor: "var(--primary-300)" }}
+					className="mt-4 px-4 py-2 rounded-lg text-white bg-[#8c1d35] hover:bg-[#7c1025] transition-colors"
 				>
 					Try Again
 				</button>
@@ -428,7 +434,7 @@ const ViewCompletedWalks = () => {
 	if (role !== "admin" && role !== "marshal") {
 		return (
 			<div className="text-center py-10">
-				<p className="text-red-500 text-lg font-semibold">
+				<p className="text-[#8c1d35] text-lg font-semibold">
 					You do not have permission to view this page.
 				</p>
 			</div>
@@ -436,16 +442,10 @@ const ViewCompletedWalks = () => {
 	}
 
 	return (
-		<div
-			className="container mx-auto p-6 my-auto mt-10"
-			style={{ backgroundColor: "var(--bg-100)" }}
-		>
+		<div className="container mx-auto p-6 my-auto mt-10 bg-[#f8f5f0]">
 			{/* Header with title and actions */}
 			<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-				<h1
-					className="text-3xl md:text-4xl font-extrabold"
-					style={{ color: "var(--primary-300)" }}
-				>
+				<h1 className="text-3xl md:text-4xl font-extrabold text-[#8c1d35]">
 					View Walk Logs
 				</h1>
 
@@ -460,13 +460,7 @@ const ViewCompletedWalks = () => {
 							placeholder="Search walker, marshal, or dog..."
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2"
-							style={{
-								borderColor: "var(--bg-300)",
-								backgroundColor: "var(--bg-200)",
-								color: "var(--text-100)",
-								focusRing: "var(--primary-300)",
-							}}
+							className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 bg-white border-[#e8d3a9] text-gray-700 focus:ring-[#8c1d35]"
 						/>
 					</div>
 
@@ -476,11 +470,8 @@ const ViewCompletedWalks = () => {
 							onClick={() => setShowFilterOptions(!showFilterOptions)}
 							className="flex items-center gap-2 px-4 py-2 rounded-lg shadow transition"
 							style={{
-								backgroundColor:
-									filterPeriod !== "all"
-										? "var(--primary-300)"
-										: "var(--bg-300)",
-								color: filterPeriod !== "all" ? "white" : "var(--text-100)",
+								backgroundColor: filterPeriod !== "all" ? "#8c1d35" : "#e8d3a9",
+								color: filterPeriod !== "all" ? "white" : "#8c1d35",
 							}}
 						>
 							<FaFilter />
@@ -494,18 +485,9 @@ const ViewCompletedWalks = () => {
 						</button>
 
 						{showFilterOptions && (
-							<div
-								className="absolute right-0 mt-2 w-64 rounded-lg shadow-lg z-10 border"
-								style={{
-									backgroundColor: "var(--bg-200)",
-									borderColor: "var(--bg-300)",
-								}}
-							>
+							<div className="absolute right-0 mt-2 w-64 rounded-lg shadow-lg z-10 border border-[#e8d3a9] bg-white">
 								<div className="p-3">
-									<h3
-										className="font-semibold mb-2"
-										style={{ color: "var(--text-100)" }}
-									>
+									<h3 className="font-semibold mb-2 text-[#8c1d35]">
 										Filter by Date
 									</h3>
 									<div className="space-y-2">
@@ -517,7 +499,7 @@ const ViewCompletedWalks = () => {
 												onChange={() => setFilterPeriod("all")}
 												className="mr-2"
 											/>
-											<span style={{ color: "var(--text-100)" }}>All Time</span>
+											<span className="text-gray-700">All Time</span>
 										</label>
 										<label className="flex items-center cursor-pointer">
 											<input
@@ -527,9 +509,7 @@ const ViewCompletedWalks = () => {
 												onChange={() => setFilterPeriod("week")}
 												className="mr-2"
 											/>
-											<span style={{ color: "var(--text-100)" }}>
-												Last 7 Days
-											</span>
+											<span className="text-gray-700">Last 7 Days</span>
 										</label>
 										<label className="flex items-center cursor-pointer">
 											<input
@@ -539,9 +519,7 @@ const ViewCompletedWalks = () => {
 												onChange={() => setFilterPeriod("month")}
 												className="mr-2"
 											/>
-											<span style={{ color: "var(--text-100)" }}>
-												Last 30 Days
-											</span>
+											<span className="text-gray-700">Last 30 Days</span>
 										</label>
 										<label className="flex items-center cursor-pointer">
 											<input
@@ -551,9 +529,7 @@ const ViewCompletedWalks = () => {
 												onChange={() => setFilterPeriod("year")}
 												className="mr-2"
 											/>
-											<span style={{ color: "var(--text-100)" }}>
-												Last Year
-											</span>
+											<span className="text-gray-700">Last Year</span>
 										</label>
 										<label className="flex items-center cursor-pointer">
 											<input
@@ -563,18 +539,13 @@ const ViewCompletedWalks = () => {
 												onChange={() => setFilterPeriod("custom")}
 												className="mr-2"
 											/>
-											<span style={{ color: "var(--text-100)" }}>
-												Custom Range
-											</span>
+											<span className="text-gray-700">Custom Range</span>
 										</label>
 
 										{filterPeriod === "custom" && (
 											<div className="mt-3 space-y-2">
 												<div>
-													<label
-														className="block text-sm mb-1"
-														style={{ color: "var(--text-200)" }}
-													>
+													<label className="block text-sm mb-1 text-gray-600">
 														Start Date
 													</label>
 													<input
@@ -586,19 +557,11 @@ const ViewCompletedWalks = () => {
 																start: e.target.value,
 															})
 														}
-														className="w-full p-2 border rounded"
-														style={{
-															borderColor: "var(--bg-300)",
-															backgroundColor: "var(--bg-300)",
-															color: "var(--text-100)",
-														}}
+														className="w-full p-2 border rounded bg-[#f8f5f0] border-[#e8d3a9] text-gray-700"
 													/>
 												</div>
 												<div>
-													<label
-														className="block text-sm mb-1"
-														style={{ color: "var(--text-200)" }}
-													>
+													<label className="block text-sm mb-1 text-gray-600">
 														End Date
 													</label>
 													<input
@@ -610,12 +573,7 @@ const ViewCompletedWalks = () => {
 																end: e.target.value,
 															})
 														}
-														className="w-full p-2 border rounded"
-														style={{
-															borderColor: "var(--bg-300)",
-															backgroundColor: "var(--bg-300)",
-															color: "var(--text-100)",
-														}}
+														className="w-full p-2 border rounded bg-[#f8f5f0] border-[#e8d3a9] text-gray-700"
 													/>
 												</div>
 											</div>
@@ -629,8 +587,7 @@ const ViewCompletedWalks = () => {
 					{/* Print button */}
 					<button
 						onClick={handlePrint}
-						className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg shadow transition"
-						style={{ backgroundColor: "var(--primary-200)" }}
+						className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg shadow transition bg-[#8c1d35] hover:bg-[#7c1025]"
 						disabled={filteredWalks.length === 0}
 					>
 						<FaPrint />
@@ -638,29 +595,22 @@ const ViewCompletedWalks = () => {
 					</button>
 					<button
 						onClick={handleExportCSV}
-						className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg shadow transition"
-						style={{ backgroundColor: "var(--primary-300)" }}
+						className="flex items-center gap-2 px-4 py-2 text-[#8c1d35] font-medium rounded-lg shadow transition bg-[#f5b82e] hover:bg-[#e5a81e]"
 						disabled={filteredWalks.length === 0}
 					>
-						📥 Export CSV
+						<FaDownload /> Export CSV
 					</button>
 				</div>
 			</div>
 
 			{/* Filter summary */}
 			{(filterPeriod !== "all" || searchTerm) && (
-				<div
-					className="mb-4 p-3 rounded-lg flex flex-wrap items-center gap-2"
-					style={{ backgroundColor: "var(--bg-200)" }}
-				>
-					<FaCalendarAlt style={{ color: "var(--primary-300)" }} />
-					<span style={{ color: "var(--text-200)" }}>Filtered by:</span>
+				<div className="mb-4 p-3 rounded-lg flex flex-wrap items-center gap-2 bg-white border border-[#e8d3a9]">
+					<FaCalendarAlt className="text-[#8c1d35]" />
+					<span className="text-gray-600">Filtered by:</span>
 
 					{filterPeriod !== "all" && (
-						<span
-							className="px-2 py-1 rounded-full text-sm"
-							style={{ backgroundColor: "var(--primary-300)", color: "white" }}
-						>
+						<span className="px-2 py-1 rounded-full text-sm bg-[#8c1d35] text-white">
 							{filterPeriod === "week" && "Last 7 Days"}
 							{filterPeriod === "month" && "Last 30 Days"}
 							{filterPeriod === "year" && "Last Year"}
@@ -670,13 +620,7 @@ const ViewCompletedWalks = () => {
 					)}
 
 					{searchTerm && (
-						<span
-							className="px-2 py-1 rounded-full text-sm"
-							style={{
-								backgroundColor: "var(--bg-300)",
-								color: "var(--text-100)",
-							}}
-						>
+						<span className="px-2 py-1 rounded-full text-sm bg-[#e8d3a9] text-[#8c1d35]">
 							Search: "{searchTerm}"
 						</span>
 					)}
@@ -687,8 +631,7 @@ const ViewCompletedWalks = () => {
 							setSearchTerm("");
 							setCustomDateRange({ start: "", end: "" });
 						}}
-						className="ml-auto text-sm underline"
-						style={{ color: "var(--primary-300)" }}
+						className="ml-auto text-sm underline text-[#8c1d35]"
 					>
 						Clear Filters
 					</button>
@@ -697,21 +640,16 @@ const ViewCompletedWalks = () => {
 
 			{/* Results count and pagination size selector */}
 			<div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-				<p style={{ color: "var(--text-200)" }}>
+				<p className="text-gray-600">
 					Showing {getCurrentWalks().length} of {filteredWalks.length} walks
 				</p>
 
 				<div className="flex items-center gap-2">
-					<span style={{ color: "var(--text-200)" }}>Rows per page:</span>
+					<span className="text-gray-600">Rows per page:</span>
 					<select
 						value={walksPerPage}
 						onChange={(e) => setWalksPerPage(Number(e.target.value))}
-						className="border rounded p-1"
-						style={{
-							borderColor: "var(--bg-300)",
-							backgroundColor: "var(--bg-200)",
-							color: "var(--text-100)",
-						}}
+						className="border rounded p-1 bg-white border-[#e8d3a9] text-gray-700"
 					>
 						<option value={5}>5</option>
 						<option value={10}>10</option>
@@ -722,10 +660,8 @@ const ViewCompletedWalks = () => {
 			</div>
 
 			{filteredWalks.length === 0 ? (
-				<div
-					className="text-center py-10 rounded-lg"
-					style={{ backgroundColor: "var(--bg-200)" }}
-				>
+				<div className="text-center py-10 rounded-lg bg-white border border-[#e8d3a9]">
+					<FaPaw className="text-[#e8d3a9] text-5xl mx-auto mb-4" />
 					<p className="text-gray-600 mb-2">
 						No completed walks available for the selected filters.
 					</p>
@@ -734,8 +670,7 @@ const ViewCompletedWalks = () => {
 							setFilterPeriod("all");
 							setSearchTerm("");
 						}}
-						className="text-sm underline"
-						style={{ color: "var(--primary-300)" }}
+						className="text-sm underline text-[#8c1d35]"
 					>
 						Clear filters to see all walks
 					</button>
@@ -744,66 +679,37 @@ const ViewCompletedWalks = () => {
 				<>
 					<div
 						ref={tableRef}
-						className="overflow-x-auto shadow-lg rounded-lg border mb-6"
-						style={{
-							backgroundColor: "var(--bg-200)",
-							borderColor: "var(--bg-300)",
-						}}
+						className="overflow-x-auto shadow-lg rounded-lg border mb-6 bg-white border-[#e8d3a9]"
 					>
 						<table className="min-w-full border-collapse">
 							<thead>
 								<tr>
 									<th
-										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer"
-										style={{
-											color: "var(--text-100)",
-											backgroundColor: "var(--bg-300)",
-											borderColor: "var(--bg-400)",
-										}}
+										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer bg-[#e8d3a9] text-[#8c1d35] border-[#d9c59a]"
 										onClick={() => requestSort("walker")}
 									>
 										Walker {getSortDirectionIndicator("walker")}
 									</th>
 									<th
-										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer"
-										style={{
-											color: "var(--text-100)",
-											backgroundColor: "var(--bg-300)",
-											borderColor: "var(--bg-400)",
-										}}
+										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer bg-[#e8d3a9] text-[#8c1d35] border-[#d9c59a]"
 										onClick={() => requestSort("marshal")}
 									>
 										Marshal {getSortDirectionIndicator("marshal")}
 									</th>
 									<th
-										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer"
-										style={{
-											color: "var(--text-100)",
-											backgroundColor: "var(--bg-300)",
-											borderColor: "var(--bg-400)",
-										}}
+										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer bg-[#e8d3a9] text-[#8c1d35] border-[#d9c59a]"
 										onClick={() => requestSort("date")}
 									>
 										Date {getSortDirectionIndicator("date")}
 									</th>
 									<th
-										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer"
-										style={{
-											color: "var(--text-100)",
-											backgroundColor: "var(--bg-300)",
-											borderColor: "var(--bg-400)",
-										}}
+										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer bg-[#e8d3a9] text-[#8c1d35] border-[#d9c59a]"
 										onClick={() => requestSort("status")}
 									>
 										Status {getSortDirectionIndicator("status")}
 									</th>
 									<th
-										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer"
-										style={{
-											color: "var(--text-100)",
-											backgroundColor: "var(--bg-300)",
-											borderColor: "var(--bg-400)",
-										}}
+										className="border px-6 py-3 text-left font-bold uppercase cursor-pointer bg-[#e8d3a9] text-[#8c1d35] border-[#d9c59a]"
 										onClick={() => requestSort("dogs")}
 									>
 										Dogs Walked {getSortDirectionIndicator("dogs")}
@@ -814,53 +720,25 @@ const ViewCompletedWalks = () => {
 								{getCurrentWalks().map((walk) => (
 									<tr
 										key={walk._id}
-										className="border-b hover:opacity-90 transition-opacity"
-										style={{
-											backgroundColor: "var(--bg-300)",
-											borderColor: "var(--bg-400)",
-										}}
+										className="border-b hover:bg-[#f8f5f0] transition-colors border-[#e8d3a9]"
 									>
-										<td
-											className="border px-6 py-3"
-											style={{
-												color: "var(--text-100)",
-												borderColor: "var(--bg-400)",
-											}}
-										>
+										<td className="border px-6 py-3 text-gray-700 border-[#e8d3a9]">
 											{walk.userId
 												? `${walk.userId.firstName} ${walk.userId.lastName}`
 												: "Anonymous"}
 										</td>
-										<td
-											className="border px-6 py-3"
-											style={{
-												color: "var(--text-100)",
-												borderColor: "var(--bg-400)",
-											}}
-										>
-											{walk.marshalId
-												? `${walk.marshalId.firstName} ${walk.marshalId.lastName}`
+										<td className="border px-6 py-3 text-gray-700 border-[#e8d3a9]">
+											{Array.isArray(walk.marshalId) &&
+											walk.marshalId.length > 0
+												? walk.marshalId
+														.map((m) => `${m.firstName} ${m.lastName}`)
+														.join(", ")
 												: "Anonymous"}
 										</td>
-										<td
-											className="border px-6 py-3"
-											style={{
-												color: "var(--text-100)",
-												borderColor: "var(--bg-400)",
-											}}
-										>
+										<td className="border px-6 py-3 text-gray-700 border-[#e8d3a9]">
 											{formatDate(walk.date)}
 										</td>
-										<td
-											className="border px-6 py-3"
-											style={{
-												color:
-													walk.status === "completed"
-														? "var(--primary-300)"
-														: "var(--accent-100)",
-												borderColor: "var(--bg-400)",
-											}}
-										>
+										<td className="border px-6 py-3 border-[#e8d3a9]">
 											<span
 												className="px-2 py-1 rounded-full text-sm font-medium"
 												style={{
@@ -869,47 +747,30 @@ const ViewCompletedWalks = () => {
 															? "rgba(140, 29, 53, 0.1)"
 															: "rgba(245, 184, 46, 0.1)",
 													color:
-														walk.status === "completed"
-															? "var(--primary-300)"
-															: "var(--accent-100)",
+														walk.status === "completed" ? "#8c1d35" : "#f5b82e",
 												}}
 											>
 												{walk.status}
 											</span>
 										</td>
-										<td
-											className="border px-6 py-3"
-											style={{
-												color: "var(--text-100)",
-												borderColor: "var(--bg-400)",
-											}}
-										>
-											{walk.dogId.length > 0 ? (
+										<td className="border px-6 py-3 text-gray-700 border-[#e8d3a9]">
+											{walk.dogs.length > 0 ? (
 												<div>
-													{walk.dogId.map((dog, index) => (
+													{walk.dogs.map((dog) => (
 														<span
 															key={dog._id}
-															className="inline-block px-2 py-1 rounded-full text-xs mr-1 mb-1"
-															style={{
-																backgroundColor: "var(--bg-200)",
-																color: "var(--text-100)",
-															}}
+															className="inline-block px-2 py-1 rounded-full text-xs mr-1 mb-1 bg-[#f8f5f0] text-[#8c1d35]"
 														>
 															{dog.name}
 														</span>
 													))}
-													<div
-														className="text-xs mt-1"
-														style={{ color: "var(--text-200)" }}
-													>
-														{walk.dogId.length}{" "}
-														{walk.dogId.length === 1 ? "dog" : "dogs"} total
+													<div className="text-xs mt-1 text-gray-500">
+														{walk.dogs.length}{" "}
+														{walk.dogs.length === 1 ? "dog" : "dogs"} total
 													</div>
 												</div>
 											) : (
-												<span style={{ color: "var(--text-200)" }}>
-													No dogs walked
-												</span>
+												<span className="text-gray-500">No dogs walked</span>
 											)}
 										</td>
 									</tr>
@@ -921,7 +782,7 @@ const ViewCompletedWalks = () => {
 					{/* Pagination */}
 					{totalPages > 1 && (
 						<div className="flex justify-between items-center">
-							<div style={{ color: "var(--text-200)" }}>
+							<div className="text-gray-600">
 								Page {currentPage} of {totalPages}
 							</div>
 							<div className="flex gap-2">
@@ -930,11 +791,8 @@ const ViewCompletedWalks = () => {
 									disabled={currentPage === 1}
 									className="px-3 py-1 rounded-lg disabled:opacity-50"
 									style={{
-										backgroundColor:
-											currentPage === 1
-												? "var(--bg-300)"
-												: "var(--primary-300)",
-										color: currentPage === 1 ? "var(--text-200)" : "white",
+										backgroundColor: currentPage === 1 ? "#e8d3a9" : "#8c1d35",
+										color: currentPage === 1 ? "#8c1d35" : "white",
 									}}
 								>
 									First
@@ -946,11 +804,8 @@ const ViewCompletedWalks = () => {
 									disabled={currentPage === 1}
 									className="px-3 py-1 rounded-lg flex items-center disabled:opacity-50"
 									style={{
-										backgroundColor:
-											currentPage === 1
-												? "var(--bg-300)"
-												: "var(--primary-300)",
-										color: currentPage === 1 ? "var(--text-200)" : "white",
+										backgroundColor: currentPage === 1 ? "#e8d3a9" : "#8c1d35",
+										color: currentPage === 1 ? "#8c1d35" : "white",
 									}}
 								>
 									<FaChevronLeft className="mr-1" /> Prev
@@ -979,12 +834,10 @@ const ViewCompletedWalks = () => {
 													style={{
 														backgroundColor:
 															currentPage === pageNumber
-																? "var(--primary-300)"
-																: "var(--bg-300)",
+																? "#8c1d35"
+																: "#e8d3a9",
 														color:
-															currentPage === pageNumber
-																? "white"
-																: "var(--text-100)",
+															currentPage === pageNumber ? "white" : "#8c1d35",
 													}}
 												>
 													{pageNumber}
@@ -1003,11 +856,8 @@ const ViewCompletedWalks = () => {
 									className="px-3 py-1 rounded-lg flex items-center disabled:opacity-50"
 									style={{
 										backgroundColor:
-											currentPage === totalPages
-												? "var(--bg-300)"
-												: "var(--primary-300)",
-										color:
-											currentPage === totalPages ? "var(--text-200)" : "white",
+											currentPage === totalPages ? "#e8d3a9" : "#8c1d35",
+										color: currentPage === totalPages ? "#8c1d35" : "white",
 									}}
 								>
 									Next <FaChevronRight className="ml-1" />
@@ -1018,11 +868,8 @@ const ViewCompletedWalks = () => {
 									className="px-3 py-1 rounded-lg disabled:opacity-50"
 									style={{
 										backgroundColor:
-											currentPage === totalPages
-												? "var(--bg-300)"
-												: "var(--primary-300)",
-										color:
-											currentPage === totalPages ? "var(--text-200)" : "white",
+											currentPage === totalPages ? "#e8d3a9" : "#8c1d35",
+										color: currentPage === totalPages ? "#8c1d35" : "white",
 									}}
 								>
 									Last

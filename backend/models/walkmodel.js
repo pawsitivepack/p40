@@ -5,6 +5,13 @@ const scheduledWalkSchema = new mongoose.Schema(
 		dog: [
 			{ type: mongoose.Schema.Types.ObjectId, ref: "Dog", required: false },
 		],
+		bookedWalk: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "BookedWalks",
+				required: false,
+			},
+		],
 		walker: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
