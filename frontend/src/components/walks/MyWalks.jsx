@@ -39,6 +39,7 @@ const MyWalks = () => {
 				const userId = decoded.id;
 
 				const response = await api.get(`/completedWalk/upcomingWalks`);
+				console.log("Walks from backend:", response.data.map(w => w._id));
 				console.log("Walks Data:", response.data);
 
 				// Sort walks by date
@@ -60,9 +61,9 @@ const MyWalks = () => {
 	// Cancel walk function
 	const handleCancelWalk = async (walkId) => {
 		if (!window.confirm("Are you sure you want to cancel this walk?")) return;
-
+	
 		try {
-			await api.delete(`/scheduledWalks/cancel/${walkId}`);
+			await api.delete(`/completedWalk/cancel/${walkId}`); // ✅ Fixed endpoint
 			setWalks((prevWalks) => prevWalks.filter((walk) => walk._id !== walkId));
 			toast.success("Walk appointment cancelled successfully!");
 		} catch (err) {
@@ -70,6 +71,7 @@ const MyWalks = () => {
 			toast.error("Failed to cancel walk.");
 		}
 	};
+	
 
 	// Format date for better display
 	const formatDate = (dateString) => {
