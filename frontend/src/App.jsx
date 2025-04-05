@@ -30,6 +30,8 @@ import ResetPassword from "./components/Users/ResetPassword";
 import DogWaiverForm from "./components/Waivers/DogWaiverform";
 import ReviewSection from "./components/dogs/ReviewSection";
 import DogChart from "./components/dogs/DogCharts";
+import AdoptionInquiries from "./components/dogs/AdoptionInquiries"; 
+
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -96,6 +98,7 @@ function App() {
 						/>
 						<Route path="*" element={<NotFound />} />
 						<Route path="/adoption-board" element={<Adoption />} />
+						<Route path="/adoption-inquiries" element={<AdoptionInquiries />} />
 						<Route path="/forgot-password" element={<ForgotPassword />} />
 						<Route path="/reset-password" element={<ResetPassword />} />
 						<Route path="dog/:id" element={<DogDetails dogs={dogs} />} />
