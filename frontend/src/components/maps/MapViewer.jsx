@@ -44,7 +44,7 @@ const UserLocation = () => {
 	return null;
 };
 
-const Map = () => {
+const MapViewer = () => {
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const mapRef = useRef();
 
@@ -103,4 +103,4 @@ const Map = () => {
 	);
 };
 
-export default Map;
+export default MapViewer;
