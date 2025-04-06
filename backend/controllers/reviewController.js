@@ -3,8 +3,8 @@ const Review = require("../models/reviewModel");
 // Create a new review for a specific dog
 exports.createReviewForDog = async (req, res) => {
 	try {
-		console.log("the details passed is :", req.body);
 		const { userId, star, review } = req.body;
+		const images = req.files?.map((file) => file.path);
 		const dogId = req.params.id;
 
 		const newReview = new Review({
@@ -12,6 +12,7 @@ exports.createReviewForDog = async (req, res) => {
 			star,
 			review,
 			dogId,
+			images,
 		});
 
 		await newReview.save();
@@ -58,5 +59,18 @@ exports.deleteReview = async (req, res) => {
 		res
 			.status(500)
 			.json({ message: "Failed to delete review", error: err.message });
+	}
+};
+
+exports.getPhotosForReview = async (req, res) => {
+	try {
+		const reviews = await Review.find({});
+		const imageUrls = reviews.flatMap((review) => review.images || []);
+		res.status(200).json(imageUrls);
+	} catch (err) {
+		console.error("Error fetching all review photos:", err);
+		res
+			.status(500)
+			.json({ message: "Failed to fetch review photos", error: err.message });
 	}
 };
