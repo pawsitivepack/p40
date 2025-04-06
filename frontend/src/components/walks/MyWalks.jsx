@@ -20,7 +20,7 @@ import {
 	FaDog,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import Map from "../maps/Map";
+import Map from "../maps/MapViewer";
 
 const MyWalks = () => {
 	const [walks, setWalks] = useState([]);

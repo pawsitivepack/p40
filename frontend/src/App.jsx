@@ -31,7 +31,7 @@ import DogWaiverForm from "./components/Waivers/DogWaiverform";
 import ReviewSection from "./components/dogs/ReviewSection";
 import DogChart from "./components/dogs/DogCharts";
 import AdoptionInquiries from "./components/dogs/AdoptionInquiries";
-import Map from "./components/maps/map";
+import Map from "./components/maps/MapViewer";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
