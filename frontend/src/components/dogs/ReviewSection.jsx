@@ -24,6 +24,7 @@ function ReviewSection({ dogId, userId, userRole }) {
 	const [showAll, setShowAll] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [deleting, setDeleting] = useState(null);
+	const [images, setImages] = useState([]);
 
 	useEffect(() => {
 		const fetchReviews = async () => {
@@ -59,15 +60,18 @@ function ReviewSection({ dogId, userId, userRole }) {
 		setResponse("");
 
 		try {
-			await api.post(
-				`/review/${dogId}`,
-				{ userId, star, review },
-				{
-					headers: {
-						Authorization: `Bearer ${localStorage.getItem("token")}`,
-					},
-				}
-			);
+			const formData = new FormData();
+			formData.append("userId", userId);
+			formData.append("star", star);
+			formData.append("review", review);
+			images.forEach((img) => formData.append("images", img));
+
+			await api.post(`/review/${dogId}`, formData, {
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("token")}`,
+					"Content-Type": "multipart/form-data",
+				},
+			});
 
 			setResponse("Your review has been submitted successfully!");
 			setStar(0);
@@ -250,6 +254,38 @@ function ReviewSection({ dogId, userId, userRole }) {
 																{formatDate(r.createdAt)}
 															</p>
 														)}
+
+														{/* Display review images */}
+														{r.images && r.images.length > 0 && (
+															<div className="mt-3">
+																<div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+																	{r.images.map((image, idx) => (
+																		<div key={idx} className="relative group">
+																			<div
+																				className="aspect-square rounded-lg overflow-hidden border border-[#e8d3a9] bg-[#f8f5f0] cursor-pointer"
+																				onClick={() =>
+																					window.open(image, "_blank")
+																				}
+																			>
+																				<img
+																					src={image || "/placeholder.svg"}
+																					alt={`Review image ${idx + 1}`}
+																					className="w-full h-full object-cover hover:scale-105 transition-transform"
+																				/>
+																			</div>
+																		</div>
+																	))}
+																</div>
+																{r.images.length > 3 && (
+																	<p className="text-sm text-[#8c1d35] mt-1 font-medium">
+																		+ {r.images.length - 3} more{" "}
+																		{r.images.length - 3 === 1
+																			? "image"
+																			: "images"}
+																	</p>
+																)}
+															</div>
+														)}
 													</div>
 												</div>
 												{(userId === r.userId?._id || userRole === "admin") && (
@@ -286,7 +322,7 @@ function ReviewSection({ dogId, userId, userRole }) {
 
 						{/* Write Review Form */}
 						{userId ? (
-							<div className="mt-6 border-t border-gray-200 pt-6">
+							<div className="mt-6 border-t border-gray-200 pt-6 text-gray-800">
 								<h4 className="text-lg font-semibold text-gray-800 mb-4">
 									Write a Review
 								</h4>
@@ -313,20 +349,129 @@ function ReviewSection({ dogId, userId, userRole }) {
 									</div>
 
 									<div>
-										<button
-											type="submit"
-											disabled={submitting}
-											className="bg-[#8c1d35] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#7c1025] transition-colors flex items-center disabled:opacity-70 disabled:cursor-not-allowed"
-										>
-											{submitting ? (
-												<>
-													<FaSpinner className="animate-spin mr-2" />
-													Submitting...
-												</>
-											) : (
-												"Submit Review"
-											)}
-										</button>
+										<div>
+											<div>
+												<label className="block text-gray-700 font-medium mb-2">
+													Upload Photos
+												</label>
+												<div className="mb-4">
+													<div className="flex items-center justify-center w-full">
+														<label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[#f8f5f0] border-[#e8d3a9] hover:bg-[#f0e9df] transition-colors">
+															<div className="flex flex-col items-center justify-center pt-5 pb-6">
+																<svg
+																	className="w-8 h-8 mb-3 text-[#8c1d35]"
+																	fill="none"
+																	stroke="currentColor"
+																	viewBox="0 0 24 24"
+																	xmlns="http://www.w3.org/2000/svg"
+																>
+																	<path
+																		strokeLinecap="round"
+																		strokeLinejoin="round"
+																		strokeWidth="2"
+																		d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+																	></path>
+																</svg>
+																<p className="mb-1 text-sm text-gray-700">
+																	<span className="font-semibold">
+																		Click to upload
+																	</span>{" "}
+																	or drag and drop
+																</p>
+																<p className="text-xs text-gray-500">
+																	PNG, JPG, GIF (MAX. 5MB each)
+																</p>
+															</div>
+															<input
+																type="file"
+																name="images"
+																accept="image/*"
+																multiple
+																className="hidden"
+																onChange={(e) =>
+																	setImages(Array.from(e.target.files))
+																}
+															/>
+														</label>
+													</div>
+												</div>
+
+												{/* Image Preview Section */}
+												{images.length > 0 && (
+													<div className="mt-4">
+														<p className="text-sm font-medium text-gray-700 mb-2">
+															{images.length}{" "}
+															{images.length === 1 ? "image" : "images"}{" "}
+															selected:
+														</p>
+														<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+															{images.map((img, index) => (
+																<div key={index} className="relative group">
+																	<div className="aspect-square rounded-lg overflow-hidden border border-[#e8d3a9] bg-[#f8f5f0]">
+																		<img
+																			src={
+																				URL.createObjectURL(img) ||
+																				"/placeholder.svg"
+																			}
+																			alt={`Preview ${index + 1}`}
+																			className="w-full h-full object-cover"
+																		/>
+																	</div>
+																	<button
+																		type="button"
+																		onClick={() =>
+																			setImages(
+																				images.filter((_, i) => i !== index)
+																			)
+																		}
+																		className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+																		aria-label="Remove image"
+																	>
+																		<svg
+																			xmlns="http://www.w3.org/2000/svg"
+																			className="h-4 w-4"
+																			fill="none"
+																			viewBox="0 0 24 24"
+																			stroke="currentColor"
+																		>
+																			<path
+																				strokeLinecap="round"
+																				strokeLinejoin="round"
+																				strokeWidth="2"
+																				d="M6 18L18 6M6 6l12 12"
+																			/>
+																		</svg>
+																	</button>
+																</div>
+															))}
+														</div>
+														<button
+															type="button"
+															onClick={() => setImages([])}
+															className="mt-2 text-sm text-red-600 hover:text-red-800 font-medium"
+														>
+															Clear all images
+														</button>
+													</div>
+												)}
+											</div>
+										</div>
+										<div>
+											<button
+												type="submit"
+												disabled={submitting}
+												className="bg-[#8c1d35] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#7c1025] transition-colors flex items-center disabled:opacity-70 disabled:cursor-not-allowed"
+											>
+												{submitting ? (
+													<>
+														<FaSpinner className="animate-spin mr-2" />
+														Submitting...
+													</>
+												) : (
+													"Submit Review"
+												)}
+											</button>
+										</div>
 									</div>
 
 									{/* Success Message */}

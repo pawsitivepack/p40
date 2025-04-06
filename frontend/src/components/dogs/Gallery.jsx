@@ -10,12 +10,31 @@ function Gallery() {
 	const [touchStartX, setTouchStartX] = useState(null);
 	const [touchEndX, setTouchEndX] = useState(null);
 	const [fade, setFade] = useState(false);
+	const [morePics, setMorePics] = useState([]); // For additional images from review
 
 	useEffect(() => {
 		const fetchGallery = async () => {
 			try {
 				const response = await api.get("/dogs");
-				setDogs(response.data);
+				const morePics = await api.get(`/review/photos`);
+
+				const dogList = response.data;
+				const reviewImages = morePics.data;
+
+				const galleryItems = dogList.map((dog) => ({
+					_id: dog._id,
+					imageURL: dog.imageURL,
+					name: dog.name,
+				}));
+
+				const reviewItems = reviewImages.map((url, index) => ({
+					_id: `review-${index}`,
+					imageURL: url,
+					name: "From Review",
+				}));
+
+				setDogs([...galleryItems, ...reviewItems]);
+				console.log("more pics", morePics);
 			} catch (error) {
 				console.error("Error fetching gallery:", error);
 			}
