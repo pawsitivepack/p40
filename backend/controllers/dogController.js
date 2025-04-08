@@ -77,20 +77,11 @@ exports.filteredDogs = async (req, res) => {
 	try {
 		const allDogs = await Dog.find({});
 
-		const today = new Date();
-		today.setHours(0, 0, 0, 0); // Reset time to midnight
-
-		const dogsWithNoWalk = allDogs.filter((dog) => !dog.lastWalk);
-		const dogsWithPastWalks = allDogs.filter(
-			(dog) => dog.lastWalk && new Date(dog.lastWalk) < today
-		);
-
-		// Sort dogs with past walks by oldest first
-		dogsWithPastWalks.sort(
-			(a, b) => new Date(a.lastWalk) - new Date(b.lastWalk)
-		);
-
-		const result = [...dogsWithNoWalk, ...dogsWithPastWalks];
+		const result = allDogs.sort((a, b) => {
+			const dateA = a.lastWalk ? new Date(a.lastWalk) : new Date(0);
+			const dateB = b.lastWalk ? new Date(b.lastWalk) : new Date(0);
+			return dateA - dateB;
+		});
 
 		res.json(result);
 	} catch (error) {

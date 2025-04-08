@@ -71,24 +71,33 @@ const ScheduledWalks = () => {
 
 	// Check if walk is today
 	const isToday = (dateString) => {
-		const today = new Date();
-		const walkDate = new Date(dateString);
-		return (
-			walkDate.getDate() === today.getDate() &&
-			walkDate.getMonth() === today.getMonth() &&
-			walkDate.getFullYear() === today.getFullYear()
-		);
+		const today = new Date().toLocaleDateString("en-US", {
+			timeZone: "America/Chicago",
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+		});
+		const walkDate = new Date(dateString).toLocaleDateString("en-US", {
+			timeZone: "America/Chicago",
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+		});
+		return today === walkDate;
 	};
 
 	// Group walks by date
 	const groupWalksByDate = () => {
 		const groups = {};
 		walksWithUsers.forEach((walk) => {
-			const date = new Date(walk.date).toISOString().split("T")[0];
-			if (!groups[date]) {
-				groups[date] = [];
-			}
-			groups[date].push(walk);
+			const localDateKey = new Date(walk.date).toLocaleDateString("en-US", {
+				timeZone: "America/Chicago",
+				year: "numeric",
+				month: "2-digit",
+				day: "2-digit",
+			});
+			groups[localDateKey] = groups[localDateKey] || [];
+			groups[localDateKey].push(walk);
 		});
 		return groups;
 	};
@@ -178,6 +187,7 @@ const ScheduledWalks = () => {
 										<FaCalendarAlt className="text-[#8c1d35] text-xl mr-3" />
 										<h2 className="text-xl font-semibold text-[#8c1d35]">
 											{new Date(date).toLocaleDateString("en-US", {
+												timeZone: "America/Chicago",
 												weekday: "long",
 												year: "numeric",
 												month: "long",
@@ -204,10 +214,14 @@ const ScheduledWalks = () => {
 														<div className="flex items-center">
 															<FaUserClock className="text-[#8c1d35] mr-2" />
 															<span className="text-[#8c1d35] font-bold">
-																{new Date(walk.date).toLocaleTimeString([], {
-																	hour: "2-digit",
-																	minute: "2-digit",
-																})}
+																{new Date(walk.date).toLocaleTimeString(
+																	"en-US",
+																	{
+																		timeZone: "America/Chicago",
+																		hour: "2-digit",
+																		minute: "2-digit",
+																	}
+																)}
 															</span>
 														</div>
 														{walk.location && (
@@ -222,32 +236,37 @@ const ScheduledWalks = () => {
 												{/* Card Body */}
 												<div className="p-5">
 													{/* Marshal Info (if available) */}
-													{walk.marshal && (
-														<div className="mb-4 bg-[#f8f5f0] p-3 rounded-lg">
-															<p className="text-sm text-gray-500 mb-1">
-																Marshal
-															</p>
-															<div className="flex items-center">
-																{walk.marshal.picture ? (
-																	<img
-																		src={
-																			walk.marshal.picture || "/placeholder.svg"
-																		}
-																		alt="Marshal"
-																		className="w-8 h-8 rounded-full mr-2 border-2 border-[#8c1d35]"
-																	/>
-																) : (
-																	<div className="w-8 h-8 rounded-full bg-[#8c1d35] text-white flex items-center justify-center mr-2">
-																		<FaUserCircle />
-																	</div>
-																)}
-																<span className="font-medium text-[#8c1d35]">
-																	{walk.marshal.firstName}{" "}
-																	{walk.marshal.lastName}
-																</span>
+													{Array.isArray(walk.marshal) &&
+														walk.marshal.length > 0 && (
+															<div className="mb-4 bg-[#f8f5f0] p-3 rounded-lg">
+																<p className="text-sm text-gray-500 mb-1">
+																	Marshal(s)
+																</p>
+																<div className="flex flex-wrap gap-3">
+																	{walk.marshal.map((marshal) => (
+																		<div
+																			key={marshal._id}
+																			className="flex items-center"
+																		>
+																			{marshal.picture ? (
+																				<img
+																					src={marshal.picture}
+																					alt="Marshal"
+																					className="w-8 h-8 rounded-full mr-2 border-2 border-[#8c1d35]"
+																				/>
+																			) : (
+																				<div className="w-8 h-8 rounded-full bg-[#8c1d35] text-white flex items-center justify-center mr-2">
+																					<FaUserCircle />
+																				</div>
+																			)}
+																			<span className="font-medium text-[#8c1d35]">
+																				{marshal.firstName} {marshal.lastName}
+																			</span>
+																		</div>
+																	))}
+																</div>
 															</div>
-														</div>
-													)}
+														)}
 
 													{/* Walkers List */}
 													<div>

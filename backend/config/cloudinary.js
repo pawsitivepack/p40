@@ -29,8 +29,17 @@ const DogPicStorage = new CloudinaryStorage({
 		public_id: (req, file) => `dog_${Date.now()}`, // Unique image name
 	},
 });
+// Multer Storage for dog picture Cloudinary
+const ReviewPics = new CloudinaryStorage({
+	cloudinary,
+	params: {
+		folder: "review_pics", // Cloudinary folder name
+		allowed_formats: ["jpg", "png", "jpeg"],
+		public_id: (req, file) => `dog_${Date.now()}`, // Unique image name
+	},
+});
 
 const upload = multer({ storage });
 const uploadDogPic = multer({ storage: DogPicStorage });
-
-module.exports = { cloudinary, upload, uploadDogPic };
+const uploadReviewPic = multer({ storage: ReviewPics });
+module.exports = { cloudinary, upload, uploadDogPic, uploadReviewPic };

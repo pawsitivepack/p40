@@ -26,7 +26,7 @@ const dogSchema = new Schema(
 		walks: [
 			{
 				type: Schema.Types.ObjectId,
-				ref: "CompletedWalk", // Assuming you have a Walk model for scheduled walks
+				ref: "BookedWalks", // Assuming you have a Walk model for scheduled walks
 			},
 		],
 	},

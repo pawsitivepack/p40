@@ -23,6 +23,7 @@ export default function Navbar() {
 	const [showNotifications, setShowNotifications] = useState(false);
 	const [picture, setPicture] = useState("");
 	const [isScrolled, setIsScrolled] = useState(false);
+	const [adoptions, setAdoptions] = useState([]);
 
 	const dropdownRef = useRef(null);
 	const notificationRef = useRef(null);
@@ -33,12 +34,12 @@ export default function Navbar() {
 		if (token) {
 			try {
 				const decoded = jwtDecode(token);
-				console.log("Token found:", decoded);
+
 				setRole(decoded.role);
 				setUsername(decoded.username);
 				setEmail(decoded.email);
 				setPicture(decoded.picture);
-				console.log("Picture:", decoded.picture);
+
 				setIsLoggedIn(true);
 			} catch (error) {
 				console.error("Invalid token:", error);
@@ -91,6 +92,22 @@ export default function Navbar() {
 			}
 		};
 		fetchApplications();
+	}, [role]);
+	
+	useEffect(() => {
+		if (role === "admin") {
+			const fetchNotifications = async () => {
+				try {
+					const marshalRes = await api.get(`/marshalApps`);
+					const adoptionRes = await api.get(`/adoptions/pending`);
+					setApplications(marshalRes.data);
+					setAdoptions(adoptionRes.data);
+				} catch (error) {
+					console.error("Error fetching notifications:", error);
+				}
+			};
+			fetchNotifications();
+		}
 	}, [role]);
 
 	const handleLogout = () => {
@@ -217,9 +234,9 @@ export default function Navbar() {
 								>
 									<span className="sr-only">View notifications</span>
 									<BellIcon className="h-6 w-6" />
-									{applications.length > 0 && (
+									{applications.length > 0 && adoptions.length > 0 && (
 										<span className="absolute -top-1 -right-1 bg-[#8c1d35] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-											{applications.length}
+											{applications.length  + adoptions.length}
 										</span>
 									)}
 								</button>
@@ -233,54 +250,80 @@ export default function Navbar() {
 											</h3>
 										</div>
 										<div className="max-h-96 overflow-y-auto">
-											{applications.length > 0 ? (
-												applications.map((app) => (
-													<div
-														key={app._id}
-														className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
-														onClick={() => {
-															setShowNotifications(false);
-															navigate("/marshal-application", {
-																state: { application: app },
-															});
-														}}
-													>
-														<div className="flex items-start">
-															<div className="flex-shrink-0 mr-3">
-																<div className="w-8 h-8 rounded-full bg-[#8c1d35] flex items-center justify-center text-white text-xs font-bold">
-																	{app.userId?.firstName?.[0]}
-																	{app.userId?.lastName?.[0]}
-																</div>
-															</div>
-															<div>
-																<p className="text-sm font-medium text-gray-800">
-																	<span className="font-semibold">
-																		{app.userId?.firstName}{" "}
-																		{app.userId?.lastName}
-																	</span>{" "}
-																	applied for Marshal
-																</p>
-																<p className="text-xs text-gray-500 mt-1">
-																	{new Date(
-																		app.applicationDate
-																	).toLocaleDateString()}{" "}
-																	at{" "}
-																	{new Date(
-																		app.applicationDate
-																	).toLocaleTimeString([], {
-																		hour: "2-digit",
-																		minute: "2-digit",
-																	})}
-																</p>
-															</div>
+										{applications.length === 0 && adoptions.length === 0 ? (
+											<div className="p-4 text-center text-gray-500 text-sm">
+												No new notifications
+											</div>
+											) : (
+											<>
+												{/* Marshal Applications */}
+												{applications.map((app) => (
+												<div
+													key={app._id}
+													className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
+													onClick={() => {
+													setShowNotifications(false);
+													navigate("/marshal-application", {
+														state: { application: app },
+													});
+													}}
+												>
+													<div className="flex items-start">
+													<div className="flex-shrink-0 mr-3">
+														<div className="w-8 h-8 rounded-full bg-[#8c1d35] flex items-center justify-center text-white text-xs font-bold">
+														{app.userId?.firstName?.[0]}{app.userId?.lastName?.[0]}
 														</div>
 													</div>
-												))
-											) : (
-												<div className="p-4 text-center text-gray-500 text-sm">
-													No new notifications
+													<div>
+														<p className="text-sm font-medium text-gray-800">
+														<span className="font-semibold">{app.userId?.firstName} {app.userId?.lastName}</span> applied for Marshal
+														</p>
+														<p className="text-xs text-gray-500 mt-1">
+														{new Date(app.applicationDate).toLocaleDateString()} at{" "}
+														{new Date(app.applicationDate).toLocaleTimeString([], {
+															hour: "2-digit",
+															minute: "2-digit",
+														})}
+														</p>
+													</div>
+													</div>
 												</div>
+												))}
+
+												{/* Adoption Requests */}
+												{adoptions.map((adopt) => (
+												<div
+													key={adopt._id}
+													className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
+													onClick={() => {
+													setShowNotifications(false);
+													navigate("/adoption-inquiries");
+													}}
+												>
+													<div className="flex items-start">
+													<div className="flex-shrink-0 mr-3">
+														<div className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-white text-xs font-bold">
+														{adopt.Userid?.firstName?.[0]}{adopt.Userid?.lastName?.[0]}
+														</div>
+													</div>
+													<div>
+														<p className="text-sm font-medium text-gray-800">
+														<span className="font-semibold">{adopt.Userid?.firstName} {adopt.Userid?.lastName}</span> wants to adopt <span className="font-semibold">{adopt.Dogid?.name}</span>
+														</p>
+														<p className="text-xs text-gray-500 mt-1">
+														{new Date(adopt.createdAt).toLocaleDateString()} at{" "}
+														{new Date(adopt.createdAt).toLocaleTimeString([], {
+															hour: "2-digit",
+															minute: "2-digit",
+														})}
+														</p>
+													</div>
+													</div>
+												</div>
+												))}
+											</>
 											)}
+
 										</div>
 										{applications.length > 0 && (
 											<div className="p-2 bg-[#f8f8f8] border-t border-gray-200">

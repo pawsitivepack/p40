@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
 import { jwtDecode } from "jwt-decode";
@@ -11,49 +13,52 @@ import {
 	FaPaw,
 	FaExclamationTriangle,
 	FaArrowRight,
+	FaSpinner,
+	FaCalendarCheck,
+	FaHistory,
+	FaSearch,
+	FaDog,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import Map from "../maps/MapViewer";
 
 const MyWalks = () => {
-	const [upcomingWalks, setUpcomingWalks] = useState([]);
+	const [walks, setWalks] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [activeTab, setActiveTab] = useState("upcoming");
 
-		useEffect(() => {
+	useEffect(() => {
 		const fetchMyWalks = async () => {
 			try {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				setError("User is not logged in.");
-				setLoading(false);
-				return;
-			}
+				const token = localStorage.getItem("token");
+				if (!token) {
+					setError("User is not logged in.");
+					setLoading(false);
+					return;
+				}
 
-			const decoded = jwtDecode(token);
-			const userId = decoded.id;
+				const decoded = jwtDecode(token);
+				const userId = decoded.id;
 
-			const response = await api.get(`/scheduledWalks/${userId}`);
-			console.log("Upcoming Walks Data:", response.data);
+				const response = await api.get(`/completedWalk/upcomingWalks`);
+				console.log("Walks Data:", response.data);
 
-			// Filter upcoming walks
-			const now = new Date();
-			const upcoming = response.data.filter(
-				(walk) => new Date(walk.date) >= now
-			);
-			upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-			setUpcomingWalks(upcoming);
+				// Sort walks by date
+				const sortedWalks = response.data.sort(
+					(a, b) => new Date(a.date) - new Date(b.date)
+				);
+				setWalks(sortedWalks);
 			} catch (err) {
-			console.error("Error fetching walks:", err);
-			setError("Failed to load scheduled walks. Please try again later.");
+				console.error("Error fetching walks:", err);
+				setError("Failed to load scheduled walks. Please try again later.");
 			} finally {
-			setLoading(false);
+				setLoading(false);
 			}
 		};
 
 		fetchMyWalks();
-		}, []);
-
+	}, []);
 
 	// Cancel walk function
 	const handleCancelWalk = async (walkId) => {
@@ -61,9 +66,7 @@ const MyWalks = () => {
 
 		try {
 			await api.delete(`/scheduledWalks/cancel/${walkId}`);
-			setUpcomingWalks((prevWalks) =>
-				prevWalks.filter((walk) => walk._id !== walkId)
-			);
+			setWalks((prevWalks) => prevWalks.filter((walk) => walk._id !== walkId));
 			toast.success("Walk appointment cancelled successfully!");
 		} catch (err) {
 			console.error("Error cancelling walk:", err);
@@ -103,10 +106,33 @@ const MyWalks = () => {
 		return diffHours <= 24 && diffHours > 0;
 	};
 
+	// Filter walks based on tab and sort by date
+	const filteredWalks = walks
+		.filter((walk) => {
+			const now = new Date();
+			const walkDate = new Date(walk.date);
+			const isPast = walkDate < now;
+
+			// Filter by tab (upcoming or past)
+			if (activeTab === "upcoming" && isPast) return false;
+			if (activeTab === "past" && !isPast) return false;
+
+			return true;
+		})
+		.sort((a, b) => {
+			// Sort by date (ascending for upcoming, descending for past)
+			const dateA = new Date(a.date);
+			const dateB = new Date(b.date);
+			return activeTab === "upcoming" ? dateA - dateB : dateB - dateA;
+		});
+
 	if (loading) {
 		return (
 			<div className="min-h-screen bg-[#f8f5f0] flex justify-center items-center">
-				<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8c1d35]"></div>
+				<div className="flex flex-col items-center">
+					<FaSpinner className="animate-spin text-[#8c1d35] text-4xl mb-4" />
+					<p className="text-[#8c1d35] font-medium">Loading your walks...</p>
+				</div>
 			</div>
 		);
 	}
@@ -132,162 +158,297 @@ const MyWalks = () => {
 	return (
 		<div className="min-h-screen bg-[#f8f5f0]">
 			{/* Header */}
-			<div className="bg-[#8c1d35] text-white py-8 px-4 mb-8">
+			<div className="bg-[#8c1d35] text-white py-8 px-4">
 				<div className="max-w-7xl mx-auto">
-					<h1 className="text-4xl font-bold text-center mb-2">
-						My Scheduled Walks
-					</h1>
+					<h1 className="text-4xl font-bold text-center mb-2">My Dog Walks</h1>
 					<p className="text-center text-lg max-w-3xl mx-auto opacity-90">
-						View and manage your upcoming dog walking appointments
+						View and manage your dog walking appointments
 					</p>
 				</div>
 			</div>
 
-			<div className="container mx-auto px-4 pb-12">
-				{/* Upcoming Walks Section */}
-				<div className="bg-[#e8d3a9] rounded-xl p-4 mb-6 flex items-center justify-between">
-					<div className="flex items-center">
-						<FaCalendarAlt className="text-[#8c1d35] text-xl mr-3" />
-						<h2 className="text-xl font-semibold text-[#8c1d35]">
-							Upcoming Walks
-						</h2>
+			<div className="container mx-auto px-4 py-8">
+				{/* Tabs */}
+				<div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+					<div className="flex bg-white rounded-lg p-1 shadow-sm border border-[#e8d3a9]">
+						<button
+							onClick={() => setActiveTab("upcoming")}
+							className={`px-4 py-2 rounded-md flex items-center gap-2 transition-colors ${
+								activeTab === "upcoming"
+									? "bg-[#8c1d35] text-white"
+									: "text-gray-700 hover:bg-[#f8f5f0]"
+							}`}
+						>
+							<FaCalendarAlt />
+							<span>Upcoming</span>
+							<span className="ml-1 bg-white text-[#8c1d35] rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+								{
+									walks.filter((walk) => new Date(walk.date) >= new Date())
+										.length
+								}
+							</span>
+						</button>
+						<button
+							onClick={() => setActiveTab("past")}
+							className={`px-4 py-2 rounded-md flex items-center gap-2 transition-colors ${
+								activeTab === "past"
+									? "bg-[#8c1d35] text-white"
+									: "text-gray-700 hover:bg-[#f8f5f0]"
+							}`}
+						>
+							<FaHistory />
+							<span>Past</span>
+							<span className="ml-1 bg-white text-[#8c1d35] rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+								{
+									walks.filter((walk) => new Date(walk.date) < new Date())
+										.length
+								}
+							</span>
+						</button>
 					</div>
-					<span className="bg-[#8c1d35] text-white text-sm px-3 py-1 rounded-full">
-						{upcomingWalks.length}{" "}
-						{upcomingWalks.length === 1 ? "walk" : "walks"}
-					</span>
+
+					<Link
+						to="/walkdogs"
+						className="flex items-center gap-2 px-4 py-2 bg-[#e8d3a9] text-[#8c1d35] rounded-lg hover:bg-[#d9c59a] transition-colors font-medium"
+					>
+						<FaCalendarCheck />
+						<span>Schedule Walk</span>
+					</Link>
 				</div>
 
-				{upcomingWalks.length === 0 ? (
+				{/* Map Section */}
+				<div className="mb-8 bg-white rounded-xl shadow-lg overflow-hidden border border-[#e8d3a9]">
+					<div className="bg-[#8c1d35] text-white px-6 py-3 flex justify-between items-center">
+						<h3 className="text-xl font-bold flex items-center">
+							<FaMapMarkerAlt className="mr-2" /> Walk Locations
+						</h3>
+						<div className="flex items-center gap-2 text-sm">
+							<span className="bg-white text-[#8c1d35] px-2 py-1 rounded-full font-medium flex items-center">
+								<FaCalendarAlt className="mr-1" /> {filteredWalks.length}{" "}
+								{activeTab === "upcoming" ? "Upcoming" : "Past"} Walks
+							</span>
+						</div>
+					</div>
+
+					<div className="flex flex-col md:flex-row">
+						<div className="md:w-1/3 p-5 bg-[#f8f5f0] border-b md:border-b-0 md:border-r border-[#e8d3a9]">
+							<div className="mb-4">
+								<h4 className="font-medium text-gray-700 mb-2 flex items-center">
+									<FaPaw className="text-[#8c1d35] mr-2" /> Walk Information
+								</h4>
+								<p className="text-gray-600 text-sm">
+									View the locations of your{" "}
+									{activeTab === "upcoming" ? "upcoming" : "past"} dog walks on
+									the interactive map. Click on markers to see location details.
+								</p>
+							</div>
+
+							<div className="mt-4 pt-4 border-t border-[#e8d3a9]">
+								<div className="flex items-center justify-between">
+									<h4 className="font-medium text-gray-700 flex items-center">
+										<FaMapMarkerAlt className="text-[#8c1d35] mr-2" /> Map
+										Legend
+									</h4>
+								</div>
+								<div className="mt-2 space-y-2 text-sm">
+									<div className="flex items-center">
+										<img
+											src="https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+											alt="My Location"
+											className="w-4 h-4 mr-2"
+										/>
+										<span className="text-black">My Location</span>
+									</div>
+									<div className="flex items-center">
+										<img
+											src="https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+											alt="Shelter Location"
+											className="w-4 h-4 mr-2"
+										/>
+										<span className="text-black">Shelter Location</span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div className="md:w-2/3 h-[400px] relative z-0">
+							<Map
+								activeTab={activeTab}
+								walks={filteredWalks}
+								className="w-full h-full"
+							/>
+							<div className="absolute bottom-4 right-4 z-10 flex gap-2">
+								<button className="bg-white p-2 rounded-lg shadow-md hover:bg-[#f8f5f0] transition-colors">
+									<FaSearch className="text-[#8c1d35]" />
+								</button>
+								<button className="bg-white p-2 rounded-lg shadow-md hover:bg-[#f8f5f0] transition-colors">
+									<FaMapMarkerAlt className="text-[#8c1d35]" />
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				{/* Walks List */}
+				{filteredWalks.length === 0 ? (
 					<div className="bg-white rounded-xl shadow-md p-8 text-center">
 						<FaPaw className="text-[#e8d3a9] text-5xl mx-auto mb-4" />
 						<h2 className="text-2xl font-bold text-[#8c1d35] mb-2">
-							No Upcoming Walks
+							No {activeTab === "upcoming" ? "Upcoming" : "Past"} Walks
 						</h2>
 						<p className="text-gray-600 mb-4">
-							You don't have any scheduled walks at this time.
+							{activeTab === "upcoming"
+								? "You don't have any scheduled walks at this time."
+								: "You don't have any past walks on record."}
 						</p>
-						<Link
-							to="/walkdogs"
-							className="inline-flex items-center gap-2 bg-[#8c1d35] text-white px-5 py-2 rounded-lg hover:bg-[#7c1025] transition-colors"
-						>
-							Schedule a Walk <FaArrowRight className="text-sm" />
-						</Link>
+						{activeTab === "upcoming" && (
+							<Link
+								to="/walkdogs"
+								className="inline-flex items-center gap-2 bg-[#8c1d35] text-white px-5 py-2 rounded-lg hover:bg-[#7c1025] transition-colors"
+							>
+								Schedule a Walk <FaArrowRight className="text-sm" />
+							</Link>
+						)}
 					</div>
 				) : (
 					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{upcomingWalks.map((walk) => (
-							<div
-								key={walk._id}
-								className="bg-white rounded-xl shadow-md overflow-hidden border border-[#e8d3a9] hover:shadow-lg transition-shadow"
-							>
-								{/* Card Header */}
-								<div className="bg-[#e8d3a9] px-5 py-3 border-b border-[#d9c59a] relative">
-									<div className="flex justify-between items-center">
+						{filteredWalks.map((walk) => {
+							const walkDate = new Date(walk.date);
+							const isPast = walkDate < new Date();
+
+							return (
+								<div
+									key={walk._id}
+									className="bg-white rounded-xl shadow-md overflow-hidden border border-[#e8d3a9] hover:shadow-lg transition-shadow"
+								>
+									{/* Status Badge - Absolute positioned */}
+									<div className="absolute top-3 right-3 z-10">
+										{isPast ? (
+											<span className="bg-gray-500 text-white text-xs px-2 py-1 rounded-full">
+												Completed
+											</span>
+										) : isToday(walk.date) ? (
+											<span className="bg-[#8c1d35] text-white text-xs px-2 py-1 rounded-full">
+												Today
+											</span>
+										) : isUpcoming(walk.date) ? (
+											<span className="bg-[#f5b82e] text-[#8c1d35] text-xs px-2 py-1 rounded-full">
+												Soon
+											</span>
+										) : null}
+									</div>
+
+									{/* Card Header */}
+									<div
+										className={`px-5 py-3 border-b relative ${
+											isPast ? "bg-gray-100" : "bg-[#e8d3a9] border-[#d9c59a]"
+										}`}
+									>
 										<div className="flex items-center">
 											<FaCalendarAlt className="text-[#8c1d35] mr-2" />
 											<span className="text-[#8c1d35] font-bold">
 												{formatDate(walk.date)}
 											</span>
 										</div>
-										{isToday(walk.date) && (
-											<span className="bg-[#8c1d35] text-white text-xs px-2 py-1 rounded-full">
-												Today
-											</span>
-										)}
-										{!isToday(walk.date) && isUpcoming(walk.date) && (
-											<span className="bg-[#f5b82e] text-[#8c1d35] text-xs px-2 py-1 rounded-full">
-												Soon
-											</span>
-										)}
 									</div>
-								</div>
 
-								{/* Card Body */}
-								<div className="p-5">
-									<div className="space-y-4">
-										{/* Location */}
-										<div className="flex">
-											<div className="w-10 flex-shrink-0">
-												<div className="w-8 h-8 rounded-full bg-[#f8f5f0] flex items-center justify-center">
-													<FaMapMarkerAlt className="text-[#8c1d35]" />
-												</div>
-											</div>
-											<div>
-												<p className="text-sm text-gray-500">Location</p>
-												<p className="font-medium text-gray-800">
-													{walk.location || "Not specified"}
-												</p>
-											</div>
-										</div>
-
-										{/* Marshal */}
-										<div className="flex">
-											<div className="w-10 flex-shrink-0">
-												<div className="w-8 h-8 rounded-full bg-[#f8f5f0] flex items-center justify-center">
-													<FaUserShield className="text-[#8c1d35]" />
-												</div>
-											</div>
-											<div>
-												<p className="text-sm text-gray-500">Marshal</p>
-												<p className="font-medium text-gray-800">
-													{walk.marshal?.firstName}{" "}
-													{walk.marshal?.lastName || ""}
-												</p>
-											</div>
-										</div>
-
-										{/* Duration */}
-										<div className="flex">
-											<div className="w-10 flex-shrink-0">
-												<div className="w-8 h-8 rounded-full bg-[#f8f5f0] flex items-center justify-center">
-													<FaClock className="text-[#8c1d35]" />
-												</div>
-											</div>
-											<div>
-												<p className="text-sm text-gray-500">Duration</p>
-												<p className="font-medium text-gray-800">
-													{walk.duration || "1 hour"}
-												</p>
-											</div>
-										</div>
-
-										{/* Dogs (if available) */}
-										{walk.dogId && walk.dogId.length > 0 && (
+									{/* Card Body */}
+									<div className="p-5">
+										<div className="space-y-4">
+											{/* Location */}
 											<div className="flex">
 												<div className="w-10 flex-shrink-0">
 													<div className="w-8 h-8 rounded-full bg-[#f8f5f0] flex items-center justify-center">
-														<FaPaw className="text-[#8c1d35]" />
+														<FaMapMarkerAlt className="text-[#8c1d35]" />
 													</div>
 												</div>
 												<div>
-													<p className="text-sm text-gray-500">Dogs</p>
-													<div className="flex flex-wrap gap-2 mt-1">
-														{walk.dogId.map((dog) => (
-															<span
-																key={dog._id}
-																className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
-															>
-																{dog.name}
-															</span>
-														))}
-													</div>
+													<p className="text-sm text-gray-500">Location</p>
+													<p className="font-medium text-gray-800">
+														{walk.location || "Not specified"}
+													</p>
 												</div>
 											</div>
+
+											{/* Marshal */}
+											<div className="flex">
+												<div className="w-10 flex-shrink-0">
+													<div className="w-8 h-8 rounded-full bg-[#f8f5f0] flex items-center justify-center">
+														<FaUserShield className="text-[#8c1d35]" />
+													</div>
+												</div>
+												<div>
+													<p className="text-sm text-gray-500">Marshal</p>
+													<p className="font-medium text-gray-800">
+														{Array.isArray(walk.marshalId) &&
+														walk.marshalId.length > 0
+															? walk.marshalId
+																	.map((m) => `${m.firstName} ${m.lastName}`)
+																	.join(", ")
+															: "Unassigned"}
+													</p>
+												</div>
+											</div>
+
+											{/* Duration and Slots */}
+											<div className="flex">
+												<div className="w-10 flex-shrink-0">
+													<div className="w-8 h-8 rounded-full bg-[#f8f5f0] flex items-center justify-center">
+														<FaClock className="text-[#8c1d35]" />
+													</div>
+												</div>
+												<div>
+													<p className="text-sm text-gray-500">Duration</p>
+													<p className="font-medium text-gray-800">
+														{walk.duration || "1 hour"}
+														{walk.slots && (
+															<span className="ml-2 text-xs bg-[#f8f5f0] text-[#8c1d35] px-2 py-1 rounded-full">
+																{walk.slots} slots
+															</span>
+														)}
+													</p>
+												</div>
+											</div>
+
+											{/* Dogs (if available) */}
+											{walk.dogId && walk.dogId.length > 0 && (
+												<div className="flex">
+													<div className="w-10 flex-shrink-0">
+														<div className="w-8 h-8 rounded-full bg-[#f8f5f0] flex items-center justify-center">
+															<FaPaw className="text-[#8c1d35]" />
+														</div>
+													</div>
+													<div>
+														<p className="text-sm text-gray-500">Dogs</p>
+														<div className="flex flex-wrap gap-2 mt-1">
+															{walk.dogId.map((dog) => (
+																<span
+																	key={dog._id}
+																	className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
+																>
+																	{dog.name}
+																</span>
+															))}
+														</div>
+													</div>
+												</div>
+											)}
+										</div>
+
+										{/* Action Button - Only show cancel for upcoming walks */}
+										{!isPast && (
+											<button
+												onClick={() => handleCancelWalk(walk._id)}
+												className="w-full mt-5 flex items-center justify-center gap-2 bg-white border border-[#8c1d35] text-[#8c1d35] py-2 rounded-lg hover:bg-[#f8f5f0] transition-colors font-medium"
+											>
+												<FaTimes />
+												Cancel Walk
+											</button>
 										)}
 									</div>
-
-									{/* Cancel Button */}
-									<button
-										onClick={() => handleCancelWalk(walk._id)}
-										className="w-full mt-5 flex items-center justify-center gap-2 bg-white border border-[#8c1d35] text-[#8c1d35] py-2 rounded-lg hover:bg-[#f8f5f0] transition-colors font-medium"
-									>
-										<FaTimes />
-										Cancel Walk
-									</button>
 								</div>
-							</div>
-						))}
+							);
+						})}
 					</div>
 				)}
 			</div>

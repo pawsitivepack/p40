@@ -17,7 +17,7 @@ const generateUserToken = (user) => {
 			role: user.role,
 			username: user.firstName,
 			dogsWalked: user.dogsWalked,
-			completedWalks: user.completedWalks,
+			bookedWalks: user.bookedWalks,
 			picture: user.picture,
 		},
 		process.env.JWT_SECRET,
@@ -283,14 +283,21 @@ exports.resendOtp = async (req, res) => {
 // Fetch my profile
 exports.myProfile = async (req, res) => {
 	try {
-		console.log("Fetching profile for user:", req.user.id);
 		const user = await User.findById(req.user.id)
 			.select("-password")
+			// .populate({
+			// 	path: "completedWalks",
+			// 	populate: [
+			// 		{ path: "dogId", model: "Dog" },
+			// 		{ path: "marshalId", model: "User" },
+			// 		{ path: "walkId", model: "ScheduledWalk" },
+			// 	],
+			// })
 			.populate({
-				path: "completedWalks",
+				path: "bookedWalks",
 				populate: [
-					{ path: "dogId", model: "Dog" },
-					{ path: "marshalId", model: "User" },
+					// { path: "dogId", model: "Dog" },
+					// { path: "marshalId", model: "User" },
 					{ path: "walkId", model: "ScheduledWalk" },
 				],
 			})
@@ -383,25 +390,36 @@ exports.viewUserDetail = async (req, res) => {
 	try {
 		const userId = req.params.id;
 		console.log("Fetching user details for ID:", userId);
-		// Fetch the user including all fields and populating necessary references
-		const user = await User.findById(userId)
-			.populate("completedWalks") // Populate completed walks if it's a reference
-			.populate("dogsWalked");
 
+		const user = await User.findById(userId).populate(
+			"bookedWalks",
+			"slots status"
+		);
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
 
-		// Fetch the walks associated with this user
+		const upcomingWalks = user.bookedWalks.filter(
+			(walk) => walk.status === "booked"
+		);
+		const pastWalks = user.bookedWalks.filter(
+			(walk) => walk.status !== "booked"
+		);
+
 		const walks = await Walk.find({
 			$or: [{ walker: userId }, { marshal: userId }],
 		})
 			.populate("walker")
 			.populate("marshal");
 
+		console.log("User found:", user);
+		console.log("Walks found for user:", walks);
+
 		res.status(200).json({
 			message: "User details fetched successfully",
 			user,
+			upcomingWalks,
+			pastWalks,
 			walks,
 		});
 	} catch (error) {
