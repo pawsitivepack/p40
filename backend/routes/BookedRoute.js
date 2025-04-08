@@ -15,7 +15,7 @@ router.post(
 router.get("/userWalks", verifyToken, BookedWalks.getUserWalks); // Get all walks for a user
 router.get("/pastWalks", verifyToken, BookedWalks.getPastUserWalks);
 router.get("/upcomingWalks", verifyToken, BookedWalks.getUpcomingUserWalks);
-router.delete("/cancel/:walkId", verifyToken, BookedWalks.cancelBookedWalk);
+
 router.put("/dogadded", verifyToken, verifyMarshal, BookedWalks.walkedADog);
 router.put(
 	"/completedUserWalk",

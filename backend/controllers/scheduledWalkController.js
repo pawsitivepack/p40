@@ -178,7 +178,6 @@ exports.confirm = async (req, res) => {
 };
 
 exports.cancelWalk = async (req, res) => {
-	console.log("🔥 cancelWalk controller HIT with ID:", req.params.walkId);
 	try {
 		const { walkId } = req.params;
 		const userId = req.user.id;
@@ -186,36 +185,37 @@ exports.cancelWalk = async (req, res) => {
 
 		// Fetch the walk
 		const walk = await ScheduledWalk.findById(walkId);
-		console.log("Walk found?", walk);
 		if (!walk) {
-			console.warn("⚠️ Walk not found in DB for ID:", walkId);
 			return res.status(404).json({ message: "Walk not found" });
 		}
 
-		// Ensure the user is part of the walk
-		if (userRole === "user" && !walk.walker.some(id => id.equals(userId))) {
-			return res.status(403).json({ message: "You are not part of this walk." });
+		// Check if the user is allowed to cancel the walk
+		if (userRole === "user" && !walk.walker.includes(userId)) {
+			return res
+				.status(403)
+				.json({ message: "You are not part of this walk." });
 		}
 
-		// Remove user from the walk
-		walk.walker = walk.walker.filter(id => !id.equals(userId));
+		// Remove the user from the walker array and increase available slots
+		walk.walker = walk.walker.filter((id) => !id.equals(userId));
 		walk.slots += 1;
 
-		// Remove walk from user's dogsWalked
+		// Remove the walk from the user's dogsWalked array
 		await User.findByIdAndUpdate(userId, {
 			$pull: { dogsWalked: walkId },
 		});
 
-		// Save changes
+		// Save the walk
 		await walk.save();
 
-		return res.status(200).json({ message: "Walk cancelled successfully." });
+		return res
+			.status(200)
+			.json({ message: "Walk cancelled and references removed." });
 	} catch (error) {
 		console.error("Error cancelling walk:", error);
 		res.status(500).json({ message: "Failed to cancel the walk." });
 	}
 };
-
 
 exports.checkInScheduledWalks = async (req, res) => {
 	try {
