@@ -30,8 +30,8 @@ import ResetPassword from "./components/Users/ResetPassword";
 import DogWaiverForm from "./components/Waivers/DogWaiverform";
 import ReviewSection from "./components/dogs/ReviewSection";
 import DogChart from "./components/dogs/DogCharts";
-import AdoptionInquiries from "./components/dogs/AdoptionInquiries"; 
-
+import AdoptionInquiries from "./components/dogs/AdoptionInquiries";
+import Map from "./components/maps/MapViewer";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -107,6 +107,7 @@ function App() {
 						<Route path="/waiver" element={<DogWaiverForm />} />
 						<Route path="review-section" element={<ReviewSection />} />
 						<Route path="dog/walklog/:dogId" element={<DogChart />} />
+						<Route path="/map" element={<Map />} />{" "}
 					</Routes>
 				</main>
 

@@ -184,29 +184,36 @@ exports.cancelWalk = async (req, res) => {
 		const userRole = req.user.role;
 
 		// Fetch the walk
-		const walk = await ScheduledWalk.findById(walkId);
-		if (!walk) {
+		const booked = await BookedWalks.findById(walkId);
+		console.log("Fetched walk:", booked);
+		const slot = booked.slots;
+		console.log("Slots to be added back:", slot);
+		if (!booked) {
 			return res.status(404).json({ message: "Walk not found" });
 		}
 
 		// Check if the user is allowed to cancel the walk
-		if (userRole === "user" && !walk.walker.includes(userId)) {
+		if (userRole === "user" && booked.userId.toString() !== userId) {
 			return res
 				.status(403)
 				.json({ message: "You are not part of this walk." });
 		}
 
-		// Remove the user from the walker array and increase available slots
-		walk.walker = walk.walker.filter((id) => !id.equals(userId));
-		walk.slots += 1;
-
 		// Remove the walk from the user's dogsWalked array
 		await User.findByIdAndUpdate(userId, {
-			$pull: { dogsWalked: walkId },
+			$pull: { dogsWalked: booked.walkId, bookedWalks: booked._id }, // Remove the walkId and bookedWalk reference
 		});
 
-		// Save the walk
-		await walk.save();
+		// Remove the walker from the scheduled walk and update slots
+		await ScheduledWalk.findByIdAndUpdate(booked.walkId, {
+			$pull: {
+				walker: userId,
+				bookedWalk: booked._id,
+			},
+			$inc: { slots: slot },
+		});
+		// Optionally remove the BookedWalk entry
+		await BookedWalks.findByIdAndDelete(walkId);
 
 		return res
 			.status(200)

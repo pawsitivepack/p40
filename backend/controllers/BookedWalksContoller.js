@@ -5,12 +5,11 @@ const Dog = require("../models/dogModel");
 
 exports.checkInWalker = async (req, res) => {
 	const { userId, walkId, marshalId, date } = req.body;
-	console.log(req.body);
-	console.log("here in booked slot controkler in checkin");
+
 	try {
 		// Check if already checked in
 		const existingEntry = await BookedWalks.findOne({ userId, walkId });
-		console.log(existingEntry);
+
 		if (existingEntry) {
 			if (existingEntry.status === "walking") {
 				return res
@@ -74,7 +73,6 @@ exports.getPastUserWalks = async (req, res) => {
 			})
 			.sort({ date: -1 });
 
-		console.log("past walks ", pastWalks); // Log the past walks for debugging
 		res.status(200).json(pastWalks);
 	} catch (error) {
 		res.status(500).json({
@@ -251,7 +249,7 @@ exports.DidNotShowUp = async (req, res) => {
 		user.dogsWalked = user.dogsWalked.filter((id) => id.toString() !== walkId);
 
 		const bookedWalk = await BookedWalks.findOne({ userId, walkId });
-		console.log(bookedWalk);
+
 		if (bookedWalk) {
 			bookedWalk.status = "did not show";
 			await bookedWalk.save();
@@ -324,7 +322,7 @@ exports.getAllBookedWalks = async (req, res) => {
 			.populate("userId", "firstName lastName picture") // Populate user details
 			.populate("dogs", "name") // Populate dog names for the booked walks
 			.sort({ date: 1 });
-		console.log("upcoming walks found: ", upcomingWalks);
+
 		res.status(200).json(upcomingWalks);
 	} catch (error) {
 		res.status(500).json({
