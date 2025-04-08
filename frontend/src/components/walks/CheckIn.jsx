@@ -416,7 +416,7 @@ const CheckIn = () => {
 																					className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
 																				>
 																					<FaPaw className="mr-1" />
-																					{dog?.name || "Unknown Dog"}
+																					{dog?.name || "Unknown dog"}
 																				</span>
 																			);
 																		})}
