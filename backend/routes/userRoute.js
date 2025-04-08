@@ -26,7 +26,7 @@ router.put("/editUser/:id", verifyToken, verifyAdmin, userController.editUser);
 router.get(
 	"/viewUser/:id",
 	verifyToken,
-	verifyAdmin,
+	verifyMarshal,
 	userController.viewUserDetail
 );
 router.post("/verify-otp", userController.verifyOtp);
