@@ -45,20 +45,19 @@ Photo Gallery for Dogs
 ```
 5. You need to install the dependencies in boht the frontend and backend folders. 
  ```bash
-    cd frontend
+   cd frontend
    npm install
 ``` ```bash
-cd ..
-cd backend
+   cd ..
+   cd backend
    npm install
 ```
-5. Next, you need the .env file for both the frontend and the backend. You can request our team if you want the credentials.
+6. Next, you need the .env file for both the frontend and the backend. You can request our team if you want the credentials.
 
-   
-## Installation
-Install my-project with npm
-```bash
-  cd p-40-underdogs
-  npm install
+7. Now on terminal, make sure that you are in the root directory and run this command there:
+
+    ```bash
+   npm start
 ```
+
 
