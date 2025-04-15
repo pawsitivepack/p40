@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ScrollToTop from "./components/ScrollToTop";
 import About from "./components/About";
 import Footer from "./components/Footer";
 import Gallery from "./components/dogs/Gallery";
@@ -38,6 +39,12 @@ function App() {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 
 	useEffect(() => {
+		if ('scrollRestoration' in window.history) {
+			window.history.scrollRestoration = 'manual';
+		}
+	}, []);
+
+	useEffect(() => {
 		if (isLoggedIn) {
 			const fetchDogs = async () => {
 				try {
@@ -54,6 +61,7 @@ function App() {
 
 	return (
 		<Router>
+			<ScrollToTop />
 			<div className="bg-gray-400 text-gray-100 min-h-screen flex flex-col">
 				{/* Navbar */}
 				<Navbar />

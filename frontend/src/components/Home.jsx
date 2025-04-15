@@ -676,10 +676,10 @@ export default function Home() {
 											tasks.
 										</p>
 										<Link
-											to="/volunteer"
+											to="/walkdogs"
 											className="mt-3 inline-block text-[#8c1d35] font-medium text-sm hover:underline"
 										>
-											Learn more →
+											Walk Dogs →
 										</Link>
 									</motion.div>
 
