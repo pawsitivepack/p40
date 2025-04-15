@@ -514,7 +514,7 @@ export default function About() {
 						viewport={{ once: true }}
 					>
 						<a
-							href="/volunteer"
+							href="/walkdogs"
 							className="bg-white text-[#8c1d35] px-6 py-3 rounded-lg font-bold hover:bg-[#e8d3a9] transition-colors"
 						>
 							Volunteer With Us
