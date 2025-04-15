@@ -26,8 +26,7 @@ Applying for Marshal
 Photo Gallery for Dogs  
 	- Various photos of different dog breeds 
 	- Similar to the adoption board, users can view the dogs' profile, including name, age, and category
-
-
+ 
 
 ## How to install readMe
 To install a readMe file, you need a plain text file like "Notepad" on your Windows computer.
@@ -38,16 +37,24 @@ Next, save the file as readMe.md
 After saving the file, place the file into the main folder of your project
 You can also use a version control platform such as GitHub, and others can view it.
 
+
 ## Steps for cloning a repository 
 1. Open up a terminal on your selected IDE
-2. In the terminal, type "git clone https://github.com/your-username/p40-underdogs.git"
-3. Navigate to the project directory using "cd p-40 underdogs."
-4. Next, install dependencies 
-
+2. In the terminal, type the following command
+   ```bash
+  "git clone https://github.com/your-username/p40-underdogs.git"
+```
+3. Navigate to the project directory using the following linux command "cd"
+```bash
+   cd p-40 underdogs.
+```
+4. Next, install dependencies using the package "npm"
+ ```bash
+   npm install
+```
 
 ## Installation
 Install my-project with npm
-
 ```bash
   cd p-40-underdogs
   npm install
