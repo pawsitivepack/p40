@@ -42,7 +42,7 @@ You can also use a version control platform such as GitHub, and others can view 
 1. Open up a terminal on your selected IDE
 2. In the terminal, type the following command
    ```bash
-  "git clone https://github.com/your-username/p40-underdogs.git"
+  "git clone https://github.com/your-username/p40.git"
 ```
 3. Navigate to the project directory using the following linux command "cd"
 ```bash
