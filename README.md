@@ -49,7 +49,7 @@ You can also use a version control platform such as GitHub, and others can view 
 Install my-project with npm
 
 ```bash
-  cd my-project
   cd p-40-underdogs
+  npm install
 ```
 
