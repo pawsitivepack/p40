@@ -258,7 +258,7 @@ const CheckIn = () => {
 												data?.walkId === walk._id
 										);
 
-										const dogsWalked = userCompletedWalks?.dogId?.length || 0;
+										const dogsWalked = userCompletedWalks?.dogs?.length || 0;
 										const dogWalkStatus =
 											dogsWalked >= 3 ? "completed" : "in-progress";
 
@@ -292,8 +292,13 @@ const CheckIn = () => {
 														<div>
 															<p className="text-sm text-gray-500">Marshal</p>
 															<p className="font-medium text-[#8c1d35]">
-																{walk.marshal
-																	? `${walk.marshal.firstName} ${walk.marshal.lastName}`
+																{Array.isArray(walk.marshal) &&
+																walk.marshal.length > 0
+																	? walk.marshal
+																			.map(
+																				(m) => `${m.firstName} ${m.lastName}`
+																			)
+																			.join(", ")
 																	: "Not Assigned"}
 															</p>
 														</div>
@@ -320,6 +325,24 @@ const CheckIn = () => {
 															></div>
 														</div>
 													</div>
+
+													{/* Show dogs walked */}
+													{dogsWalked > 0 && (
+														<div className="mt-2 flex flex-wrap gap-2">
+															{userCompletedWalks?.dogs?.map((dogId) => {
+																const dog = dogs.find((d) => d._id === dogId);
+																return (
+																	<span
+																		key={dogId}
+																		className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
+																	>
+																		<FaPaw className="mr-1" />
+																		{dog?.name || "Unknown Dog"}
+																	</span>
+																);
+															})}
+														</div>
+													)}
 
 													{/* Check-In and Did Not Show Up Buttons (only if not already checked in) */}
 													{!isCheckedIn && (
@@ -383,15 +406,20 @@ const CheckIn = () => {
 																		Dogs Already Walked:
 																	</p>
 																	<div className="flex flex-wrap gap-2">
-																		{userCompletedWalks.dogId.map((dog) => (
-																			<span
-																				key={dog._id}
-																				className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
-																			>
-																				<FaPaw className="mr-1" />
-																				{dog?.name || "Unknown Dog"}
-																			</span>
-																		))}
+																		{userCompletedWalks?.dogs?.map((dogId) => {
+																			const dog = dogs.find(
+																				(d) => d._id === dogId
+																			);
+																			return (
+																				<span
+																					key={dogId}
+																					className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
+																				>
+																					<FaPaw className="mr-1" />
+																					{dog?.name || "Unknown dog"}
+																				</span>
+																			);
+																		})}
 																	</div>
 																</div>
 															)}
