@@ -50,9 +50,11 @@ function DogWalkSummary() {
 	const handleWalkinSubmit = async (e) => {
 		e.preventDefault();
 		try {
+			const localDate = new Date(walkinDate);
+		    const isoWithOffset = localDate.toISOString(); // Always sends in UTC format
 			await api.post("/completedWalk/addManualWalk", {
 				dogId: walkinDogName,
-				date: walkinDate,
+				date: isoWithOffset,
 			});
 			setWalkinDogName("");
 			setWalkinDate("");
