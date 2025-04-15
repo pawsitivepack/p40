@@ -28,31 +28,33 @@ Photo Gallery for Dogs
 	- Similar to the adoption board, users can view the dogs' profile, including name, age, and category
  
 
-## How to install readMe
-To install a readMe file, you need a plain text file like "Notepad" on your Windows computer.
-If you have a MacOS instead, you can download BBEdit as a text file, and it will still function properly.
-Once you have opened a text file, you can write whatever you want in the readme file.
-
-Next, save the file as readMe.md
-After saving the file, place the file into the main folder of your project
-You can also use a version control platform such as GitHub, and others can view it.
-
-
 ## Steps for cloning a repository 
 1. Open up a terminal on your selected IDE
 2. In the terminal, type the following command
-   ```bash
-  "git clone https://github.com/your-username/p40.git"
+
+ ```bash
+  git clone https://github.com/rajan-sapkota/p40
 ```
 3. Navigate to the project directory using the following linux command "cd"
 ```bash
-   cd p-40 underdogs.
+   cd p40 .
 ```
 4. Next, install dependencies using the package "npm"
  ```bash
    npm install
 ```
+5. You need to install the dependencies in boht the frontend and backend folders. 
+ ```bash
+    cd frontend
+   npm install
+``` ```bash
+cd ..
+cd backend
+   npm install
+```
+5. Next, you need the .env file for both the frontend and the backend. You can request our team if you want the credentials.
 
+   
 ## Installation
 Install my-project with npm
 ```bash
