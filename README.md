@@ -1,5 +1,5 @@
 This is our Final Project.
-# P40 Underdog Project 
+🐾# P40 Underdog Project 
 
 ## Description
 Our project is called “P-40 Underdogs", a dog support program intended to schedule walks and provide dog adoption. 
@@ -37,7 +37,7 @@ Photo Gallery for Dogs
 ```
 3. Navigate to the project directory using the following linux command "cd"
 ```bash
-   cd p40 .
+   cd p40
 ```
 4. Next, install dependencies using the package "npm"
  ```bash
@@ -46,8 +46,6 @@ Photo Gallery for Dogs
 5. You need to install the dependencies in boht the frontend and backend folders. 
  ```bash
    cd frontend
-   npm install
-``` ```bash
    cd ..
    cd backend
    npm install
@@ -56,8 +54,8 @@ Photo Gallery for Dogs
 
 7. Now on terminal, make sure that you are in the root directory and run this command there:
 
-    ```bash
-   npm start
+```bash
+npm start
 ```
 
 
