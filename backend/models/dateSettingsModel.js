@@ -6,7 +6,7 @@ const restrictedDateSettingSchema = new mongoose.Schema({
 		default: [0, 1], // e.g. Close Sundays & Mondays
 	},
 	specificDates: {
-		type: [Date], // Array of hard-blocked individual dates
+		type: [String], // Array of hard-blocked individual dates
 		default: [], // Example: [2025-04-01T00:00:00.000Z]
 	},
 	weeklyHours: {

@@ -45,7 +45,13 @@ exports.updateDateSettings = async (req, res) => {
 			});
 		} else {
 			if (daysClosed !== undefined) settings.daysClosed = daysClosed;
-			if (specificDates !== undefined) settings.specificDates = specificDates;
+			if (specificDates !== undefined) {
+				settings.specificDates = specificDates.map((d) => {
+					const [year, month, day] = d.split("-").map(Number);
+					const localDate = new Date(year, month - 1, day);
+					console.log("Storing UTC date:", localDate.toISOString());
+					return localDate;
+				})};
 			if (weeklyHours !== undefined) {
 				settings.weeklyHours = weeklyHours;
 			}
