@@ -125,6 +125,14 @@ const MyCalendar = () => {
 				weeklyHours: newEvent.weeklyHours || {},
 			});
 			toast.success("Settings saved successfully!");
+			const updated = await api.get("/settings/restrictions");
+			const { daysClosed, specificDates, weeklyHours } = updated.data;
+			setRestrictedDays(daysClosed || []);
+			setRestrictedDates(specificDates || []);
+			if (weeklyHours) {
+				setNewStartHour(weeklyHours.start);
+				setNewEndHour(weeklyHours.end);
+			}
 		} catch (error) {
 			console.error("Failed to save settings:", error);
 			toast.error("Failed to save settings.");
