@@ -254,8 +254,8 @@ const MyCalendar = () => {
 				while (currentDate <= end) {
 					const day = currentDate.getDay();
 					const isDayBlocked = restrictedDays.includes(day);
-					const isDateBlocked = restrictedDates.some(
-						(d) => new Date(d).toDateString() === currentDate.toDateString()
+					const isDateBlocked = restrictedDates.includes(
+						date.toISOString().split("T")[0]
 					);
 					if (!isDayBlocked && !isDateBlocked) {
 						// Only schedule on weekdays
@@ -789,14 +789,9 @@ const MyCalendar = () => {
 												/>
 												<button
 													onClick={() => {
-														if (
-															newRestrictedDate &&
-															!restrictedDates.includes(newRestrictedDate)
-														) {
-															setRestrictedDates([
-																...restrictedDates,
-																newRestrictedDate,
-															]);
+														const trimmedDate = newRestrictedDate.trim();
+														if (trimmedDate && !restrictedDates.includes(trimmedDate)) {
+															setRestrictedDates([...restrictedDates, trimmedDate]);
 															setNewRestrictedDate("");
 														} else if (
 															restrictedDates.includes(newRestrictedDate)
