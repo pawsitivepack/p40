@@ -39,29 +39,28 @@ const SearchableSelect = ({ options, value, onChange, placeholder }) => {
 		return selectedOption ? selectedOption.name : "";
 	};
 
-	// Get demeanor styles
 	const getDemeanorStyles = (demeanor) => {
 		if (demeanor === "Red") {
 			return {
-				background: "rgba(220, 38, 38, 0.1)",
-				text: "rgb(185, 28, 28)",
+				background: "#fee2e2", // bg-red-100
+				text: "#b91c1c", // text-red-700
 			};
 		}
 		if (demeanor === "Yellow") {
 			return {
-				background: "rgba(245, 158, 11, 0.1)",
-				text: "rgb(180, 83, 9)",
+				background: "#fef3c7", // bg-yellow-100
+				text: "#b45309", // text-yellow-700
 			};
 		}
 		if (demeanor === "Gray") {
 			return {
-				background: "rgba(156, 163, 175, 0.1)",
-				text: "rgb(75, 85, 99)",
+				background: "#f3f4f6", // bg-gray-100
+				text: "#4b5563", // text-gray-700
 			};
 		}
 		return {
-			background: "transparent",
-			text: "inherit",
+			background: "white",
+			text: "#374151", // fallback to gray-800
 		};
 	};
 
