@@ -399,8 +399,10 @@ const MyCalendar = () => {
 									onViewChange={setView}
 									className="custom-calendar w-full h-full"
 									tileDisabled={({ date }) => {
+										const day = date.getDay();
 										const formatted = date.toISOString().split("T")[0]; // → "2025-04-24"
-										return restrictedDates.includes(formatted);
+										const isDayBlocked = restrictedDays.includes(day);
+										return isDayBlocked || restrictedDates.includes(formatted);
 									}}
 									tileContent={({ date }) => {
 										const today = new Date();
