@@ -45,7 +45,13 @@ exports.updateDateSettings = async (req, res) => {
 			});
 		} else {
 			if (daysClosed !== undefined) settings.daysClosed = daysClosed;
-			if (specificDates !== undefined) settings.specificDates = specificDates;
+			if (specificDates !== undefined) {
+				settings.specificDates = specificDates.filter((d) => {
+					if (!d || typeof d !== "string") return false;
+					const [y, m, day] = d.split("-").map(Number);
+					const date = new Date(y, m - 1, day);
+					return !isNaN(date);
+				});};
 			if (weeklyHours !== undefined) {
 				settings.weeklyHours = weeklyHours;
 			}

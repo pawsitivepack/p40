@@ -125,6 +125,14 @@ const MyCalendar = () => {
 				weeklyHours: newEvent.weeklyHours || {},
 			});
 			toast.success("Settings saved successfully!");
+			const updated = await api.get("/settings/restrictions");
+			const { daysClosed, specificDates, weeklyHours } = updated.data;
+			setRestrictedDays(daysClosed || []);
+			setRestrictedDates(specificDates || []);
+			if (weeklyHours) {
+				setNewStartHour(weeklyHours.start);
+				setNewEndHour(weeklyHours.end);
+			}
 		} catch (error) {
 			console.error("Failed to save settings:", error);
 			toast.error("Failed to save settings.");
@@ -254,8 +262,8 @@ const MyCalendar = () => {
 				while (currentDate <= end) {
 					const day = currentDate.getDay();
 					const isDayBlocked = restrictedDays.includes(day);
-					const isDateBlocked = restrictedDates.some(
-						(d) => new Date(d).toDateString() === currentDate.toDateString()
+					const isDateBlocked = restrictedDates.includes(
+						date.toISOString().split("T")[0]
 					);
 					if (!isDayBlocked && !isDateBlocked) {
 						// Only schedule on weekdays
@@ -391,12 +399,8 @@ const MyCalendar = () => {
 									onViewChange={setView}
 									className="custom-calendar w-full h-full"
 									tileDisabled={({ date }) => {
-										const day = date.getDay();
-										const isDayBlocked = restrictedDays.includes(day);
-										const isDateBlocked = restrictedDates.some(
-											(d) => new Date(d).toDateString() === date.toDateString()
-										);
-										return isDayBlocked || isDateBlocked;
+										const formatted = date.toISOString().split("T")[0]; // → "2025-04-24"
+										return restrictedDates.includes(formatted);
 									}}
 									tileContent={({ date }) => {
 										const today = new Date();
@@ -789,14 +793,9 @@ const MyCalendar = () => {
 												/>
 												<button
 													onClick={() => {
-														if (
-															newRestrictedDate &&
-															!restrictedDates.includes(newRestrictedDate)
-														) {
-															setRestrictedDates([
-																...restrictedDates,
-																newRestrictedDate,
-															]);
+														const trimmedDate = newRestrictedDate.trim();
+														if (trimmedDate && !restrictedDates.includes(trimmedDate)) {
+															setRestrictedDates([...restrictedDates, trimmedDate]);
 															setNewRestrictedDate("");
 														} else if (
 															restrictedDates.includes(newRestrictedDate)
@@ -820,7 +819,9 @@ const MyCalendar = () => {
 											<div className="bg-white border border-gray-200 rounded-lg p-4 min-h-[120px] max-h-[200px] overflow-y-auto">
 												{restrictedDates.length > 0 ? (
 													<div className="flex flex-wrap gap-2">
-														{restrictedDates.map((date, index) => (
+														{restrictedDates
+														.sort((a, b) => new Date(a) - new Date(b))
+														.map((date, index) => (
 															<div
 																key={index}
 																className="bg-[#f8f5f0] px-3 py-2 rounded-lg flex items-center gap-2 border border-[#e8d3a9] group hover:bg-[#e8d3a9] transition-colors"
