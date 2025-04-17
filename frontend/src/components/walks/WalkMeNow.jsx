@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import { FaSearch, FaDog, FaWalking, FaSpinner, FaPaw } from "react-icons/fa";
@@ -124,10 +122,18 @@ const WalkMeNow = () => {
 									</tr>
 								</thead>
 								<tbody className="bg-white divide-y divide-[#e8d3a9]">
-									{filteredDogs.map((dog) => (
+									{filteredDogs.slice(0, 20).map((dog) => (
 										<tr
 											key={dog._id}
-											className="hover:bg-[#f8f5f0] transition-colors"
+											className={`transition-colors ${
+												dog.demeanor === "Red"
+													? "bg-red-100 hover:bg-red-200"
+													: dog.demeanor === "Yellow"
+													? "bg-yellow-100 hover:bg-yellow-200"
+													: dog.demeanor === "Gray"
+													? "bg-gray-100 hover:bg-gray-200"
+													: "bg-white hover:bg-[#f8f5f0]"
+											}`}
 										>
 											<td className="px-4 py-3 whitespace-nowrap">
 												<div className="flex items-center">
