@@ -399,12 +399,8 @@ const MyCalendar = () => {
 									onViewChange={setView}
 									className="custom-calendar w-full h-full"
 									tileDisabled={({ date }) => {
-										const day = date.getDay();
-										const isDayBlocked = restrictedDays.includes(day);
-										const isDateBlocked = restrictedDates.some(
-											(d) => new Date(d).toDateString() === date.toDateString()
-										);
-										return isDayBlocked || isDateBlocked;
+										const formatted = date.toISOString().split("T")[0]; // → "2025-04-24"
+										return restrictedDates.includes(formatted);
 									}}
 									tileContent={({ date }) => {
 										const today = new Date();
@@ -823,7 +819,9 @@ const MyCalendar = () => {
 											<div className="bg-white border border-gray-200 rounded-lg p-4 min-h-[120px] max-h-[200px] overflow-y-auto">
 												{restrictedDates.length > 0 ? (
 													<div className="flex flex-wrap gap-2">
-														{restrictedDates.map((date, index) => (
+														{restrictedDates
+														.sort((a, b) => new Date(a) - new Date(b))
+														.map((date, index) => (
 															<div
 																key={index}
 																className="bg-[#f8f5f0] px-3 py-2 rounded-lg flex items-center gap-2 border border-[#e8d3a9] group hover:bg-[#e8d3a9] transition-colors"
