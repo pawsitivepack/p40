@@ -75,18 +75,59 @@ exports.dogDetail = async (req, res) => {
 
 exports.filteredDogs = async (req, res) => {
 	try {
-		const allDogs = await Dog.find({});
+		const now = new Date();
+		const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-		const result = allDogs.sort((a, b) => {
-			const dateA = a.lastWalk ? new Date(a.lastWalk) : new Date(0);
-			const dateB = b.lastWalk ? new Date(b.lastWalk) : new Date(0);
-			return dateA - dateB;
+		const dogs = await Dog.find({
+			adopted: false,
+			status: "Available",
+		}).populate({
+			path: "walks",
+			model: "BookedWalks",
+			match: { date: { $gte: sevenDaysAgo } }, // Only include walks in the last 7 days
+			select: "date",
 		});
 
-		res.json(result);
+		const scoredDogs = dogs.map((dog) => {
+			const walks = dog.walks || [];
+
+			if (walks.length === 0) {
+				return {
+					dog,
+					daysSinceLastWalk: Infinity,
+					walkCount: 0,
+				};
+			}
+
+			const walkDates = walks.map((w) => new Date(w.date));
+			const mostRecentWalk = new Date(
+				Math.max(...walkDates.map((d) => d.getTime()))
+			);
+			const daysSinceLastWalk = Math.floor(
+				(now - mostRecentWalk) / (1000 * 60 * 60 * 24)
+			);
+
+			return {
+				dog,
+				daysSinceLastWalk,
+				walkCount: walks.length,
+			};
+		});
+
+		// Sort by: 1. days since last walk (desc), then 2. walk count (asc)
+		const sorted = scoredDogs
+			.sort((a, b) => {
+				if (b.daysSinceLastWalk !== a.daysSinceLastWalk) {
+					return b.daysSinceLastWalk - a.daysSinceLastWalk;
+				}
+				return a.walkCount - b.walkCount;
+			})
+			.map((e) => e.dog);
+
+		res.json(sorted);
 	} catch (error) {
-		console.error("Error fetching data:", error);
-		res.status(500).json({ error: "Failed to fetch data" });
+		console.error("Error fetching sorted dogs:", error);
+		res.status(500).json({ error: "Failed to fetch dogs" });
 	}
 };
 
