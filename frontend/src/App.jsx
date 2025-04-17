@@ -62,7 +62,7 @@ function App() {
 	return (
 		<Router>
 			<ScrollToTop />
-			<div className="bg-gray-400 text-gray-100 min-h-screen flex flex-col">
+			<div className="bg-amber-60 text-gray-100 min-h-screen flex flex-col">
 				{/* Navbar */}
 				<Navbar />
 

@@ -46,12 +46,12 @@ exports.updateDateSettings = async (req, res) => {
 		} else {
 			if (daysClosed !== undefined) settings.daysClosed = daysClosed;
 			if (specificDates !== undefined) {
-				settings.specificDates = specificDates.map((d) => {
-					const [year, month, day] = d.split("-").map(Number);
-					const localDate = new Date(year, month - 1, day);
-					console.log("Storing UTC date:", localDate.toISOString());
-					return localDate;
-				})};
+				settings.specificDates = specificDates.filter((d) => {
+					if (!d || typeof d !== "string") return false;
+					const [y, m, day] = d.split("-").map(Number);
+					const date = new Date(y, m - 1, day);
+					return !isNaN(date);
+				});};
 			if (weeklyHours !== undefined) {
 				settings.weeklyHours = weeklyHours;
 			}
