@@ -32,6 +32,7 @@ import ReviewSection from "./components/dogs/ReviewSection";
 import DogChart from "./components/dogs/DogCharts";
 import AdoptionInquiries from "./components/dogs/AdoptionInquiries";
 import Map from "./components/maps/MapViewer";
+import WalkMeNow from "./components/walks/WalkMeNow";
 
 function App() {
 	const [dogs, setDogs] = useState([]);
@@ -108,6 +109,7 @@ function App() {
 						<Route path="review-section" element={<ReviewSection />} />
 						<Route path="dog/walklog/:dogId" element={<DogChart />} />
 						<Route path="/map" element={<Map />} />{" "}
+						<Route path="/walkmenow" element={<WalkMeNow />} />
 					</Routes>
 				</main>
 

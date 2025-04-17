@@ -253,6 +253,10 @@ function DogWalkSummary() {
 	return (
 		<div className="p-4 text-gray-800 max-w-7xl mx-auto">
 			<div className="bg-white rounded-xl shadow-md overflow-hidden">
+				{/* view the walks looking for walks */}
+				<div className="bg-[#f8f5f0] border-b border-[#e8d3a9] p-4">
+					<a href="/walkmenow">Dogs looking for walk</a>
+				</div>
 				{/* Header */}
 				<div className="bg-[#8c1d35] px-6 py-4">
 					<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">

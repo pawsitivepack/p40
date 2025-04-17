@@ -1,5 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import {
 	FaCheckCircle,
@@ -9,6 +9,7 @@ import {
 	FaCalendarCheck,
 	FaExclamationTriangle,
 } from "react-icons/fa";
+import SearchableSelect from "./SearchableSelect";
 
 const CheckIn = () => {
 	const [walksWithUsers, setWalksWithUsers] = useState([]);
@@ -265,7 +266,7 @@ const CheckIn = () => {
 										return (
 											<div
 												key={`${walk._id}-${user._id}`}
-												className="bg-white rounded-xl shadow-md overflow-hidden border border-[#e8d3a9]"
+												className="bg-white rounded-xl shadow-md border border-[#e8d3a9] overflow-visible"
 											>
 												{/* Card Header */}
 												<div className="bg-[#e8d3a9] px-5 py-3 border-b border-[#d9c59a]">
@@ -329,18 +330,15 @@ const CheckIn = () => {
 													{/* Show dogs walked */}
 													{dogsWalked > 0 && (
 														<div className="mt-2 flex flex-wrap gap-2">
-															{userCompletedWalks?.dogs?.map((dogId) => {
-																const dog = dogs.find((d) => d._id === dogId);
-																return (
-																	<span
-																		key={dogId}
-																		className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
-																	>
-																		<FaPaw className="mr-1" />
-																		{dog?.name || "Unknown Dog"}
-																	</span>
-																);
-															})}
+															{userCompletedWalks?.dogs?.map((dog) => (
+																<span
+																	key={dog._id}
+																	className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
+																>
+																	<FaPaw className="mr-1" />
+																	{dog.name}
+																</span>
+															))}
 														</div>
 													)}
 
@@ -399,59 +397,21 @@ const CheckIn = () => {
 																</span>
 															</div>
 
-															{/* Show already walked dogs */}
-															{dogsWalked > 0 && (
-																<div className="mb-4 bg-[#f8f5f0] p-3 rounded-lg">
-																	<p className="text-[#8c1d35] text-sm font-semibold mb-2">
-																		Dogs Already Walked:
-																	</p>
-																	<div className="flex flex-wrap gap-2">
-																		{userCompletedWalks?.dogs?.map((dogId) => {
-																			const dog = dogs.find(
-																				(d) => d._id === dogId
-																			);
-																			return (
-																				<span
-																					key={dogId}
-																					className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-[#e8d3a9] text-[#8c1d35]"
-																				>
-																					<FaPaw className="mr-1" />
-																					{dog?.name || "Unknown dog"}
-																				</span>
-																			);
-																		})}
-																	</div>
-																</div>
-															)}
-
-															{/* Dog Selection */}
+															{/* Dog Selection - REPLACED WITH ENHANCED SEARCHABLE SELECT */}
 															<div className="mb-4">
 																<label className="block text-[#8c1d35] font-medium mb-2">
 																	Select a dog to assign:
 																</label>
-																<select
-																	className="w-full p-3 border border-[#e8d3a9] rounded-lg focus:ring-[#8c1d35] focus:border-[#8c1d35] bg-white text-gray-700"
-																	onChange={(e) =>
-																		handleDogChange(
-																			walk._id,
-																			user._id,
-																			e.target.value
-																		)
-																	}
+																<SearchableSelect
+																	options={dogs}
 																	value={
 																		selectedDog[`${walk._id}-${user._id}`] || ""
 																	}
-																>
-																	<option value="">Select a dog</option>
-																	{dogs.map((dog) => (
-																		<option key={dog._id} value={dog._id}>
-																			{dog.demeanor === "Red" && "🔴 "}
-																			{dog.demeanor === "Yellow" && "🟡 "}
-																			{dog.demeanor === "Gray" && "⚪ "}
-																			{dog.name}
-																		</option>
-																	))}
-																</select>
+																	onChange={(dogId) =>
+																		handleDogChange(walk._id, user._id, dogId)
+																	}
+																	placeholder="Search and select a dog..."
+																/>
 															</div>
 
 															{/* Action Buttons */}
