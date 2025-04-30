@@ -122,7 +122,7 @@ const MyCalendar = () => {
 			await api.put("/settings/restrictions", {
 				daysClosed: restrictedDays,
 				specificDates: restrictedDates,
-				weeklyHours: newEvent.weeklyHours || {},
+				weeklyHours: { start: newStartHour, end: newEndHour },
 			});
 			toast.success("Settings saved successfully!");
 			const updated = await api.get("/settings/restrictions");
@@ -151,7 +151,7 @@ const MyCalendar = () => {
 					setNewStartHour(weeklyHours.start);
 					setNewEndHour(weeklyHours.end);
 				} else {
-					setNewStartHour("10:00");
+					setNewStartHour("11:00");
 					setNewEndHour("15:00");
 				}
 			} catch (err) {
@@ -160,6 +160,20 @@ const MyCalendar = () => {
 		};
 		fetchDateSettings();
 	}, []);
+
+	useEffect(() => {
+		// When settings modal is open, prevent body scrolling
+		if (showSettings) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "auto";
+		}
+
+		// Cleanup function to restore scrolling when component unmounts
+		return () => {
+			document.body.style.overflow = "auto";
+		};
+	}, [showSettings]);
 
 	const handleDateChange = (selectedDate) => {
 		setDate(selectedDate);
@@ -687,11 +701,15 @@ const MyCalendar = () => {
 						handleAddEvent={handleAddEvent}
 						isBulk={isBulk}
 						setIsBulk={setIsBulk}
+						weeklyHours={{ start: newStartHour, end: newEndHour }}
 					/>
 				)}
 			</div>
 			{showSettings && role === "admin" && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-lg">
+				<div
+					className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-lg"
+					onClick={(e) => e.stopPropagation()}
+				>
 					<div className="bg-white rounded-xl shadow-xl overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col">
 						{/* Header */}
 						<div className="bg-[#8c1d35] px-6 py-4 flex justify-between items-center sticky top-0 z-10">
@@ -796,8 +814,14 @@ const MyCalendar = () => {
 												<button
 													onClick={() => {
 														const trimmedDate = newRestrictedDate.trim();
-														if (trimmedDate && !restrictedDates.includes(trimmedDate)) {
-															setRestrictedDates([...restrictedDates, trimmedDate]);
+														if (
+															trimmedDate &&
+															!restrictedDates.includes(trimmedDate)
+														) {
+															setRestrictedDates([
+																...restrictedDates,
+																trimmedDate,
+															]);
 															setNewRestrictedDate("");
 														} else if (
 															restrictedDates.includes(newRestrictedDate)
@@ -822,29 +846,29 @@ const MyCalendar = () => {
 												{restrictedDates.length > 0 ? (
 													<div className="flex flex-wrap gap-2">
 														{restrictedDates
-														.sort((a, b) => new Date(a) - new Date(b))
-														.map((date, index) => (
-															<div
-																key={index}
-																className="bg-[#f8f5f0] px-3 py-2 rounded-lg flex items-center gap-2 border border-[#e8d3a9] group hover:bg-[#e8d3a9] transition-colors"
-															>
-																<span className="text-sm text-gray-700">
-																	{date}
-																</span>
-																<button
-																	onClick={() => {
-																		const newDates = [...restrictedDates];
-																		newDates.splice(index, 1);
-																		setRestrictedDates(newDates);
-																		toast.info("Date removed");
-																	}}
-																	className="text-gray-400 hover:text-[#8c1d35] transition-colors group-hover:text-[#8c1d35]"
-																	aria-label="Remove date"
+															.sort((a, b) => new Date(a) - new Date(b))
+															.map((date, index) => (
+																<div
+																	key={index}
+																	className="bg-[#f8f5f0] px-3 py-2 rounded-lg flex items-center gap-2 border border-[#e8d3a9] group hover:bg-[#e8d3a9] transition-colors"
 																>
-																	<FaTimes size={14} />
-																</button>
-															</div>
-														))}
+																	<span className="text-sm text-gray-700">
+																		{date}
+																	</span>
+																	<button
+																		onClick={() => {
+																			const newDates = [...restrictedDates];
+																			newDates.splice(index, 1);
+																			setRestrictedDates(newDates);
+																			toast.info("Date removed");
+																		}}
+																		className="text-gray-400 hover:text-[#8c1d35] transition-colors group-hover:text-[#8c1d35]"
+																		aria-label="Remove date"
+																	>
+																		<FaTimes size={14} />
+																	</button>
+																</div>
+															))}
 													</div>
 												) : (
 													<div className="flex flex-col items-center justify-center h-full text-gray-500 text-sm italic">
@@ -892,27 +916,6 @@ const MyCalendar = () => {
 												/>
 											</div>
 										</div>
-
-										<button
-											onClick={() => {
-												setNewEvent((prev) => ({
-													...prev,
-													weeklyHours: {
-														0: { start: newStartHour, end: newEndHour },
-														1: { start: newStartHour, end: newEndHour },
-														2: { start: newStartHour, end: newEndHour },
-														3: { start: newStartHour, end: newEndHour },
-														4: { start: newStartHour, end: newEndHour },
-														5: { start: newStartHour, end: newEndHour },
-														6: { start: newStartHour, end: newEndHour },
-													},
-												}));
-												toast.success("Hours applied to all days");
-											}}
-											className="bg-[#8c1d35] text-white px-4 py-2 rounded-lg hover:bg-[#7c1025] transition-colors flex items-center gap-2"
-										>
-											<FaCheck className="text-sm" /> Apply to All Days
-										</button>
 									</div>
 
 									<div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
