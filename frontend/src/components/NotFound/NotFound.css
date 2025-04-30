@@ -492,3 +492,50 @@
 		display: none;
 	}
 }
+.notfound_container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	width: 100%;
+	padding: 20px;
+	box-sizing: border-box;
+	background-color: #f8f5f0; /* Using the theme's beige color */
+}
+
+.main_wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	max-width: 600px; /* Adjust based on the actual size of your TV component */
+}
+
+.main {
+	position: relative;
+	margin: 0 auto;
+}
+
+.error_text {
+	text-align: center;
+	color: #8c1d35; /* Using the theme's burgundy color */
+	margin-bottom: 20px;
+	font-size: 2.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.main_wrapper {
+		max-width: 90%;
+	}
+
+	.error_text {
+		font-size: 2rem;
+	}
+}
+
+@media (max-width: 480px) {
+	.error_text {
+		font-size: 1.5rem;
+	}
+}

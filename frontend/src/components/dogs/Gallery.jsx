@@ -34,24 +34,14 @@ function Gallery() {
 					description: `Photo of ${dog.name}`,
 				}));
 
-				const reviewItems = reviewImages.map((photo, index) => ({
+				const reviewItems = reviewImages.map((url, index) => ({
 					_id: `review-${index}`,
-					imageURL: photo.url,
-					name: "Dog Photo",
+					imageURL: url,
+					name: "From Review",
 					description: "Community-submitted photo",
-					dogId: photo.dogId,
 				}));
 
-				const combined = [...galleryItems, ...reviewItems].map((item) => {
-					if (item.name === "Dog Photo") {
-						const dog = galleryItems.find((d) => d._id === item.dogId);
-						if (dog) {
-							return { ...item, name: dog.name, _id: dog._id };
-						}
-					}
-					return item;
-				});
-				setDogs(combined);
+				setDogs([...galleryItems, ...reviewItems]);
 				console.log("more pics", morePics);
 			} catch (error) {
 				console.error("Error fetching gallery:", error);
