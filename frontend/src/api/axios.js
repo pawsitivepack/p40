@@ -14,7 +14,7 @@ api.interceptors.request.use(async (config) => {
 			const currentTime = Date.now() / 1000;
 
 			// If token is about to expire within 2 minutes, refresh it
-			if (decoded.exp - currentTime < 120) {
+			if (decoded.exp - currentTime < 900) {
 				const response = await axios.post(
 					`${import.meta.env.VITE_BACKEND_URL}/users/refresh-token`,
 					{},

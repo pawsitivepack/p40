@@ -1,16 +1,22 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../../api/axios";
-import { IoClose } from "react-icons/io5";
+import Lightbox from "yet-another-react-lightbox";
+import Thumbnails from "yet-another-react-lightbox/plugins/thumbnails";
+import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import Counter from "yet-another-react-lightbox/plugins/counter";
+import Slideshow from "yet-another-react-lightbox/plugins/slideshow";
+import Fullscreen from "yet-another-react-lightbox/plugins/fullscreen";
+import Download from "yet-another-react-lightbox/plugins/download";
+import Captions from "yet-another-react-lightbox/plugins/captions";
+import "yet-another-react-lightbox/styles.css";
+import "yet-another-react-lightbox/plugins/thumbnails.css";
+import "yet-another-react-lightbox/plugins/counter.css";
+import "yet-another-react-lightbox/plugins/captions.css";
 
 function Gallery() {
 	const [dogs, setDogs] = useState([]);
-	const [popup, setPopup] = useState(false);
-	const [popupData, setPopupData] = useState("");
-	const [selectedIndex, setSelectedIndex] = useState(null);
-	const [touchStartX, setTouchStartX] = useState(null);
-	const [touchEndX, setTouchEndX] = useState(null);
-	const [fade, setFade] = useState(false);
-	const [morePics, setMorePics] = useState([]); // For additional images from review
+	const [open, setOpen] = useState(false);
+	const [index, setIndex] = useState(0);
 
 	useEffect(() => {
 		const fetchGallery = async () => {
@@ -25,15 +31,27 @@ function Gallery() {
 					_id: dog._id,
 					imageURL: dog.imageURL,
 					name: dog.name,
+					description: `Photo of ${dog.name}`,
 				}));
 
-				const reviewItems = reviewImages.map((url, index) => ({
+				const reviewItems = reviewImages.map((photo, index) => ({
 					_id: `review-${index}`,
-					imageURL: url,
-					name: "From Review",
+					imageURL: photo.url,
+					name: "Dog Photo",
+					description: "Community-submitted photo",
+					dogId: photo.dogId,
 				}));
 
-				setDogs([...galleryItems, ...reviewItems]);
+				const combined = [...galleryItems, ...reviewItems].map((item) => {
+					if (item.name === "Dog Photo") {
+						const dog = galleryItems.find((d) => d._id === item.dogId);
+						if (dog) {
+							return { ...item, name: dog.name, _id: dog._id };
+						}
+					}
+					return item;
+				});
+				setDogs(combined);
 				console.log("more pics", morePics);
 			} catch (error) {
 				console.error("Error fetching gallery:", error);
@@ -43,36 +61,27 @@ function Gallery() {
 		fetchGallery();
 	}, []);
 
-	useEffect(() => {
-		const handleKeyDown = (e) => {
-			if (e.key === "Escape") closeModal();
-			if (!popup) return;
-
-			if (e.key === "ArrowLeft") {
-				const newIndex = (selectedIndex - 1 + dogs.length) % dogs.length;
-				setFade(true);
-				setTimeout(() => {
-					setSelectedIndex(newIndex);
-					setPopupData(dogs[newIndex].imageURL);
-					setFade(false);
-				}, 150);
-			}
-
-			if (e.key === "ArrowRight") {
-				const newIndex = (selectedIndex + 1) % dogs.length;
-				setFade(true);
-				setTimeout(() => {
-					setSelectedIndex(newIndex);
-					setPopupData(dogs[newIndex].imageURL);
-					setFade(false);
-				}, 150);
-			}
+	// Convert our dog data to the format expected by the lightbox
+	const slides = dogs.map((dog) => {
+		const isDog = dog.name !== "From Review";
+		return {
+			src: dog.imageURL,
+			alt: dog.name,
+			title: isDog ? (
+				<a
+					href={`/dog/${dog._id}`}
+					target="_blank"
+					rel="noopener noreferrer"
+					className="text-lg font-semibold underline text-white"
+				>
+					{dog.name}
+				</a>
+			) : (
+				<span className="text-lg font-semibold text-white">{dog.name}</span>
+			),
+			description: dog.description || `Photo of ${dog.name}`,
 		};
-		window.addEventListener("keydown", handleKeyDown);
-		return () => window.removeEventListener("keydown", handleKeyDown);
-	}, [popup, selectedIndex, dogs]);
-
-	const closeModal = () => setPopup(false);
+	});
 
 	return (
 		<div>
@@ -80,124 +89,75 @@ function Gallery() {
 				Gallery
 			</h1>
 			<div className="columns-2 sm:columns-3 md:columns-4 gap-4 p-4">
-				{dogs.map((dog, index) => (
+				{dogs.map((dog, idx) => (
 					<img
 						key={dog._id}
-						src={dog.imageURL}
+						src={dog.imageURL || "/placeholder.svg"}
 						alt={dog.name}
 						onClick={() => {
-							setPopupData(dog.imageURL);
-							setSelectedIndex(index);
-							setPopup(true);
+							setIndex(idx);
+							setOpen(true);
 						}}
 						className="w-full mb-4 rounded-xl object-contain shadow-md cursor-pointer hover:scale-102 transition"
 					/>
 				))}
 			</div>
-			{popup && (
-				<div
-					className="fixed inset-0 bg-slate-900 bg-opacity-90 z-50 flex justify-center items-center"
-					onClick={closeModal}
-				>
-					<div
-						className="relative w-full h-full flex justify-center items-center"
-						onClick={(e) => e.stopPropagation()}
-					>
-						<IoClose
-							className="w-10 h-10 text-white absolute top-6 right-6 z-50 cursor-pointer"
-							onClick={(e) => {
-								e.stopPropagation();
-								closeModal();
-							}}
-						/>
-						<img
-							src={popupData}
-							alt="Full View"
-							className={`w-full sm:w-5/6 md:w-1/2 max-h-[90%] object-contain rounded-lg shadow-lg transition-opacity duration-300 ${
-								fade ? "opacity-0" : "opacity-100"
-							}`}
-							onTouchStart={(e) => setTouchStartX(e.targetTouches[0].clientX)}
-							onTouchMove={(e) => setTouchEndX(e.targetTouches[0].clientX)}
-							onTouchEnd={() => {
-								if (!touchStartX || !touchEndX) return;
-								const diff = touchStartX - touchEndX;
-								if (diff > 50) {
-									// swipe left
-									const newIndex = (selectedIndex + 1) % dogs.length;
-									setFade(true);
-									setTimeout(() => {
-										setSelectedIndex(newIndex);
-										setPopupData(dogs[newIndex].imageURL);
-										setFade(false);
-									}, 150);
-								} else if (diff < -50) {
-									// swipe right
-									const newIndex =
-										(selectedIndex - 1 + dogs.length) % dogs.length;
-									setFade(true);
-									setTimeout(() => {
-										setSelectedIndex(newIndex);
-										setPopupData(dogs[newIndex].imageURL);
-										setFade(false);
-									}, 150);
-								}
-								setTouchStartX(null);
-								setTouchEndX(null);
-							}}
-						/>
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								const newIndex =
-									(selectedIndex - 1 + dogs.length) % dogs.length;
-								setFade(true);
-								setTimeout(() => {
-									setSelectedIndex(newIndex);
-									setPopupData(dogs[newIndex].imageURL);
-									setFade(false);
-								}, 150);
-							}}
-							className="absolute left-4 text-white text-3xl z-50"
-						>
-							‹
-						</button>
-						<button
-							onClick={(e) => {
-								e.stopPropagation();
-								const newIndex = (selectedIndex + 1) % dogs.length;
-								setFade(true);
-								setTimeout(() => {
-									setSelectedIndex(newIndex);
-									setPopupData(dogs[newIndex].imageURL);
-									setFade(false);
-								}, 150);
-							}}
-							className="absolute right-4 text-white text-3xl z-50"
-						>
-							›
-						</button>
-						<div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 overflow-x-auto px-4">
-							{dogs.map((dog, idx) => (
-								<img
-									key={dog._id}
-									src={dog.imageURL}
-									alt={dog.name}
-									onClick={(e) => {
-										e.stopPropagation();
-										setSelectedIndex(idx);
-										setPopupData(dog.imageURL);
-									}}
-									className={`w-16 h-16 object-contain rounded cursor-pointer border-2 hover:scale-105 transition ${
-										idx === selectedIndex
-											? "border-white"
-											: "border-transparent"
-									}`}
-								/>
-							))}
-						</div>
-					</div>
-				</div>
-			)}
+
+			<Lightbox
+				open={open}
+				close={() => setOpen(false)}
+				slides={slides}
+				index={index}
+				plugins={[
+					Thumbnails,
+					Zoom,
+					Counter,
+					Slideshow,
+					Fullscreen,
+					Download,
+					Captions,
+				]}
+				thumbnails={{
+					position: "bottom",
+					width: 120,
+					height: 80,
+					border: 2,
+					borderRadius: 4,
+					padding: 4,
+					gap: 8,
+				}}
+				zoom={{
+					maxZoomPixelRatio: 3,
+					zoomInMultiplier: 2,
+				}}
+				counter={{
+					container: {
+						style: {
+							top: "unset",
+							bottom: "0",
+							left: "50%",
+							transform: "translateX(-50%)",
+						},
+					},
+				}}
+				carousel={{
+					finite: false,
+					preload: 3,
+				}}
+				animation={{ swipe: 250 }}
+				controller={{ closeOnBackdropClick: true }}
+				styles={{
+					container: { backgroundColor: "rgba(15, 23, 42, 0.9)" },
+					thumbnail: {
+						active: {
+							border: "2px solid white",
+						},
+					},
+				}}
+				captions={{
+					render: ({ slide }) => slide.title,
+				}}
+			/>
 		</div>
 	);
 }

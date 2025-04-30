@@ -17,6 +17,7 @@ const ScheduleWalkForm = ({
 	setShowForm,
 	handleAddEvent,
 	setIsBulk,
+	weeklyHours,
 }) => {
 	const [marshals, setMarshals] = useState([]);
 	const [selectedTimes, setSelectedTimes] = useState([]);
@@ -73,8 +74,15 @@ const ScheduleWalkForm = ({
 		}
 	};
 
-	// Time slots in from 10:00 AM to 3:00 PM
-	const timeSlots = ["10:00", "11:00", "12:00", "13:00", "14:00", "15:00"];
+	// Dynamically generate time slots based on weeklyHours prop
+	const timeSlots = [];
+	if (weeklyHours?.start && weeklyHours?.end) {
+		const [startHour] = weeklyHours.start.split(":").map(Number);
+		const [endHour] = weeklyHours.end.split(":").map(Number);
+		for (let h = startHour; h <= endHour; h++) {
+			timeSlots.push(`${h.toString().padStart(2, "0")}:00`);
+		}
+	}
 
 	// Format time for display
 	const formatTime = (timeString) => {
