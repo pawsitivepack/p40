@@ -255,3 +255,76 @@ exports.checkInScheduledWalks = async (req, res) => {
 		res.status(500).json({ error: "Failed to retrieve scheduled walks" });
 	}
 };
+// DELETE /scheduledWalks/:id
+exports.cancelSingleWalk = async (req, res) => {
+	try {
+		const walkId = req.params.id;
+
+		// Delete the walk
+		const deletedWalk = await ScheduledWalk.findByIdAndDelete(walkId);
+		if (!deletedWalk) {
+			return res.status(404).json({ message: "Walk not found." });
+		}
+
+		// Find all related booked walks
+		const bookedWalks = await BookedWalks.find({ walkId });
+
+		// Extract bookedWalk IDs
+		const bookedWalkIds = bookedWalks.map((bw) => bw._id);
+
+		// Remove bookedWalks from users' profiles
+		await User.updateMany(
+			{ bookedWalks: { $in: bookedWalkIds } },
+			{ $pull: { bookedWalks: { $in: bookedWalkIds } } }
+		);
+
+		// Delete booked walk entries
+		await BookedWalks.deleteMany({ _id: { $in: bookedWalkIds } });
+
+		res
+			.status(200)
+			.json({ message: "Walk and related bookings canceled successfully." });
+	} catch (error) {
+		console.error("Error cancelling walk:", error);
+		res.status(500).json({ message: "Failed to cancel walk." });
+	}
+};
+
+// DELETE /scheduledWalks/cancel-day/:date
+exports.cancelWalksForDay = async (req, res) => {
+	try {
+		const { date } = req.params;
+
+		const startOfDay = new Date(`${date}T00:00:00`);
+		const endOfDay = new Date(`${date}T23:59:59.999`);
+
+		const walksToDelete = await ScheduledWalk.find({
+			date: { $gte: startOfDay, $lte: endOfDay },
+		});
+
+		const walkIds = walksToDelete.map((walk) => walk._id);
+
+		// Find all related booked walks
+		const bookedWalks = await BookedWalks.find({ walkId: { $in: walkIds } });
+		const bookedWalkIds = bookedWalks.map((bw) => bw._id);
+
+		// Remove bookedWalks from users' profiles
+		await User.updateMany(
+			{ bookedWalks: { $in: bookedWalkIds } },
+			{ $pull: { bookedWalks: { $in: bookedWalkIds } } }
+		);
+
+		// Delete booked walk entries
+		await BookedWalks.deleteMany({ _id: { $in: bookedWalkIds } });
+
+		// Delete the scheduled walks
+		const result = await ScheduledWalk.deleteMany({ _id: { $in: walkIds } });
+
+		res.status(200).json({
+			message: `${result.deletedCount} walks and related bookings canceled for ${date}`,
+		});
+	} catch (error) {
+		console.error("Error cancelling walks for day:", error);
+		res.status(500).json({ message: "Failed to cancel walks for day." });
+	}
+};

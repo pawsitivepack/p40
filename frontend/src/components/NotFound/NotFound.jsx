@@ -1,7 +1,35 @@
+"use client";
+
+import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import "./NotFound.css";
 import image404 from "../../assets/404.png";
 
 const NotFound = () => {
+	// Add TV static noise effect when component mounts
+	useEffect(() => {
+		const interval = setInterval(() => {
+			const screen = document.querySelector(".screen");
+			const screenM = document.querySelector(".screenM");
+
+			if (screen && screenM) {
+				// Random TV static effect
+				const noise = Math.random() > 0.9;
+				if (noise) {
+					screen.classList.add("noise");
+					screenM.classList.add("noise");
+
+					setTimeout(() => {
+						screen.classList.remove("noise");
+						screenM.classList.remove("noise");
+					}, 100);
+				}
+			}
+		}, 500);
+
+		return () => clearInterval(interval);
+	}, []);
+
 	return (
 		<div
 			className="notfound_container"
@@ -38,7 +66,7 @@ const NotFound = () => {
 							>
 								<path
 									d="M70.343,70.343c-30.554,30.553-44.806,72.7-39.102,115.635l-29.738,3.951C-5.442,137.659,11.917,86.34,49.129,49.13
-									C86.34,11.918,137.664-5.445,189.928,1.502l-3.95,29.738C143.041,25.54,100.895,39.789,70.343,70.343z"
+                  C86.34,11.918,137.664-5.445,189.928,1.502l-3.95,29.738C143.041,25.54,100.895,39.789,70.343,70.343z"
 								/>
 							</svg>
 						</div>
@@ -64,7 +92,7 @@ const NotFound = () => {
 
 						<div className="buttons_div">
 							<div className="b1">
-								<div />
+								<div className="knob" />
 							</div>
 							<div className="b2" />
 							<div className="speakers">
@@ -83,6 +111,24 @@ const NotFound = () => {
 						<div className="base1" />
 						<div className="base2" />
 						<div className="base3" />
+					</div>
+
+					{/* Channel changing animation */}
+					<div className="channel-change">
+						<div className="channel-text">CH 404</div>
+					</div>
+
+					{/* Home button styled as a TV remote control button */}
+					<div className="remote-control">
+						<Link to="/" className="home-button">
+							<div className="button-icon">⌂</div>
+							<div className="button-text">HOME</div>
+						</Link>
+						<div className="remote-buttons">
+							<div className="remote-button"></div>
+							<div className="remote-button"></div>
+							<div className="remote-button"></div>
+						</div>
 					</div>
 				</div>
 			</div>
