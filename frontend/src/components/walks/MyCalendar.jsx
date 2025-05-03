@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -27,6 +25,32 @@ import {
 } from "react-icons/fa";
 
 const MyCalendar = () => {
+	// Cancel a single walk (admin only)
+	const handleCancelWalk = async (walkId) => {
+		if (!window.confirm("Are you sure you want to cancel this walk?")) return;
+		try {
+			await api.delete(`/scheduledWalks/${walkId}`);
+			toast.success("Walk cancelled.");
+			await fetchAvailableWalks();
+		} catch (err) {
+			console.error("Failed to cancel walk:", err);
+			toast.error("Failed to cancel walk.");
+		}
+	};
+
+	// Cancel all walks for a day (admin only)
+	const handleCancelDay = async (day) => {
+		if (!window.confirm("Cancel all walks for this day?")) return;
+		try {
+			const dateStr = day.toISOString().split("T")[0];
+			await api.delete(`/scheduledWalks/cancel-day/${dateStr}`);
+			toast.success("All walks for the day cancelled.");
+			await fetchAvailableWalks();
+		} catch (err) {
+			console.error("Failed to cancel walks for day:", err);
+			toast.error("Failed to cancel day's walks.");
+		}
+	};
 	const [date, setDate] = useState(null);
 	const [view, setView] = useState("month");
 	const [showForm, setShowForm] = useState(false);
@@ -174,6 +198,20 @@ const MyCalendar = () => {
 			document.body.style.overflow = "auto";
 		};
 	}, [showSettings]);
+
+	useEffect(() => {
+		// When form is open, prevent body scrolling
+		if (showForm) {
+			document.body.style.overflow = "hidden";
+		} else {
+			document.body.style.overflow = "auto";
+		}
+
+		// Cleanup function to restore scrolling when component unmounts
+		return () => {
+			document.body.style.overflow = "auto";
+		};
+	}, [showForm]);
 
 	const handleDateChange = (selectedDate) => {
 		setDate(selectedDate);
@@ -462,6 +500,15 @@ const MyCalendar = () => {
 											</button>
 										)}
 									</div>
+									{/* Admin: Cancel All Walks button */}
+									{role === "admin" && (
+										<button
+											onClick={() => handleCancelDay(date)}
+											className="text-sm bg-red-100 hover:bg-red-200 text-red-700 font-medium px-3 py-1 rounded-lg transition-colors ml-auto mt-2"
+										>
+											Cancel All Walks for This Day
+										</button>
+									)}
 								</div>
 
 								<div className="p-5 max-h-[600px] overflow-y-auto">
@@ -680,6 +727,15 @@ const MyCalendar = () => {
 																		)}
 																	</>
 																)
+															)}
+															{/* Admin: Cancel Walk button */}
+															{role === "admin" && (
+																<button
+																	onClick={() => handleCancelWalk(walk._id)}
+																	className="mt-2 w-full py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors font-medium"
+																>
+																	Cancel Walk
+																</button>
 															)}
 														</div>
 													</div>
