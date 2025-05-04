@@ -5,8 +5,8 @@ const User = require("../models/usersModel");
 const Notification = require("../models/Notificationmodel");
 const { sendWalkReminderEmail } = require("../config/mailer");
 
-// ⏰ Run every day at 12:05 AM
-cron.schedule("5 * * * * *", async () => {
+//  Run every day at 12:05 AM
+cron.schedule("5 0 * * * *", async () => {
   const now = new Date();
 
   // Define full day window: today 00:00:00 to 23:59:59
@@ -16,14 +16,10 @@ cron.schedule("5 * * * * *", async () => {
   const endOfDay = new Date(now);
   endOfDay.setHours(23, 59, 59, 999);
 
-  console.log(`⏳ Checking all booked walks between ${startOfDay.toISOString()} and ${endOfDay.toISOString()}`);
-
   const bookedWalks = await BookedWalks.find({
     date: { $gte: startOfDay, $lte: endOfDay },
     status: "booked"
   }).populate("userId");
-
-  console.log(`📦 Found ${bookedWalks.length} booked walks for today`);
 
   for (const booking of bookedWalks) {
     const user = booking.userId;
@@ -46,9 +42,9 @@ cron.schedule("5 * * * * *", async () => {
         walkId: booking.walkId,
       });
 
-      await sendWalkReminderEmail(user, booking); // optional email
+      await sendWalkReminderEmail(user, booking); 
     }
   }
 
-  console.log("✅ Full-day walk reminders sent.");
+  console.log("Full-day walk reminders sent.");
 });
