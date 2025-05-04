@@ -270,18 +270,18 @@ function MarshalApplication() {
 
 									<form onSubmit={handleSubmit} className="space-y-6">
 										<div>
-											<label className="block text-sm font-medium text-gray-700 mb-1">
+											<label className="block text-sm font-medium text-black mb-1">
 												Why do you want to be a marshal?
 											</label>
 											<textarea
 												value={message}
 												onChange={(e) => setMessage(e.target.value)}
 												placeholder="Share your experience with dogs, your motivation, and why you'd be a good fit for this role..."
-												className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-[#8c1d35] focus:border-transparent"
+												className="w-full text-black border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-[#8c1d35] focus:border-transparent"
 												rows="6"
 												required
 											></textarea>
-											<p className="mt-1 text-sm text-gray-500">
+											<p className="mt-1 text-sm text-black">
 												Please be specific and include any relevant experience
 												you have with dogs.
 											</p>

@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("./config/notifyUpcomingWalks");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -11,6 +12,7 @@ const waiver = require("./routes/waiverRoute");
 const review = require("./routes/reviewRoute");
 const adoptionRoutes = require("./routes/adoptionRoute");
 const settings = require("./routes/settingsRoute");
+const notificationRoutes = require("./routes/NotificationRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -46,6 +48,7 @@ app.use("/waiver", waiver);
 app.use("/review", review);
 
 app.use("/settings", settings);
+app.use("/api", notificationRoutes);
 
 // Start the Server
 app.listen(PORT, async () => {
