@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
 import { HiOutlineUserCircle } from "react-icons/hi";
+import Notifications from "./Notifications";
+
 
 export default function Navbar() {
 	const location = useLocation();
@@ -24,6 +26,7 @@ export default function Navbar() {
 	const [picture, setPicture] = useState("");
 	const [isScrolled, setIsScrolled] = useState(false);
 	const [adoptions, setAdoptions] = useState([]);
+	const [notifications, setNotifications] = useState([]);
 
 	const dropdownRef = useRef(null);
 	const notificationRef = useRef(null);
@@ -109,6 +112,20 @@ export default function Navbar() {
 			fetchNotifications();
 		}
 	}, [role]);
+	useEffect(() => {
+		const fetchUserNotifications = async () => {
+		  if (role === "user") {
+			try {
+			  const res = await api.get("/api/user-notifications");
+			  setNotifications(res.data);
+			} catch (error) {
+			  console.error("Error fetching user notifications:", error);
+			}
+		  }
+		};
+		fetchUserNotifications();
+	  }, [role]);
+	  
 
 	const handleLogout = () => {
 		localStorage.removeItem("token");
@@ -225,120 +242,15 @@ export default function Navbar() {
 					</div>
 
 					<div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0 space-x-3">
-						{/* Notifications Bell for Admin */}
-						{role === "admin" && (
-							<div className="relative" ref={notificationRef}>
-								<button
-									className="relative p-1 rounded-full text-[#333] hover:text-[#8c1d35] hover:bg-[#d9c59a] transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#8c1d35]"
-									onClick={() => setShowNotifications(!showNotifications)}
-								>
-									<span className="sr-only">View notifications</span>
-									<BellIcon className="h-6 w-6" />
-									{applications.length > 0 && adoptions.length > 0 && (
-										<span className="absolute -top-1 -right-1 bg-[#8c1d35] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-											{applications.length  + adoptions.length}
-										</span>
-									)}
-								</button>
-
-								{/* Notifications Dropdown */}
-								{showNotifications && (
-									<div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg z-10 overflow-hidden border border-gray-200 transform origin-top-right transition-all duration-200">
-										<div className="bg-[#f8f8f8] px-4 py-2 border-b border-gray-200">
-											<h3 className="text-sm font-semibold text-[#333]">
-												Notifications
-											</h3>
-										</div>
-										<div className="max-h-96 overflow-y-auto">
-										{applications.length === 0 && adoptions.length === 0 ? (
-											<div className="p-4 text-center text-gray-500 text-sm">
-												No new notifications
-											</div>
-											) : (
-											<>
-												{/* Marshal Applications */}
-												{applications.map((app) => (
-												<div
-													key={app._id}
-													className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
-													onClick={() => {
-													setShowNotifications(false);
-													navigate("/marshal-application", {
-														state: { application: app },
-													});
-													}}
-												>
-													<div className="flex items-start">
-													<div className="flex-shrink-0 mr-3">
-														<div className="w-8 h-8 rounded-full bg-[#8c1d35] flex items-center justify-center text-white text-xs font-bold">
-														{app.userId?.firstName?.[0]}{app.userId?.lastName?.[0]}
-														</div>
-													</div>
-													<div>
-														<p className="text-sm font-medium text-gray-800">
-														<span className="font-semibold">{app.userId?.firstName} {app.userId?.lastName}</span> applied for Marshal
-														</p>
-														<p className="text-xs text-gray-500 mt-1">
-														{new Date(app.applicationDate).toLocaleDateString()} at{" "}
-														{new Date(app.applicationDate).toLocaleTimeString([], {
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-														</p>
-													</div>
-													</div>
-												</div>
-												))}
-
-												{/* Adoption Requests */}
-												{adoptions.map((adopt) => (
-												<div
-													key={adopt._id}
-													className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
-													onClick={() => {
-													setShowNotifications(false);
-													navigate("/adoption-inquiries");
-													}}
-												>
-													<div className="flex items-start">
-													<div className="flex-shrink-0 mr-3">
-														<div className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-white text-xs font-bold">
-														{adopt.Userid?.firstName?.[0]}{adopt.Userid?.lastName?.[0]}
-														</div>
-													</div>
-													<div>
-														<p className="text-sm font-medium text-gray-800">
-														<span className="font-semibold">{adopt.Userid?.firstName} {adopt.Userid?.lastName}</span> wants to adopt <span className="font-semibold">{adopt.Dogid?.name}</span>
-														</p>
-														<p className="text-xs text-gray-500 mt-1">
-														{new Date(adopt.createdAt).toLocaleDateString()} at{" "}
-														{new Date(adopt.createdAt).toLocaleTimeString([], {
-															hour: "2-digit",
-															minute: "2-digit",
-														})}
-														</p>
-													</div>
-													</div>
-												</div>
-												))}
-											</>
-											)}
-
-										</div>
-										{applications.length > 0 && (
-											<div className="p-2 bg-[#f8f8f8] border-t border-gray-200">
-												<button
-													className="w-full text-xs text-[#8c1d35] hover:text-[#6b1528] font-medium py-1"
-													onClick={() => navigate("/applications")}
-												>
-													View all applications
-												</button>
-											</div>
-										)}
-									</div>
-								)}
-							</div>
-						)}
+						{/* Notifications */}
+						<Notifications
+							role={role}
+							notifications={notifications}
+							setNotifications={setNotifications}  
+							applications={applications}
+							adoptions={adoptions}
+							/>
+						
 
 						{/* User Menu or Login Button */}
 						{isLoggedIn ? (

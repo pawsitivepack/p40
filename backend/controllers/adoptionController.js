@@ -1,5 +1,8 @@
 const Adoption = require("../models/adoptionModel"); // Import the Adoption model
 const { sendAdoptionReplyEmail } = require("../config/mailer"); 
+const Notification = require("../models/Notificationmodel");
+const Dog = require("../models/dogModel");
+
 
 // Create a new adoption request
 exports.createAdoption = async (req, res) => {
@@ -32,6 +35,16 @@ exports.getPendingAdoptions = async (req, res) => {
   }
 };
 
+exports.getMyAdoptions = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const adoptions = await Adoption.find({ Userid: userId }).populate("Dogid");
+    res.status(200).json(adoptions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 // Update adoption status
 exports.updateAdoptionStatus = async (req, res) => {
@@ -49,41 +62,61 @@ exports.updateAdoptionStatus = async (req, res) => {
 };
 
 exports.replyToAdoptionInquiry = async (req, res) => {
-	try {
-		const { user, dogName, message, inquiryId } = req.body;
+  try {
+    const { message, inquiryId } = req.body;
 
-		if (!user?.email || !user?.firstName || !message || !dogName || !inquiryId) {
-			return res.status(400).json({ error: "Missing required fields." });
-		}
+    // Get the adoption inquiry and populate full user and dog data
+    const adoption = await Adoption.findById(inquiryId)
+      .populate("Userid") // full user
+      .populate("Dogid"); // full dog
 
-		// Update the database FIRST
-		const updatedInquiry = await Adoption.findByIdAndUpdate(
-			inquiryId,
-			{
-				Status: "Replied",
-				ReplyMessage: message,
-				ReplyDate: new Date(),
-			},
-			{ new: true }
-		);
+    if (!adoption) {
+      return res.status(404).json({ error: "Adoption inquiry not found." });
+    }
 
-		// Try to send the email, but don't fail the request if it breaks
-		try {
-			await sendAdoptionReplyEmail(user, dogName, message);
-		} catch (emailErr) {
-			console.error("⚠️ Email failed to send:", emailErr.message || emailErr);
-			// Optional: Log this to an error tracking service
-		}
+    const user = adoption.Userid;
+    const dog = adoption.Dogid;
 
-		// Always respond success
-		res.status(200).json({
-			message: "Reply saved and email attempted.",
-			updatedInquiry,
-		});
-	} catch (error) {
-		console.error("🔥 Unexpected error in reply handler:", error.message || error);
-		res.status(500).json({ error: "Something went wrong while sending reply." });
-	}
+    if (!user || !user._id || !message || !dog?.name) {
+      return res.status(400).json({ error: "Missing required fields." });
+    }
+
+    // Update the inquiry
+    const updatedInquiry = await Adoption.findByIdAndUpdate(
+      inquiryId,
+      {
+        Status: "Replied",
+        ReplyMessage: message,
+        ReplyDate: new Date(),
+      },
+      { new: true }
+    );
+
+    // Create the notification for that specific user
+    await Notification.create({
+      recipient: user._id,
+      role: "user",
+      type: "adoption",
+      dogId: dog._id,
+      message: `Your adoption inquiry for ${dog.name} has been replied to.`,
+      readStatus: false,
+    });
+
+    // Send email (optional)
+    try {
+      await sendAdoptionReplyEmail(user, dog.name, message);
+    } catch (emailErr) {
+      console.error("⚠️ Email failed to send:", emailErr.message || emailErr);
+    }
+
+    res.status(200).json({
+      message: "Reply saved and notification sent.",
+      updatedInquiry,
+    });
+  } catch (error) {
+    console.error("🔥 Error in replyToAdoptionInquiry:", error.message || error);
+    res.status(500).json({ error: "Something went wrong." });
+  }
 };
 
 

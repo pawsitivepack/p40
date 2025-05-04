@@ -2,6 +2,7 @@ const BookedWalks = require("../models/BookedModel");
 const User = require("../models/usersModel");
 const ScheduledWalk = require("../models/walkmodel");
 const Dog = require("../models/dogModel");
+const sendUpcomingWalkNotifications = require("../config/notifyUpcomingWalks");
 
 exports.checkInWalker = async (req, res) => {
 	const { userId, walkId, marshalId, date } = req.body;
@@ -310,6 +311,7 @@ exports.finishedWalks = async (req, res) => {
 exports.getAllBookedWalks = async (req, res) => {
 	try {
 		console.log("fetching all walks");
+		await sendUpcomingWalkNotifications();
 		const upcomingWalks = await BookedWalks.find({
 			status: "booked",
 		})

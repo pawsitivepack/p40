@@ -554,7 +554,7 @@ const DogDetails = () => {
 						)}
 
 						{/* Inquiry Form - Hidden in print */}
-						{!dog.adopted && isLoggedIn && showInquiryForm && (
+						{!dog.adopted && isLoggedIn && (showInquiryForm || existingInquiry) && (
 							<div id="inquiry-section" className="mt-8 print:hidden">
 								<div className="bg-[#f8f5f0] rounded-lg p-6 border border-[#e8d3a9]">
 									<h3 className="text-xl font-bold text-[#8c1d35] mb-4 flex items-center">

@@ -2,6 +2,7 @@ const { ObjectId } = require("mongodb");
 const MarshalApp = require("../models/marshalAppModel");
 const mongoose = require("mongoose");
 const User = require("../models/usersModel");
+const Notification = require("../models/Notificationmodel");
 const { sendMarshalApplicationStatusEmail } = require("../config/mailer");
 
 exports.getMarshalApp = async (req, res) => {
@@ -84,6 +85,18 @@ exports.updateMarshalAppStatus = async (req, res) => {
 		if (appStatus === "Approved") {
 			await User.findByIdAndUpdate(updatedApp.userId._id, { role: "marshal" });
 		}
+
+		// ✅ NEW: Send in-app notification
+		await Notification.create({
+			recipient: updatedApp.userId._id,
+			role: "user",
+			type: "marshalApplication",
+			message:
+				appStatus === "Approved"
+					? "🎉 Your marshal application has been approved!"
+					: "❌ Your marshal application has been rejected.",
+			readStatus: false,
+		});
 
 		// Customize email message based on status
 		const message =

@@ -1,14 +1,15 @@
 const ScheduledWalk = require("../models/walkmodel");
 const User = require("../models/usersModel");
 const { sendWalkConfirmationEmail } = require("../config/mailer");
+const { sendNewWalkAnnouncementEmail } = require("../config/mailer");
 const BookedWalks = require("../models/BookedModel");
+const Notification = require("../models/Notificationmodel");
 
 const mongoose = require("mongoose");
 
 exports.addScheduledWalk = async (req, res) => {
 	try {
 		const { dog, walker, marshal, date, location, status } = req.body;
-		console.log("trying to add scheduled walk");
 		// Ensure marshal is a user with role "marshal"
 		const marshalUser = await User.findById(marshal);
 		if (!marshalUser || marshalUser.role !== "marshal") {
@@ -68,6 +69,30 @@ exports.addScheduledWalk = async (req, res) => {
 
 		// Save the walk
 		const savedWalk = await newWalk.save();
+
+		// ✅ Send email to all users about new walk
+		const allUsers = await User.find({ role: "user" });
+
+		for (const user of allUsers) {
+			try {
+				await sendNewWalkAnnouncementEmail(user, savedWalk);
+			} catch (err) {
+				console.error(`❌ Failed to send email to ${user.email}:`, err.message);
+			}
+		}
+
+
+		await Notification.create({
+			recipient: null,         // null = broadcast
+			role: "user",            // notify all users (not admins/marshals)
+			type: "booking",         // important for your frontend to route it
+			message: `New walk added on ${new Date(newWalk.date).toLocaleDateString()} at ${new Date(newWalk.date).toLocaleTimeString([], {
+			  hour: '2-digit',
+			  minute: '2-digit'
+			})}. Book your slot now!`,
+			readStatus: false,
+		  });
+		  
 
 		// Populate walker, marshal, and dog fields
 		const populatedWalk = await ScheduledWalk.findById(savedWalk._id)
