@@ -35,7 +35,7 @@ cron.schedule("5 0 * * * *", async () => {
         recipient: user._id,
         role: "user",
         type: "upcoming",
-        message: `Reminder: You have a walk today on ${new Date(
+        message: `Reminder: You have a walk on ${new Date(
           booking.date
         ).toLocaleString()}.`,
         readStatus: false,

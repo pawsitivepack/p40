@@ -4,14 +4,19 @@ const { Schema } = mongoose;
 const notificationSchema = new Schema({
   recipient: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Can be any user or admin account
+    ref: 'User', 
     default: null // null means it's a global/broadcast notification
   },
   role: {
     type: String,
-    enum: ['user', 'admin', 'all'], // who should see this notification
+    enum: ['user', 'admin', 'marshal', 'all'], // who should see this notification
     default: 'user'
   },
+  sender: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false
+  },  
   message: {
     type: String,
     required: true
@@ -39,6 +44,7 @@ const notificationSchema = new Schema({
     ref: "Dog",
     required: false,
   },  
+  
 }, { timestamps: true });
 
 const Notification = mongoose.model('Notification', notificationSchema);

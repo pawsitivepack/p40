@@ -433,7 +433,7 @@ const Users = () => {
 																		onChange={(e) =>
 																			handleFieldChange(e, "firstName")
 																		}
-																		className="border border-gray-300 rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
+																		className="border border-gray-300 text-[#8c1d35] rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
 																		placeholder="First Name"
 																	/>
 																	<input
@@ -442,7 +442,7 @@ const Users = () => {
 																		onChange={(e) =>
 																			handleFieldChange(e, "lastName")
 																		}
-																		className="border border-gray-300 rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
+																		className="border border-gray-300 rounded text-[#8c1d35]  px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
 																		placeholder="Last Name"
 																	/>
 																</div>
@@ -454,7 +454,7 @@ const Users = () => {
 																	onChange={(e) =>
 																		handleFieldChange(e, "email")
 																	}
-																	className="border border-gray-300 rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
+																	className="border border-gray-300 rounded text-[#8c1d35] px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
 																/>
 															</td>
 															<td className="py-3 px-4 border-b border-gray-200">
@@ -464,21 +464,21 @@ const Users = () => {
 																	onChange={(e) =>
 																		handleFieldChange(e, "phone")
 																	}
-																	className="border border-gray-300 rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
+																	className="border border-gray-300 text-[#8c1d35] rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
 																/>
 															</td>
 															<td className="py-3 px-4 border-b border-gray-200">
 																<select
 																	value={editedUserData.role}
 																	onChange={(e) => handleFieldChange(e, "role")}
-																	className="border border-gray-300 rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
+																	className="border border-gray-300 text-[#8c1d35] rounded px-2 py-1 w-full focus:ring-[#8c1d35] focus:border-[#8c1d35]"
 																>
 																	<option value="user">User</option>
 																	<option value="admin">Admin</option>
 																	<option value="marshal">Marshal</option>
 																</select>
 															</td>
-															<td className="py-3 px-4 border-b border-gray-200">
+															<td className="py-3 px-4 text-[#8c1d35] border-b border-gray-200">
 																{user.updatedAt
 																	? `${formatDistanceToNow(
 																			new Date(user.updatedAt)
@@ -489,7 +489,7 @@ const Users = () => {
 																<div className="flex gap-2">
 																	<button
 																		onClick={handleConfirmEdit}
-																		className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition-colors"
+																		className="bg-[#8c1d35] text-white p-2 rounded-lg hover:bg-green-600 transition-colors"
 																		title="Save"
 																	>
 																		<FaCheck />

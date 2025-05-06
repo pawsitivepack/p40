@@ -12,6 +12,7 @@ import {
 	FaCalendarCheck,
 	FaPrint,
 	FaFileDownload,
+	FaArrowRight,
 } from "react-icons/fa";
 
 function DogWalkSummary() {
@@ -256,8 +257,8 @@ function DogWalkSummary() {
 		<div className="p-4 text-gray-800 max-w-7xl mx-auto">
 			<div className="bg-white rounded-xl shadow-md overflow-hidden">
 				{/* view the walks looking for walks */}
-				<div className="bg-[#f8f5f0] border-b border-[#e8d3a9] p-4">
-					<a href="/walkmenow">Dogs looking for walk</a>
+				<div className="bg-[#f8f5f0] border-b border-[#e8d3a9] p-4 flex justify-start">
+					<a href="/walkmenow" className="inline-flex items-center justify-center gap-2 bg-[#8c1d35] text-white px-5 py-2 rounded-lg font-semibold shadow hover:bg-[#7c1025] transition duration-200"> Dogs looking for walk<FaArrowRight className="text-lg" /></a>
 				</div>
 				{/* Header */}
 				<div className="bg-[#8c1d35] px-6 py-4">
