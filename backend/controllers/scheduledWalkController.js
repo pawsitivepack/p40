@@ -12,6 +12,7 @@ exports.addScheduledWalk = async (req, res) => {
 		const { dog, walker, marshal, date, location, status } = req.body;
 		// Ensure marshal is a user with role "marshal"
 		const marshalUser = await User.findById(marshal);
+
 		if (!marshalUser || marshalUser.role !== "marshal") {
 			return res
 				.status(400)
@@ -79,19 +80,18 @@ exports.addScheduledWalk = async (req, res) => {
 			} catch (err) {
 				console.error(`❌ Failed to send email to ${user.email}:`, err.message);
 			}
-		}
-
-
+		}	
+		  
 		await Notification.create({
 			recipient: null,         // null = broadcast
 			role: "user",            // notify all users (not admins/marshals)
-			type: "booking",         // important for your frontend to route it
+			type: "booking",         
 			message: `New walk added on ${new Date(newWalk.date).toLocaleDateString()} at ${new Date(newWalk.date).toLocaleTimeString([], {
 			  hour: '2-digit',
 			  minute: '2-digit'
 			})}. Book your slot now!`,
 			readStatus: false,
-		  });
+		  });	  
 		  
 
 		// Populate walker, marshal, and dog fields
@@ -195,6 +195,21 @@ exports.confirm = async (req, res) => {
 
 		await sendWalkConfirmationEmail(user, walk);
 
+		const marshalIds = Array.isArray(walk.marshal) ? walk.marshal : [walk.marshal];
+		for (const marshalId of marshalIds) {
+			await Notification.create({
+				recipient: marshalId,
+				role: "marshal",
+				sender: userId,
+				type: "booking",			 
+				message: `${user.firstName} ${user.lastName} booked ${slots} slot(s) for the walk on ${new Date(walk.date).toLocaleDateString()} at ${new Date(walk.date).toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit'
+				})}.`,
+				walkId: walk._id,
+				readStatus: false,
+			});
+		}
 		res.status(200).json({ message: "Walk confirmed successfully", walk });
 	} catch (error) {
 		console.error("Error confirming walk:", error);
@@ -216,12 +231,21 @@ exports.cancelWalk = async (req, res) => {
 		if (!booked) {
 			return res.status(404).json({ message: "Walk not found" });
 		}
+        const user = await User.findById(userId);
+		if (!user) {
+		return res.status(404).json({ message: "User not found" });
+		}
 
 		// Check if the user is allowed to cancel the walk
 		if (userRole === "user" && booked.userId.toString() !== userId) {
 			return res
 				.status(403)
 				.json({ message: "You are not part of this walk." });
+		}
+
+		const walk = await ScheduledWalk.findById(booked.walkId);
+		if (!walk) {
+			return res.status(404).json({ message: "Scheduled walk not found" });
 		}
 
 		// Remove the walk from the user's dogsWalked array
@@ -240,6 +264,21 @@ exports.cancelWalk = async (req, res) => {
 		// Optionally remove the BookedWalk entry
 		await BookedWalks.findByIdAndDelete(walkId);
 
+		const marshalIds = Array.isArray(walk.marshal) ? walk.marshal : [walk.marshal];
+		for (const marshalId of marshalIds) {
+			await Notification.create({
+				recipient: marshalId,
+				role: "marshal",
+				sender: userId,
+				type: "booking", 
+				message: `${user.firstName} ${user.lastName} cancelled ${slot} slot(s) for the walk on ${new Date(booked.date).toLocaleDateString()} at ${new Date(booked.date).toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit'
+				})}.`,
+				walkId: booked.walkId,
+				readStatus: false,
+			});
+		}
 		return res
 			.status(200)
 			.json({ message: "Walk cancelled and references removed." });

@@ -11,8 +11,10 @@ const Notifications = ({ role, notifications = [], setNotifications, application
   const navigate = useNavigate();
 
   // Calculate unread counts
-  const unreadAdmin = applications.filter(app => !dismissedIds.includes(app._id)).length + adoptions.filter(adopt => !dismissedIds.includes(adopt._id)).length;
+  const unreadAdmin = applications.filter(app => !dismissedIds.includes(app._id)).length + 
+  adoptions.filter(adopt => !dismissedIds.includes(adopt._id)).length;
   const unreadUser = notifications.filter((n) => !n.readStatus).length;
+  const unreadMarshal = notifications.filter((n) => !n.readStatus && n.role === "marshal").length;
   const fetchNotifications = async () => {
     try {
       const res = await axios.get("/api/user-notifications");
@@ -23,7 +25,7 @@ const Notifications = ({ role, notifications = [], setNotifications, application
   };  
   
   useEffect(() => {
-    if (role === "admin" || role === "user") {
+    if (role === "admin" || role === "user" || role === "marshal") {
       fetchNotifications();
     }
   }, [role]);
@@ -68,7 +70,11 @@ const Notifications = ({ role, notifications = [], setNotifications, application
 
     switch (notification.type) {
       case "booking":
-        navigate("/walkdogs");
+        if (role === "marshal") {
+          navigate("/scheduledwalk");
+        } else {
+          navigate("/walkdogs");
+        }
         break;
       case "upcoming":
         navigate("/mywalks");
@@ -93,7 +99,7 @@ const Notifications = ({ role, notifications = [], setNotifications, application
 
   return (
     <div className="flex items-center space-x-3" ref={notificationRef}>
-      {(role === "admin" || role === "user") && (
+      {(role === "admin" || role === "user"|| role === "marshal") && (
         <div className="relative">
           {/* Bell Icon */}
           <button
@@ -102,9 +108,9 @@ const Notifications = ({ role, notifications = [], setNotifications, application
           >
             <span className="sr-only">View notifications</span>
             <BellIcon className="h-6 w-6" />
-            {(role === "admin" && unreadAdmin > 0) || (role === "user" && unreadUser > 0) ? (
+            {(role === "admin" && unreadAdmin > 0) || (role === "user" && unreadUser > 0) || (role === "marshal" && unreadMarshal > 0) ? (
               <span className="absolute -top-1 -right-1 bg-[#8c1d35] text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {role === "admin" ? unreadAdmin : unreadUser}
+                {role === "admin" ? unreadAdmin : role === "user" ? unreadUser : unreadMarshal}
               </span>
             ) : null}
           </button>
@@ -187,6 +193,7 @@ const Notifications = ({ role, notifications = [], setNotifications, application
                             </div>
                           </div>
                         ))}
+
                       </>
                     )}
                   </>
@@ -216,6 +223,62 @@ const Notifications = ({ role, notifications = [], setNotifications, application
                     )}
                   </>
                 )}
+
+                {role === "marshal" && (
+                  <>
+                    {notifications.length === 0 ? (
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No new notifications
+                      </div>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification._id}
+                          className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
+                          onClick={() => handleUserNotificationClick(notification)}
+                        >
+                          <div className="flex items-start">
+                            {/* Sender's Profile Picture */}
+                            <div className="flex-shrink-0 mr-3">
+                              <img
+                                src={notification.sender?.picture || "https://via.placeholder.com/40"}
+                                alt={notification.sender?.firstName || "User"}
+                                className="w-8 h-8 rounded-full object-cover"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  e.target.src = "https://via.placeholder.com/40";
+                                }}
+                              
+                              />
+                            </div>
+
+                            {/* Message and Time */}
+                            <div>
+                              <p className="text-sm font-medium text-gray-800">
+                                <span className="font-semibold">
+                                  {notification.sender?.firstName} {notification.sender?.lastName}
+                                </span>{" "}
+                                {notification.message.replace(
+                                  `${notification.sender?.firstName} ${notification.sender?.lastName}`,
+                                  ""
+                                )}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {new Date(notification.createdAt).toLocaleDateString()} at{" "}
+                                {new Date(notification.createdAt).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </>
+                )}
+
+
               </div>
             </div>
           )}

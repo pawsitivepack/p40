@@ -35,7 +35,8 @@ exports.getUserNotifications = async (req, res) => {
         { recipient: userId },
         { recipient: null, role: { $in: [userRole, 'all'] } }
       ]
-    }).sort({ createdAt: -1 });
+    }).populate("sender", "picture")
+      .sort({ createdAt: -1 });
     
     res.status(200).json(notifications);
   } catch (error) {
