@@ -7,14 +7,15 @@ import axios from "../api/axios"; // Adjust the import path as necessary
 const Notifications = ({ role, notifications = [], setNotifications, applications = [], adoptions = [] }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef(null);
+  const [dismissedIds, setDismissedIds] = useState([]);
   const navigate = useNavigate();
 
   // Calculate unread counts
-  const unreadAdmin = applications.length + adoptions.length;
+  const unreadAdmin = applications.filter(app => !dismissedIds.includes(app._id)).length + adoptions.filter(adopt => !dismissedIds.includes(adopt._id)).length;
   const unreadUser = notifications.filter((n) => !n.readStatus).length;
   const fetchNotifications = async () => {
     try {
-      const res = await api.get("/user-notifications");
+      const res = await axios.get("/api/user-notifications");
       setNotifications(res.data);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
@@ -130,15 +131,18 @@ const Notifications = ({ role, notifications = [], setNotifications, application
                             key={app._id}
                             className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
                             onClick={() => {
+                              setDismissedIds(prev => [...prev, app._id]);
                               setShowNotifications(false);
                               navigate("/marshal-application", { state: { application: app } });
                             }}
                           >
                             <div className="flex items-start">
                               <div className="flex-shrink-0 mr-3">
-                                <div className="w-8 h-8 rounded-full bg-[#8c1d35] flex items-center justify-center text-white text-xs font-bold">
-                                  {app.userId?.firstName?.[0]}{app.userId?.lastName?.[0]}
-                                </div>
+                              <img
+                                src={app.userId?.picture || "https://via.placeholder.com/40"}
+                                alt={`${app.userId?.firstName} ${app.userId?.lastName}`}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-800">
@@ -158,15 +162,18 @@ const Notifications = ({ role, notifications = [], setNotifications, application
                             key={adopt._id}
                             className="p-3 border-b border-gray-100 hover:bg-[#f5f5f5] cursor-pointer transition-colors duration-150"
                             onClick={() => {
+                              setDismissedIds(prev => [...prev, adopt._id]);
                               setShowNotifications(false);
                               navigate("/adoption-inquiries");
                             }}
                           >
                             <div className="flex items-start">
                               <div className="flex-shrink-0 mr-3">
-                                <div className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center text-white text-xs font-bold">
-                                  {adopt.Userid?.firstName?.[0]}{adopt.Userid?.lastName?.[0]}
-                                </div>
+                              <img
+                                src={adopt.Userid?.picture || "https://via.placeholder.com/40"}
+                                alt={`${adopt.Userid?.firstName} ${adopt.Userid?.lastName}`}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-gray-800">
