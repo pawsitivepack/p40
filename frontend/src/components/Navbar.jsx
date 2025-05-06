@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -45,8 +47,68 @@ export default function Navbar() {
 	const notificationRef = useRef(null);
 	const navDropdownRefs = useRef([]);
 	const activeIndicatorRef = useRef(null);
-	const activeItemRef = useRef(null);
 	const navbarRef = useRef(null);
+
+	// Navigation structure with semantic naming (no icons)
+	const navigationItems = [
+		{
+			label: "Home",
+			path: "/home",
+			type: "link",
+		},
+		{
+			label: "Dog Activities",
+			type: "dropdown",
+			items: [
+				{ label: "Walk Dogs", path: "/walkdogs" },
+				{ label: "My Walks", path: "/mywalks" },
+				{ label: "Walk History", path: "/walk-history" },
+				{ label: "Waiver Form", path: "/waiver" },
+			],
+		},
+		{
+			label: "Adoption Center",
+			type: "dropdown",
+			items: [
+				{ label: "Available Dogs", path: "/adoption-board" },
+				{ label: "Adoption Requests", path: "/adoption-inquiries" },
+			],
+		},
+		{
+			label: "Community",
+			type: "dropdown",
+			items: [
+				{ label: "Donate & Support", path: "/donate" },
+				{ label: "Become a Marshal", path: "/marshal-application" },
+			],
+		},
+		{
+			label: "About Us",
+			type: "dropdown",
+			items: [
+				{ label: "Our Mission", path: "/about" },
+				{ label: "Dog Gallery", path: "/gallery" },
+			],
+		},
+	];
+
+	// Add admin menu conditionally
+	const adminMenu = {
+		label: "Administration",
+		type: "dropdown",
+		items: [
+			{ label: "Scheduled Walks", path: "/scheduledwalk" },
+			{ label: "User Management", path: "/users" },
+			{ label: "Dog Inventory", path: "/dog-inventory" },
+			{ label: "Activity Reports", path: "/dog-walk-summary" },
+		],
+	};
+
+	// Complete navigation with conditional admin menu
+	const completeNavigation =
+		userProfile.role === "admin"
+			? [...navigationItems, adminMenu]
+			: navigationItems;
 
 	// Check token on mount and refresh the state
 	useEffect(() => {
@@ -121,18 +183,42 @@ export default function Navbar() {
 
 	// Position the active indicator under the current active menu item
 	useEffect(() => {
-		if (activeItemRef.current && activeIndicatorRef.current) {
-			const activeItem = activeItemRef.current;
-			const indicator = activeIndicatorRef.current;
+		// Find the active menu item
+		const findActiveMenuItem = () => {
+			// First check direct links
+			for (let i = 0; i < completeNavigation.length; i++) {
+				const item = completeNavigation[i];
+				if (item.type === "link" && isMenuItemActive(item.path)) {
+					return navDropdownRefs.current[i];
+				}
 
-			// Get the position and width of the active item
-			const { offsetLeft, offsetWidth } = activeItem;
+				// Then check dropdown items
+				if (item.type === "dropdown") {
+					for (const subItem of item.items) {
+						if (isMenuItemActive(subItem.path)) {
+							return navDropdownRefs.current[i];
+						}
+					}
+				}
+			}
+			return null;
+		};
 
-			// Set the indicator position and width
-			indicator.style.left = `${offsetLeft}px`;
-			indicator.style.width = `${offsetWidth}px`;
+		// Position the indicator
+		if (activeIndicatorRef.current) {
+			const activeItem = findActiveMenuItem();
+
+			if (activeItem) {
+				const { offsetLeft, offsetWidth } = activeItem;
+				activeIndicatorRef.current.style.left = `${offsetLeft}px`;
+				activeIndicatorRef.current.style.width = `${offsetWidth}px`;
+				activeIndicatorRef.current.style.opacity = "1";
+			} else {
+				// Hide the indicator if no active item is found
+				activeIndicatorRef.current.style.opacity = "0";
+			}
 		}
-	}, [currentPath, uiState.isMobileMenuOpen]);
+	}, [currentPath, uiState.isMobileMenuOpen, completeNavigation]);
 
 	// Fetch admin notifications
 	useEffect(() => {
@@ -229,7 +315,8 @@ export default function Navbar() {
 
 	// Check if a menu item is active based on current path
 	const isMenuItemActive = (path) => {
-		if (path === "/home" && currentPath === "/") return true;
+		if (path === "/home" && (currentPath === "/" || currentPath === "/home"))
+			return true;
 		return currentPath === path;
 	};
 
@@ -237,67 +324,6 @@ export default function Navbar() {
 	const isDropdownActive = (items) => {
 		return items.some((item) => isMenuItemActive(item.path));
 	};
-
-	// Navigation structure with semantic naming (no icons)
-	const navigationItems = [
-		{
-			label: "Home",
-			path: "/home",
-			type: "link",
-		},
-		{
-			label: "Dog Activities",
-			type: "dropdown",
-			items: [
-				{ label: "Walk Dogs", path: "/walkdogs" },
-				{ label: "My Walks", path: "/mywalks" },
-				{ label: "Walk History", path: "/walk-history" },
-				{ label: "Waiver Form", path: "/waiver" },
-			],
-		},
-		{
-			label: "Adoption Center",
-			type: "dropdown",
-			items: [
-				{ label: "Available Dogs", path: "/adoption-board" },
-				{ label: "Adoption Requests", path: "/adoption-inquiries" },
-			],
-		},
-		{
-			label: "Community",
-			type: "dropdown",
-			items: [
-				{ label: "Donate & Support", path: "/donate" },
-				{ label: "Become a Marshal", path: "/marshal-application" },
-			],
-		},
-		{
-			label: "About Us",
-			type: "dropdown",
-			items: [
-				{ label: "Our Mission", path: "/about" },
-				{ label: "Dog Gallery", path: "/gallery" },
-			],
-		},
-	];
-
-	// Add admin menu conditionally
-	const adminMenu = {
-		label: "Administration",
-		type: "dropdown",
-		items: [
-			{ label: "Scheduled Walks", path: "/scheduledwalk" },
-			{ label: "User Management", path: "/users" },
-			{ label: "Dog Inventory", path: "/dog-inventory" },
-			{ label: "Activity Reports", path: "/dog-walk-summary" },
-		],
-	};
-
-	// Complete navigation with conditional admin menu
-	const completeNavigation =
-		userProfile.role === "admin"
-			? [...navigationItems, adminMenu]
-			: navigationItems;
 
 	return (
 		<nav
@@ -384,7 +410,6 @@ export default function Navbar() {
 														: "text-[#333] hover:bg-[#d9c59a] hover:text-[#8c1d35]"
 												}`}
 												aria-expanded={uiState.activeDropdown === index}
-												ref={isActive ? activeItemRef : null}
 											>
 												{item.label}
 												<ChevronDownIcon
@@ -436,7 +461,7 @@ export default function Navbar() {
 													? "text-[#8c1d35] bg-[#d9c59a] bg-opacity-50"
 													: "text-[#333] hover:bg-[#d9c59a] hover:text-[#8c1d35]"
 											}`}
-											ref={isActive ? activeItemRef : null}
+											ref={(el) => (navDropdownRefs.current[index] = el)}
 										>
 											{item.label}
 										</a>
@@ -446,8 +471,8 @@ export default function Navbar() {
 								{/* Active menu indicator (slider) */}
 								<div
 									ref={activeIndicatorRef}
-									className="absolute bottom-0 h-0.5 bg-[#8c1d35] transition-all duration-300 ease-in-out"
-									style={{ left: 0, width: 0 }}
+									className="absolute bottom-0 h-1 bg-[#8c1d35] transition-all duration-300 ease-in-out rounded-full"
+									style={{ left: 0, width: 0, opacity: 0 }}
 								/>
 							</div>
 						</div>
