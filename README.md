@@ -1,5 +1,5 @@
 This is our Final Project.
-🐾# P40 Underdog Project 
+# P40 Underdog Project 
 
 ## Description
 Our project is called “P-40 Underdogs", a dog support program intended to schedule walks and provide dog adoption. 
@@ -15,7 +15,7 @@ Adoption Board
 	- Users can adopt any breed of dogs
 	- Users can view profiles of the dogs, including the dog's name, age, and category(puppy, adult, or senior)
 	
-💰 Donations & Support
+ Donations & Support
 	- Users can choose how much they wish to donate 
 	- Users can use a credit card or Google Pay to donate 
 	
@@ -23,7 +23,7 @@ Applying for Marshal
 	- Makes sure that walks are organized and structured 
 	- Applicants are asked why do they want to become marshals by the system
 	
-📷 Photo Gallery for Dogs  
+ Photo Gallery for Dogs  
 	- Various photos of different dog breeds 
 	- Similar to the adoption board, users can view the dogs' profile, including name, age, and category
  
