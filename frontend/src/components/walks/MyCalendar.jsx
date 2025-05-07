@@ -450,7 +450,7 @@ const MyCalendar = () => {
 									view={view}
 									onViewChange={setView}
 									className="custom-calendar w-full h-full"
-									minDate={new Date()}
+									minDate={new Date(new Date().setHours(0, 0, 0, 0))}
 									tileDisabled={({ date }) => {
 										const day = date.getDay();
 										const formatted = date.toISOString().split("T")[0]; // → "2025-04-24"
