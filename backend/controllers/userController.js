@@ -295,15 +295,15 @@ exports.myProfile = async (req, res) => {
 			// })
 			.populate({
 				path: "bookedWalks",
-				populate: [
-					// { path: "dogId", model: "Dog" },
-					// { path: "marshalId", model: "User" },
-					{ path: "walkId", model: "ScheduledWalk" },
-				],
-			})
-			.populate({
-				path: "dogsWalked",
-				populate: [{ path: "marshal", model: "User" }],
+				populate: {
+					path: "walkId",
+					model: "ScheduledWalk",
+					populate: [
+						{ path: "dogId", model: "Dog" },
+						{ path: "marshalId", model: "User" },
+						{ path: "walker", model: "User" },
+					],
+				},
 			});
 
 		if (!user) {
@@ -391,10 +391,10 @@ exports.viewUserDetail = async (req, res) => {
 		const userId = req.params.id;
 		console.log("Fetching user details for ID:", userId);
 
-		const user = await User.findById(userId).populate(
-			"bookedWalks",
-			"slots status"
-		);
+		const user = await User.findById(userId)
+			.populate("bookedWalks") // gets full walk objects
+			.populate("dogsWalked"); // gets full past walk objects
+
 		if (!user) {
 			return res.status(404).json({ message: "User not found" });
 		}
@@ -411,9 +411,6 @@ exports.viewUserDetail = async (req, res) => {
 		})
 			.populate("walker")
 			.populate("marshal");
-
-		console.log("User found:", user);
-		console.log("Walks found for user:", walks);
 
 		res.status(200).json({
 			message: "User details fetched successfully",

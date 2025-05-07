@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -49,66 +47,137 @@ export default function Navbar() {
 	const activeIndicatorRef = useRef(null);
 	const navbarRef = useRef(null);
 
-	// Navigation structure with semantic naming (no icons)
-	const navigationItems = [
-		{
-			label: "Home",
-			path: "/home",
-			type: "link",
-		},
-		{
-			label: "Dog Activities",
-			type: "dropdown",
-			items: [
-				{ label: "Walk Dogs", path: "/walkdogs" },
-				{ label: "My Walks", path: "/mywalks" },
-				{ label: "Walk History", path: "/walk-history" },
-				{ label: "Waiver Form", path: "/waiver" },
-			],
-		},
-		{
-			label: "Adoption Center",
-			type: "dropdown",
-			items: [
-				{ label: "Available Dogs", path: "/adoption-board" },
-				{ label: "Adoption Requests", path: "/adoption-inquiries" },
-			],
-		},
-		{
-			label: "Community",
-			type: "dropdown",
-			items: [
-				{ label: "Donate & Support", path: "/donate" },
-				{ label: "Become a Marshal", path: "/marshal-application" },
-			],
-		},
-		{
-			label: "About Us",
-			type: "dropdown",
-			items: [
-				{ label: "Our Mission", path: "/about" },
-				{ label: "Dog Gallery", path: "/gallery" },
-			],
-		},
-	];
-
-	// Add admin menu conditionally
-	const adminMenu = {
-		label: "Administration",
-		type: "dropdown",
-		items: [
-			{ label: "Scheduled Walks", path: "/scheduledwalk" },
-			{ label: "User Management", path: "/users" },
-			{ label: "Dog Inventory", path: "/dog-inventory" },
-			{ label: "Activity Reports", path: "/dog-walk-summary" },
-		],
+	// Navigation items based on user role
+	const getNavigationByRole = (role) => {
+		if (role === "admin") {
+			return [
+				{ label: "Home", type: "link", path: "/home" },
+				{
+					label: "Dog Activities",
+					type: "dropdown",
+					items: [
+						{ label: "Walk Dogs", path: "/walkdogs" },
+						{ label: "Scheduled Walks", path: "/scheduledwalk" },
+						{ label: "Check-in", path: "/checkin" },
+						{ label: "Waiver Form", path: "/waiver" },
+					],
+				},
+				{
+					label: "Adoption Center",
+					type: "dropdown",
+					items: [
+						{ label: "Available Dogs", path: "/adoption-board" },
+						{ label: "Adoption Inquiries", path: "/adoption-inquiries" },
+					],
+				},
+				{
+					label: "Community",
+					type: "dropdown",
+					items: [
+						{ label: "Marshal Applications", path: "/marshal-application" },
+					],
+				},
+				{
+					label: "Donate",
+					type: "link",
+					path: "/donate",
+				},
+				{
+					label: "About Us",
+					type: "dropdown",
+					items: [{ label: "About Us", path: "/about" }],
+				},
+				{
+					label: "Admin Panel",
+					type: "dropdown",
+					items: [
+						{ label: "Dog Walk Summary", path: "/dog-walk-summary" },
+						{ label: "Dogs Looking for Walk", path: "/walkmenow" },
+						{ label: "Completed Walks", path: "/completedwalks" },
+						{ label: "Users Management", path: "/users" },
+						{ label: "Dog Inventory", path: "/dog-inventory" },
+					],
+				},
+			];
+		} else if (role === "marshal") {
+			return [
+				{ label: "Home", type: "link", path: "/home" },
+				{
+					label: "Dog Activities",
+					type: "dropdown",
+					items: [
+						{ label: "Walk Dogs", path: "/walkdogs" },
+						{ label: "Scheduled Walks", path: "/scheduledwalk" },
+						{ label: "Check-in", path: "/checkin" },
+						{ label: "Waiver Form", path: "/waiver" },
+					],
+				},
+				{
+					label: "Adoption Center",
+					type: "dropdown",
+					items: [
+						{ label: "Available Dogs", path: "/adoption-board" },
+						{ label: "Gallery", path: "/gallery" },
+					],
+				},
+				{
+					label: "Donate",
+					type: "link",
+					path: "/donate",
+				},
+				{
+					label: "About Us",
+					type: "dropdown",
+					items: [{ label: "About Us", path: "/about" }],
+				},
+			];
+		} else {
+			// default to user
+			return [
+				{ label: "Home", type: "link", path: "/home" },
+				{
+					label: "Dog Activities",
+					type: "dropdown",
+					items: [
+						{ label: "Walk Dogs", path: "/walkdogs" },
+						{ label: "My Walks", path: "/mywalks" },
+						{ label: "Waiver Form", path: "/waiver" },
+					],
+				},
+				{
+					label: "Adoption Center",
+					type: "dropdown",
+					items: [
+						{ label: "Available Dogs", path: "/adoption-board" },
+						{ label: "Gallery", path: "/gallery" },
+					],
+				},
+				{
+					label: "Community",
+					type: "dropdown",
+					items: [{ label: "Become a Marshal", path: "/marshal-application" }],
+				},
+				{
+					label: "Donate",
+					type: "link",
+					path: "/donate",
+				},
+			];
+		}
 	};
 
-	// Complete navigation with conditional admin menu
-	const completeNavigation =
-		userProfile.role === "admin"
-			? [...navigationItems, adminMenu]
-			: navigationItems;
+	const navigationItems = getNavigationByRole(userProfile.role);
+	const completeNavigation = navigationItems;
+
+	// Public navigation for unauthenticated users
+	const publicNavigation = [
+		{ label: "Home", type: "link", path: "/home" },
+		{
+			label: "Donate",
+			type: "link",
+			path: "/donate",
+		},
+	];
 
 	// Check token on mount and refresh the state
 	useEffect(() => {
@@ -594,17 +663,17 @@ export default function Navbar() {
 						: "max-h-0 opacity-0"
 				}`}
 			>
-				<div className="space-y-2 px-3 pb-3 pt-2 border-t border-[#d9c59a]">
+				<div className="space-y-2 px-3 pb-3 pt-2 border-t border-[#e2cfa3]">
 					{completeNavigation.map((item, idx) =>
 						item.type === "dropdown" ? (
 							<div
 								key={idx}
-								className="mb-2 bg-[#f8f2e2] rounded-md overflow-hidden shadow-sm"
+								className="mb-2 bg-white rounded-md overflow-hidden shadow-sm"
 							>
 								{/* Collapsible dropdown header */}
 								<button
 									onClick={() => toggleMobileDropdown(idx)}
-									className="w-full flex items-center justify-between font-semibold px-3 py-2.5 text-[#8c1d35] border-b border-[#e8d3a9] focus:outline-none"
+									className="w-full flex items-center justify-between font-semibold px-3 py-2.5 text-[#8c1d35] border-b border-[#e2cfa3] focus:outline-none bg-white hover:bg-[#f8f2e2]"
 								>
 									<span>{item.label}</span>
 									<ChevronDownIcon
@@ -637,13 +706,13 @@ export default function Navbar() {
 													className={`block px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
 														currentPath === subItem.path
 															? "bg-[#d9c59a] bg-opacity-50 text-[#8c1d35]"
-															: "text-[#333] hover:bg-[#d9c59a] hover:bg-opacity-30 hover:text-[#8c1d35]"
+															: "text-[#333] hover:bg-[#f8f2e2] hover:text-[#8c1d35]"
 													}`}
 												>
 													{subItem.label}
 												</a>
 												{subIdx < item.items.length - 1 && (
-													<div className="mx-4 border-t border-[#e8d3a9]"></div>
+													<div className="mx-4 border-t border-[#e2cfa3]"></div>
 												)}
 											</div>
 										);
@@ -657,7 +726,7 @@ export default function Navbar() {
 								className={`block rounded-md px-3 py-2.5 text-base font-medium transition-all duration-200 ${
 									currentPath === item.path
 										? "bg-[#d9c59a] text-[#8c1d35]"
-										: "text-[#333] hover:bg-[#d9c59a] hover:text-[#8c1d35]"
+										: "text-[#333] hover:bg-[#f8f2e2] hover:text-[#8c1d35] bg-white"
 								}`}
 							>
 								{item.label}
