@@ -26,11 +26,22 @@ const WalkMeNow = () => {
 
 	useEffect(() => {
 		// Filter dogs based on search term
-		const filtered = dogs.filter(
-			(dog) =>
-				dog.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				dog.breed.toLowerCase().includes(searchTerm.toLowerCase())
-		);
+		const filtered = dogs
+			.filter(
+				(dog) =>
+					dog.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+					dog.breed.toLowerCase().includes(searchTerm.toLowerCase())
+			)
+			.sort((a, b) => {
+				const dateA = a.lastWalk ? new Date(a.lastWalk) : null;
+				const dateB = b.lastWalk ? new Date(b.lastWalk) : null;
+
+				if (!dateA && !dateB) return 0;
+				if (!dateA) return -1;
+				if (!dateB) return 1;
+
+				return dateA - dateB; // Oldest walk first
+			});
 
 		setFilteredDogs(filtered);
 	}, [dogs, searchTerm]);
