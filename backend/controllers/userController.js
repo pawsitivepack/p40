@@ -295,15 +295,15 @@ exports.myProfile = async (req, res) => {
 			// })
 			.populate({
 				path: "bookedWalks",
-				populate: {
-					path: "walkId",
-					model: "ScheduledWalk",
-					populate: [
-						{ path: "dogId", model: "Dog" },
-						{ path: "marshalId", model: "User" },
-						{ path: "walker", model: "User" },
-					],
-				},
+				populate: [
+					// { path: "dogId", model: "Dog" },
+					// { path: "marshalId", model: "User" },
+					{ path: "walkId", model: "ScheduledWalk" },
+				],
+			})
+			.populate({
+				path: "dogsWalked",
+				populate: [{ path: "marshal", model: "User" }],
 			});
 
 		if (!user) {
