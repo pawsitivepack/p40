@@ -114,13 +114,17 @@ exports.filteredDogs = async (req, res) => {
 			};
 		});
 
-		// Sort by: 1. days since last walk (desc), then 2. walk count (asc)
+		// Sort by: 1. dogs with no walks first, then 2. oldest last walk first
 		const sorted = scoredDogs
 			.sort((a, b) => {
-				if (b.daysSinceLastWalk !== a.daysSinceLastWalk) {
-					return b.daysSinceLastWalk - a.daysSinceLastWalk;
-				}
-				return a.walkCount - b.walkCount;
+				const dateA = a.dog.lastWalk ? new Date(a.dog.lastWalk) : null;
+				const dateB = b.dog.lastWalk ? new Date(b.dog.lastWalk) : null;
+
+				if (!dateA && !dateB) return 0;
+				if (!dateA) return -1;
+				if (!dateB) return 1;
+
+				return dateA - dateB; // oldest walk first
 			})
 			.map((e) => e.dog);
 
